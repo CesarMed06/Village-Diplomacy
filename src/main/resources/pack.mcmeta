@@ -1,9 +1,9 @@
 {
   "pack": {
     "description": [
-      {"text": "Village Diplomacy", "color": "gold", "bold": true},
+      {"text": "Diplomatia de Aldeas", "color": "gold", "bold": true},
       {"text": "\n"},
-      {"text": "Reputation & Relationship System", "color": "gray"}
+      {"text": "Sistema de Reputación y Relaciones", "color": "gray"}
     ],
     "pack_format": 15
   }

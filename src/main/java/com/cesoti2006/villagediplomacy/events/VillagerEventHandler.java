@@ -16,8 +16,10 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.animal.IronGolem;
 import net.minecraft.world.entity.animal.*;
+import net.minecraft.world.entity.animal.camel.Camel;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.monster.ZombieVillager;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.inventory.ChestMenu;
 import net.minecraft.world.item.ItemStack;
@@ -29,6 +31,7 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
+import net.minecraftforge.event.entity.living.LivingConversionEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.entity.player.PlayerContainerEvent;
@@ -64,6 +67,8 @@ public class VillagerEventHandler {
     private final Map<UUID, Long> golemForgivenessTime = new HashMap<>();
     // Sistema de saludos (para HERO/ALLY)
     private final Map<UUID, Map<UUID, Long>> villagerGreetingCooldown = new HashMap<>();
+    // Sistema de curación de zombie villagers (player que curó -> zombie curado)
+    private final Map<UUID, UUID> zombieVillagerCurers = new HashMap<>();
 
     private static final long TRADE_WINDOW_MS = 500;
     private static final long MAJOR_CRIME_DURATION_MS = 120000;
@@ -629,6 +634,7 @@ public class VillagerEventHandler {
         else if (event.getEntity() instanceof Chicken) animalType = "chicken";
         else if (event.getEntity() instanceof Rabbit) animalType = "rabbit";
         else if (event.getEntity() instanceof AbstractHorse) animalType = "horse";
+        else if (event.getEntity() instanceof Camel) animalType = "camel";
         
         if (animalType == null) return;
 
@@ -775,6 +781,26 @@ public class VillagerEventHandler {
                                 };
                                 break;
 
+                            case "camel":
+                                babyMessages = new String[] {
+                                        "§c[Baby Villager] Don't hurt the camel! *cries*",
+                                        "§c[Baby Villager] Camels are for the desert!",
+                                        "§c[Baby Villager] That camel is cool!",
+                                        "§c[Baby Villager] Leave the camel alone!",
+                                        "§c[Baby Villager] I like camels!"
+                                };
+                                adultMessages = new String[] {
+                                        "§c[Villager] That camel is our desert transportation!",
+                                        "§c[Villager] Stop! We need that camel for travel!",
+                                        "§c[Villager] Those camels are expensive!",
+                                        "§c[Villager] That's weeks of breeding work!",
+                                        "§c[Villager] Leave our camels alone!",
+                                        "§c[Villager] We use those camels for desert routes!",
+                                        "§c[Villager] That camel carries our supplies!",
+                                        "§c[Villager] You're attacking our mobility!"
+                                };
+                                break;
+
                             default:
                                 babyMessages = new String[] {"§c[Baby Villager] Don't hurt them!"};
                                 adultMessages = new String[] {"§c[Villager] Stop that!"};
@@ -811,6 +837,7 @@ public class VillagerEventHandler {
         else if (event.getEntity() instanceof Chicken) animalType = "chicken";
         else if (event.getEntity() instanceof Rabbit) animalType = "rabbit";
         else if (event.getEntity() instanceof AbstractHorse) animalType = "horse";
+        else if (event.getEntity() instanceof Camel) animalType = "camel";
         
         if (animalType == null) return;
 
@@ -954,6 +981,28 @@ public class VillagerEventHandler {
                                     "§c[Villager] You've crippled our commerce!",
                                     "§c[Villager] That horse was part of the family!",
                                     "§c[Villager] Killing a horse?! You're HEARTLESS!"
+                            };
+                            break;
+
+                        case "camel":
+                            babyMessages = new String[] {
+                                    "§c[Baby Villager] You killed the camel! NOOO! *wails*",
+                                    "§c[Baby Villager] That camel was so tall! *cries*",
+                                    "§c[Baby Villager] I wanted to ride it! *devastated*",
+                                    "§c[Baby Villager] Camels are amazing! Why?! *sobs*",
+                                    "§c[Baby Villager] That's so cruel! *heartbroken*"
+                            };
+                            adultMessages = new String[] {
+                                    "§c[Villager] YOU KILLED OUR CAMEL!",
+                                    "§c[Villager] That camel was EXPENSIVE! 30 emeralds!",
+                                    "§c[Villager] We needed that camel for DESERT TRAVEL!",
+                                    "§c[Villager] That took WEEKS to tame and breed!",
+                                    "§c[Villager] How will we cross the desert now?!",
+                                    "§c[Villager] CAMEL KILLER! That was our LIVELIHOOD!",
+                                    "§c[Villager] We used that camel for desert routes!",
+                                    "§c[Villager] You've crippled our desert commerce!",
+                                    "§c[Villager] That camel was irreplaceable!",
+                                    "§c[Villager] Killing a camel?! You're HEARTLESS!"
                             };
                             break;
 
@@ -3381,6 +3430,10 @@ public class VillagerEventHandler {
     }
 
     private void makeGolemsProtectVillageBasedOnReputation(ServerPlayer player, ServerLevel level) {
+        // No atacar en creative o spectator
+        if (player.isCreative() || player.isSpectator())
+            return;
+            
         VillageReputationData reputationData = VillageReputationData.get(level.getServer().overworld());
         int reputation = reputationData.getReputation(player.getUUID());
 
@@ -3699,4 +3752,72 @@ public class VillagerEventHandler {
                 "§a[" + villagerName + "] Welcome!"
             };
         };
-    }}
+    }
+
+    @SubscribeEvent
+    public void onZombieVillagerCured(LivingConversionEvent.Post event) {
+        if (!(event.getEntity() instanceof Villager villager))
+            return;
+        if (!(villager.level() instanceof ServerLevel level))
+            return;
+
+        // Buscar quién curó a este zombie villager
+        UUID curerUUID = zombieVillagerCurers.remove(event.getEntity().getUUID());
+        if (curerUUID == null)
+            return;
+
+        ServerPlayer curer = level.getServer().getPlayerList().getPlayer(curerUUID);
+        if (curer == null)
+            return;
+
+        // Dar +100 de reputación por curar
+        BlockPos villagerPos = villager.blockPosition();
+        Optional<BlockPos> nearestVillage = VillageDetector.findNearestVillage(level, villagerPos, 200);
+        
+        if (nearestVillage.isPresent()) {
+            VillageReputationData data = VillageReputationData.get(level);
+            int oldRep = data.getReputation(curerUUID, nearestVillage.get());
+            data.addReputation(curerUUID, nearestVillage.get(), 100);
+            int newRep = data.getReputation(curerUUID, nearestVillage.get());
+            
+            curer.sendSystemMessage(Component.literal(
+                "§a[Village Diplomacy] Cured a zombie villager! +100 Reputation (Total: " +
+                newRep + " - " + getReputationStatus(newRep) + ")"));
+                
+            checkReputationLevelChange(curer, level, newRep);
+        }
+    }
+
+    @SubscribeEvent
+    public void onPlayerInteractWithZombieVillager(PlayerInteractEvent.EntityInteract event) {
+        if (!(event.getEntity() instanceof ServerPlayer player))
+            return;
+        if (!(event.getTarget() instanceof ZombieVillager zombieVillager))
+            return;
+            
+        ItemStack held = player.getItemInHand(event.getHand());
+        
+        // Detectar si el player está curando (golden apple + weakness)
+        if (held.getItem() == Items.GOLDEN_APPLE && zombieVillager.hasEffect(net.minecraft.world.effect.MobEffects.WEAKNESS)) {
+            // Registrar quién está curando a este zombie
+            zombieVillagerCurers.put(zombieVillager.getUUID(), player.getUUID());
+        }
+    }
+
+    private boolean isJobSiteBlock(Block block) {
+        // Lista completa de job site blocks que los aldeanos usan
+        return block instanceof net.minecraft.world.level.block.BarrelBlock ||
+               block instanceof net.minecraft.world.level.block.BlastFurnaceBlock ||
+               block instanceof net.minecraft.world.level.block.BrewingStandBlock ||
+               block instanceof net.minecraft.world.level.block.CartographyTableBlock ||
+               block instanceof net.minecraft.world.level.block.CauldronBlock ||
+               block instanceof net.minecraft.world.level.block.ComposterBlock ||
+               block instanceof net.minecraft.world.level.block.FletchingTableBlock ||
+               block instanceof net.minecraft.world.level.block.GrindstoneBlock ||
+               block instanceof net.minecraft.world.level.block.LecternBlock ||
+               block instanceof net.minecraft.world.level.block.LoomBlock ||
+               block instanceof net.minecraft.world.level.block.SmokerBlock ||
+               block instanceof net.minecraft.world.level.block.SmithingTableBlock ||
+               block instanceof net.minecraft.world.level.block.StonecutterBlock;
+    }
+}

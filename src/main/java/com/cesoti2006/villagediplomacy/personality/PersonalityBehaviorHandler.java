@@ -265,14 +265,6 @@ public class PersonalityBehaviorHandler {
                 villager.startUsingItem(net.minecraft.world.InteractionHand.MAIN_HAND);
             }
             
-            // Forzar persistencia del item (para evitar parpadeo de Minecraft)
-            // Se mantiene el mismo item hasta el próximo cambio de actividad
-            level.getServer().execute(() -> {
-                if (villager.isAlive() && !villager.isRemoved()) {
-                    villager.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND, toolCopy);
-                }
-            });
-            
             // Mensaje contextual (cooldown de 60 segundos)
             String lastAct = lastActivity.get(villagerId);
             Long lastChange = lastToolChange.get(villagerId);

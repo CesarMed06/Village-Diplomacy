@@ -91,70 +91,70 @@ public class VillagerEventHandler {
     private final Map<UUID, Long> golemResetCooldown = new HashMap<>();
 
     private final String[] adultChestMessages = {
-            "§c[Villager] HEY! That's MINE!",
-            "§c[Villager] *gasps* A THIEF!",
-            "§c[Villager] STOP! Put that back!",
-            "§c[Villager] You... you're stealing from us!",
-            "§c[Villager] I can't believe you'd do this!",
-            "§c[Villager] GUARDS! We have a thief!",
-            "§c[Villager] How DARE you open that!",
-            "§c[Villager] That chest is NOT yours!",
-            "§c[Villager] Get away from my belongings!",
-            "§c[Villager] What do you think you're doing?!",
-            "§c[Villager] I worked YEARS for what's in there!",
-            "§c[Villager] You'll regret this, thief!",
-            "§c[Villager] That's private property!",
-            "§c[Villager] My life savings are in there!",
-            "§c[Villager] HELP! ROBBERY!",
-            "§c[Villager] This is a violation of trust!",
-            "§c[Villager] Stay away from my chest!",
-            "§c[Villager] You're no better than a pillager!"
+            "§c[Aldeano] ¡OYE! ¡Eso es MÍO!",
+            "§c[Aldeano] *jadea* ¡Un LADRÓN!",
+            "§c[Aldeano] ¡DETENTE! ¡Devuelve eso!",
+            "§c[Aldeano] ¡Nos... nos estás robando!",
+            "§c[Aldeano] ¡No puedo creer que hagas esto!",
+            "§c[Aldeano] ¡GUARDIAS! ¡Tenemos un ladrón!",
+            "§c[Aldeano] ¡Cómo TE ATREVES a abrir eso!",
+            "§c[Aldeano] ¡Ese cofre NO es tuyo!",
+            "§c[Aldeano] ¡Aléjate de mis pertenencias!",
+            "§c[Aldeano] ¿¡Qué crees que estás haciendo!?",
+            "§c[Aldeano] ¡Trabajé AÑOS por lo que hay ahí!",
+            "§c[Aldeano] ¡Te arrepentirás de esto, ladrón!",
+            "§c[Aldeano] ¡Eso es propiedad privada!",
+            "§c[Aldeano] ¡Mis ahorros de toda la vida están ahí!",
+            "§c[Aldeano] ¡AYUDA! ¡ROBO!",
+            "§c[Aldeano] ¡Esto es una violación de confianza!",
+            "§c[Aldeano] ¡Aléjate de mi cofre!",
+            "§c[Aldeano] ¡No eres mejor que un saqueador!"
     };
 
     private final String[] babyChestMessages = {
-            "§c[Baby Villager] *cries* Mommy! They're taking our stuff!",
-            "§c[Baby Villager] Noooo! That's our family's chest!",
-            "§c[Baby Villager] Why are you being mean? *sniffles*",
-            "§c[Baby Villager] I'm telling my dad on you!",
-            "§c[Baby Villager] *runs away crying* THIEF!",
-            "§c[Baby Villager] That's not yours! *sobs*",
-            "§c[Baby Villager] Bad person! Bad!",
-            "§c[Baby Villager] My toys are in there!",
-            "§c[Baby Villager] *wails* STOOOOOP!",
-            "§c[Baby Villager] You're a big bully!",
-            "§c[Baby Villager] I'm scared! *cries*",
-            "§c[Baby Villager] Daddy said strangers are dangerous!"
+            "§c[Aldeano Bebé] *llora* ¡Mami! ¡Están robando nuestras cosas!",
+            "§c[Aldeano Bebé] ¡Noooo! ¡Ese es el cofre de nuestra familia!",
+            "§c[Aldeano Bebé] ¿Por qué eres malo? *solloza*",
+            "§c[Aldeano Bebé] ¡Se lo voy a decir a mi papá!",
+            "§c[Aldeano Bebé] *huye llorando* ¡LADRÓN!",
+            "§c[Aldeano Bebé] ¡Eso no es tuyo! *llora*",
+            "§c[Aldeano Bebé] ¡Mala persona! ¡Malo!",
+            "§c[Aldeano Bebé] ¡Mis juguetes están ahí!",
+            "§c[Aldeano Bebé] *grita* ¡PAAAAARA!",
+            "§c[Aldeano Bebé] ¡Eres un gran abusón!",
+            "§c[Aldeano Bebé] ¡Tengo miedo! *llora*",
+            "§c[Aldeano Bebé] ¡Papi dijo que los extraños son peligrosos!"
     };
 
     private final String[] adultLootMessages = {
-            "§c[Villager] Those are OUR supplies!",
-            "§c[Villager] You're taking everything we have!",
-            "§c[Villager] THIEF! Someone help!",
-            "§c[Villager] I worked HARD for those items!",
-            "§c[Villager] You're robbing us blind!",
-            "§c[Villager] May you forever be cursed!",
-            "§c[Villager] The Iron Golem will hear about this!",
-            "§c[Villager] You're leaving us with NOTHING!",
-            "§c[Villager] How will we survive now?!",
-            "§c[Villager] Those were for the winter!",
-            "§c[Villager] You're worse than raiders!",
-            "§c[Villager] I hope karma catches up with you!",
-            "§c[Villager] You've doomed us all!",
-            "§c[Villager] Our children will starve because of you!",
-            "§c[Villager] This is unforgivable!"
+            "§c[Aldeano] ¡Esos son NUESTROS suministros!",
+            "§c[Aldeano] ¡Estás tomando todo lo que tenemos!",
+            "§c[Aldeano] ¡LADRÓN! ¡Alguien ayude!",
+            "§c[Aldeano] ¡Trabajé DURO por esos objetos!",
+            "§c[Aldeano] ¡Nos estás robando sin piedad!",
+            "§c[Aldeano] ¡Que seas maldito por siempre!",
+            "§c[Aldeano] ¡El Gólem de Hierro se enterará de esto!",
+            "§c[Aldeano] ¡Nos estás dejando sin NADA!",
+            "§c[Aldeano] ¿¡Cómo sobreviviremos ahora!?",
+            "§c[Aldeano] ¡Eso era para el invierno!",
+            "§c[Aldeano] ¡Eres peor que los saqueadores!",
+            "§c[Aldeano] ¡Espero que el karma te alcance!",
+            "§c[Aldeano] ¡Nos has condenado a todos!",
+            "§c[Aldeano] ¡Nuestros niños morirán de hambre por tu culpa!",
+            "§c[Aldeano] ¡Esto es imperdonable!"
     };
 
     private final String[] babyLootMessages = {
-            "§c[Baby Villager] *sobs* That was my favorite toy!",
-            "§c[Baby Villager] No no no! Not our food!",
-            "§c[Baby Villager] You're a big meanie!",
-            "§c[Baby Villager] I hate you! *cries loudly*",
-            "§c[Baby Villager] Give it baaaack! *wails*",
-            "§c[Baby Villager] That's not fair!",
-            "§c[Baby Villager] You're evil! *sniffles*",
-            "§c[Baby Villager] I'll never forget this!",
-            "§c[Baby Villager] Why would you do that?! *cries*",
-            "§c[Baby Villager] Mommy's gonna be so upset!"
+            "§c[Aldeano Bebé] *solloza* ¡Ese era mi juguete favorito!",
+            "§c[Aldeano Bebé] ¡No no no! ¡Nuestra comida no!",
+            "§c[Aldeano Bebé] ¡Eres un gran malo!",
+            "§c[Aldeano Bebé] ¡Te odio! *llora fuerte*",
+            "§c[Aldeano Bebé] ¡Devuélveloooo! *grita*",
+            "§c[Aldeano Bebé] ¡Eso no es justo!",
+            "§c[Aldeano Bebé] ¡Eres malvado! *solloza*",
+            "§c[Aldeano Bebé] ¡Nunca olvidaré esto!",
+            "§c[Aldeano Bebé] ¿¡Por qué harías eso!? *llora*",
+            "§c[Aldeano Bebé] ¡Mami se va a enojar mucho!"
     };
 
     @SubscribeEvent
@@ -242,10 +242,10 @@ public class VillagerEventHandler {
                 newCrimeEnd = existingCrimeEnd + MAJOR_CRIME_DURATION_MS;
                 int totalSeconds = (int) ((newCrimeEnd - currentTime) / 1000);
                 player.sendSystemMessage(Component.literal(
-                        "§4[Village Diplomacy] MURDER! Crime time extended! Total: " + totalSeconds + " seconds"));
+                        "§4[Diplomacia de Aldeas] ¡ASESINATO! ¡Tiempo de crimen extendido! Total: " + totalSeconds + " segundos"));
             } else {
                 player.sendSystemMessage(Component.literal(
-                        "§4[Village Diplomacy] MURDER WITNESSED! Iron Golems will hunt you for 2 minutes!"));
+                        "§4[Diplomacia de Aldeas] ¡ASESINATO PRESENCIADO! ¡Los Golems de Hierro te cazarán por 2 minutos!"));
             }
 
             crimeCommittedTime.put(playerId, newCrimeEnd);
@@ -283,7 +283,7 @@ public class VillagerEventHandler {
         String status = getReputationStatus(newRep);
 
         player.sendSystemMessage(Component.literal(
-                "§4[Village Diplomacy] You killed an Iron Golem! Reputation -150 (Total: " +
+                "§4[Diplomacia de Aldeas] ¡Mataste a un Golem de Hierro! Reputación -150 (Total: " +
                         newRep + " - " + status + ")"));
 
         checkReputationLevelChange(player, level, newRep);
@@ -384,17 +384,17 @@ public class VillagerEventHandler {
 
         // Mensajes básicos para bebés (no tienen profesión)
         String[] babyMessages = {
-                "§c[Baby Villager] *screams* HELP! Someone's hitting me!",
-                "§c[Baby Villager] OW OW OW! Stop it!",
-                "§c[Baby Villager] *cries* That hurts!",
-                "§c[Baby Villager] MOMMY! DADDY! HELP!",
-                "§c[Baby Villager] Why are you hurting me?! *sobs*",
-                "§c[Baby Villager] I didn't do anything! *whimpers*",
-                "§c[Baby Villager] *wails* Leave me alone!",
-                "§c[Baby Villager] You're a mean person!",
-                "§c[Baby Villager] *screaming and crying* STOP!",
-                "§c[Baby Villager] I'm telling the Iron Golem!",
-                "§c[Baby Villager] *terrified* Please don't hurt me!"
+                "§c[Aldeano Bebé] *grita* ¡AYUDA! ¡Alguien me está pegando!",
+                "§c[Aldeano Bebé] ¡AY AY AY! ¡DETENTE!",
+                "§c[Aldeano Bebé] *llora* ¡Eso duele!",
+                "§c[Aldeano Bebé] ¡MAMI! ¡PAPI! ¡AYUDA!",
+                "§c[Aldeano Bebé] ¿¡Por qué me estás lastimando!? *solloza*",
+                "§c[Aldeano Bebé] ¡No hice nada! *gime*",
+                "§c[Aldeano Bebé] *llora* ¡Déjame en paz!",
+                "§c[Aldeano Bebé] ¡Eres una persona mala!",
+                "§c[Aldeano Bebé] *gritando y llorando* ¡PARA!",
+                "§c[Aldeano Bebé] ¡Se lo diré al Gólem de Hierro!",
+                "§c[Aldeano Bebé] *aterrado* ¡Por favor no me lastimes!"
         };
 
         String message;
@@ -409,197 +409,197 @@ public class VillagerEventHandler {
             switch (profession) {
                 case "farmer":
                     professionMessages = new String[] {
-                            "§c[Farmer] Stop! I'm just trying to feed the village!",
-                            "§c[Farmer] Don't hurt me! Who will tend the crops?!",
-                            "§c[Farmer] I work the fields day and night, and THIS is my thanks?!",
-                            "§c[Farmer] Leave me alone! The harvest won't gather itself!",
-                            "§c[Farmer] You're attacking the one who grows your food!",
-                            "§c[Farmer] I've got carrots to plant! Guards!",
-                            "§c[Farmer] My back already hurts from farming!",
-                            "§c[Farmer] Without me, you'd starve!"
+                            "§c[Granjero] ¡Detente! ¡Solo intento alimentar a la aldea!",
+                            "§c[Granjero] ¡No me lastimes! ¿¡Quién cuidará los cultivos!?",
+                            "§c[Granjero] ¡Trabajo los campos día y noche, y ASÍ es mi agradecimiento!?",
+                            "§c[Granjero] ¡Déjame en paz! ¡La cosecha no se recogerá sola!",
+                            "§c[Granjero] ¡Estás atacando al que cultiva tu comida!",
+                            "§c[Granjero] ¡Tengo zanahorias que plantar! ¡Guardias!",
+                            "§c[Granjero] ¡Mi espalda ya duele de tanto cultivar!",
+                            "§c[Granjero] ¡Sin mí, morirías de hambre!"
                     };
                     break;
 
                 case "librarian":
                     professionMessages = new String[] {
-                            "§c[Librarian] Violence is not the answer! Read a book!",
-                            "§c[Librarian] Cease this barbarism at once!",
-                            "§c[Librarian] I'm a man of KNOWLEDGE, not combat!",
-                            "§c[Librarian] This is most unscholarly behavior!",
-                            "§c[Librarian] Stop! Think of the books!",
-                            "§c[Librarian] I'd prefer to resolve this intellectually!",
-                            "§c[Librarian] My enchantments won't save me from THIS!",
-                            "§c[Librarian] Barbaric! Simply barbaric!"
+                            "§c[Bibliotecario] ¡La violencia no es la respuesta! ¡Lee un libro!",
+                            "§c[Bibliotecario] ¡Cesa este barbarismo de inmediato!",
+                            "§c[Bibliotecario] ¡Soy un hombre de CONOCIMIENTO, no de combate!",
+                            "§c[Bibliotecario] ¡Este comportamiento no es nada académico!",
+                            "§c[Bibliotecario] ¡Detente! ¡Piensa en los libros!",
+                            "§c[Bibliotecario] ¡Preferiría resolver esto intelectualmente!",
+                            "§c[Bibliotecario] ¡Mis encantamientos no me salvarán de ESTO!",
+                            "§c[Bibliotecario] ¡Bárbaro! ¡Simplemente bárbaro!"
                     };
                     break;
 
                 case "armorer":
                     professionMessages = new String[] {
-                            "§c[Armorer] You dare attack a MASTER of armor?!",
-                            "§c[Armorer] I forge protection, and you strike me?!",
-                            "§c[Armorer] Ironic! Attacking the one who makes armor!",
-                            "§c[Armorer] I should've kept a sword nearby!",
-                            "§c[Armorer] Who'll repair your gear NOW, fool?!",
-                            "§c[Armorer] My smithing hammer is RIGHT THERE!",
-                            "§c[Armorer] Tough guy, attacking an armorer!",
-                            "§c[Armorer] I work with METAL all day! Bad idea!"
+                            "§c[Armero] ¿¡Te atreves a atacar a un MAESTRO de armaduras!?",
+                            "§c[Armero] ¿¡Forjo protección, y tú me golpeas!?",
+                            "§c[Armero] ¡Irónico! ¡Atacar a quien hace armaduras!",
+                            "§c[Armero] ¡Debería haber dejado una espada cerca!",
+                            "§c[Armero] ¿¡Quién reparará tu equipo AHORA, tonto!?",
+                            "§c[Armero] ¡Mi martillo de herrería está AHÍ MISMO!",
+                            "§c[Armero] ¡Tipo rudo, atacando a un armero!",
+                            "§c[Armero] ¡Trabajo con METAL todo el día! ¡Mala idea!"
                     };
                     break;
 
                 case "weaponsmith":
                     professionMessages = new String[] {
-                            "§c[Weaponsmith] Attacking a WEAPONSMITH?! Are you MAD?!",
-                            "§c[Weaponsmith] I forge SWORDS, you fool!",
-                            "§c[Weaponsmith] Bold move attacking someone who makes weapons!",
-                            "§c[Weaponsmith] Wait till I grab my finest blade!",
-                            "§c[Weaponsmith] I know 50 ways to hurt you with THIS hammer!",
-                            "§c[Weaponsmith] Wrong villager to mess with, friend!",
-                            "§c[Weaponsmith] I'm surrounded by weapons! Think!",
-                            "§c[Weaponsmith] Every blade here is mine!"
+                            "§c[Armero] ¿¡Atacar a un ARMERO!? ¿¡Estás LOCO!?",
+                            "§c[Armero] ¡Forjo ESPADAS, tonto!",
+                            "§c[Armero] ¡Movimiento audaz atacar a quien hace armas!",
+                            "§c[Armero] ¡Espera a que tome mi mejor hoja!",
+                            "§c[Armero] ¡Conozco 50 formas de lastimarte con ESTE martillo!",
+                            "§c[Armero] ¡Aldeano equivocado para meterse, amigo!",
+                            "§c[Armero] ¡Estoy rodeado de armas! ¡Piensa!",
+                            "§c[Armero] ¡Cada hoja aquí es mía!"
                     };
                     break;
 
                 case "toolsmith":
                     professionMessages = new String[] {
-                            "§c[Toolsmith] Stop! I'm the one who makes your tools!",
-                            "§c[Toolsmith] No more pickaxes for YOU!",
-                            "§c[Toolsmith] Without me, good luck mining!",
-                            "§c[Toolsmith] I have hammers everywhere, bad idea!",
-                            "§c[Toolsmith] Who will forge your tools now?!",
-                            "§c[Toolsmith] Think you can mine with your FISTS?!",
-                            "§c[Toolsmith] I'm the reason you HAVE tools!",
-                            "§c[Toolsmith] Good luck crafting without me!"
+                            "§c[Herrero] ¡Detente! ¡Soy quien hace tus herramientas!",
+                            "§c[Herrero] ¡No más picos para TI!",
+                            "§c[Herrero] ¡Sin mí, buena suerte minando!",
+                            "§c[Herrero] ¡Tengo martillos por todas partes, mala idea!",
+                            "§c[Herrero] ¿¡Quién forjará tus herramientas ahora!?",
+                            "§c[Herrero] ¿¡Crees que puedes minar con tus PUÑOS!?",
+                            "§c[Herrero] ¡Soy la razón por la que TIENES herramientas!",
+                            "§c[Herrero] ¡Buena suerte fabricando sin mí!"
                     };
                     break;
 
                 case "cleric":
                     professionMessages = new String[] {
-                            "§c[Cleric] You attack a healer?! BLASPHEMY!",
-                            "§c[Cleric] May the gods forgive you, for I won't!",
-                            "§c[Cleric] This is sacrilege!",
-                            "§c[Cleric] I heal the sick, and THIS is my reward?!",
-                            "§c[Cleric] You'll need my healing potions later!",
-                            "§c[Cleric] The gods are watching, sinner!",
-                            "§c[Cleric] I'll pray you see the error of your ways!",
-                            "§c[Cleric] Divine retribution awaits you!"
+                            "§c[Clérigo] ¿¡Atacas a un sanador!? ¡BLASFEMIA!",
+                            "§c[Clérigo] ¡Que los dioses te perdonen, porque yo no lo haré!",
+                            "§c[Clérigo] ¡Esto es sacrilegio!",
+                            "§c[Clérigo] ¡Curo a los enfermos, y ASÍ es mi recompensa!?",
+                            "§c[Clérigo] ¡Necesitarás mis pociones de curación después!",
+                            "§c[Clérigo] ¡Los dioses están observando, pecador!",
+                            "§c[Clérigo] ¡Rezaré para que veas el error de tus caminos!",
+                            "§c[Clérigo] ¡La retribución divina te espera!"
                     };
                     break;
 
                 case "butcher":
                     professionMessages = new String[] {
-                            "§c[Butcher] Wrong person! I have CLEAVERS!",
-                            "§c[Butcher] I work with MEAT and BLADES daily!",
-                            "§c[Butcher] Bad idea attacking someone with knives!",
-                            "§c[Butcher] I butcher ANIMALS, not people!",
-                            "§c[Butcher] My cleaver is SHARP, buddy!",
-                            "§c[Butcher] No more cooked porkchops for YOU!",
-                            "§c[Butcher] I deal with raw meat, I can handle you!",
-                            "§c[Butcher] You're making a GRAVE mistake!"
+                            "§c[Carnicero] ¡Persona equivocada! ¡Tengo CUCHILLAS!",
+                            "§c[Carnicero] ¡Trabajo con CARNE y CUCHILLOS diariamente!",
+                            "§c[Carnicero] ¡Mala idea atacar a alguien con cuchillos!",
+                            "§c[Carnicero] ¡Descuartizo ANIMALES, no personas!",
+                            "§c[Carnicero] ¡Mi cuchilla está AFILADA, amigo!",
+                            "§c[Carnicero] ¡No más chuletas de cerdo cocidas para TI!",
+                            "§c[Carnicero] ¡Trabajo con carne cruda, puedo manejarte!",
+                            "§c[Carnicero] ¡Estás cometiendo un ERROR GRAVE!"
                     };
                     break;
 
                 case "cartographer":
                     professionMessages = new String[] {
-                            "§c[Cartographer] Stop! I make your MAPS!",
-                            "§c[Cartographer] Without me, you'll get LOST!",
-                            "§c[Cartographer] I chart the world, and this is my thanks?!",
-                            "§c[Cartographer] Good luck navigating without my maps!",
-                            "§c[Cartographer] Guards! Someone's attacking the map maker!",
-                            "§c[Cartographer] I explore so you don't have to!",
-                            "§c[Cartographer] Lost? Don't come to ME anymore!",
-                            "§c[Cartographer] My maps won't show YOU any treasures now!"
+                            "§c[Cartógrafo] ¡Detente! ¡Hago tus MAPAS!",
+                            "§c[Cartógrafo] ¡Sin mí, te PERDERÁS!",
+                            "§c[Cartógrafo] ¡Trazo el mundo, y así es mi agradecimiento!?",
+                            "§c[Cartógrafo] ¡Buena suerte navegando sin mis mapas!",
+                            "§c[Cartógrafo] ¡Guardias! ¡Alguien está atacando al cartografiador!",
+                            "§c[Cartógrafo] ¡Exploro para que tú no tengas que hacerlo!",
+                            "§c[Cartógrafo] ¿¡Perdido!? ¡No vengas a MÍ nunca más!",
+                            "§c[Cartógrafo] ¡Mis mapas no te mostrarán ningún tesoro ahora!"
                     };
                     break;
 
                 case "fisherman":
                     professionMessages = new String[] {
-                            "§c[Fisherman] Stop! What did I ever do to you?!",
-                            "§c[Fisherman] I just fish all day!",
-                            "§c[Fisherman] Leave a simple fisherman alone!",
-                            "§c[Fisherman] I've got a fishing rod, stay back!",
-                            "§c[Fisherman] No more fish trades for you!",
-                            "§c[Fisherman] All I do is FISH! Why attack me?!",
-                            "§c[Fisherman] I provide FOOD for everyone!",
-                            "§c[Fisherman] Catch your own fish from now on!"
+                            "§c[Pescador] ¡Detente! ¿¡Qué te hice!?",
+                            "§c[Pescador] ¡Solo pesco todo el día!",
+                            "§c[Pescador] ¡Deja en paz a un simple pescador!",
+                            "§c[Pescador] ¡Tengo una caña de pescar, mantente atrás!",
+                            "§c[Pescador] ¡No más comercio de pescado para ti!",
+                            "§c[Pescador] ¡Todo lo que hago es PESCAR! ¿¡Por qué atacarme!?",
+                            "§c[Pescador] ¡Proporciono COMIDA para todos!",
+                            "§c[Pescador] ¡Atrapa tu propio pescado de ahora en adelante!"
                     };
                     break;
 
                 case "fletcher":
                     professionMessages = new String[] {
-                            "§c[Fletcher] I make ARROWS! I have plenty right here!",
-                            "§c[Fletcher] Wrong craftsman to attack, pal!",
-                            "§c[Fletcher] Stop! I'm surrounded by projectiles!",
-                            "§c[Fletcher] No more arrows for YOUR bow!",
-                            "§c[Fletcher] I can shoot from HERE, you know!",
-                            "§c[Fletcher] Attacking the arrow maker?! Bold!",
-                            "§c[Fletcher] Who'll supply your arrows NOW?!",
-                            "§c[Fletcher] I have a bow right behind me!"
+                            "§c[Flechero] ¡Hago FLECHAS! ¡Tengo muchas aquí mismo!",
+                            "§c[Flechero] ¡Artesano equivocado para atacar, amigo!",
+                            "§c[Flechero] ¡Detente! ¡Estoy rodeado de proyectiles!",
+                            "§c[Flechero] ¡No más flechas para TU arco!",
+                            "§c[Flechero] ¡Puedo disparar desde AQUÍ, lo sabes!",
+                            "§c[Flechero] ¿¡Atacar al fabricante de flechas!? ¡Audaz!",
+                            "§c[Flechero] ¿¡Quién proveerá tus flechas AHORA!?",
+                            "§c[Flechero] ¡Tengo un arco justo detrás de mí!"
                     };
                     break;
 
                 case "leatherworker":
                     professionMessages = new String[] {
-                            "§c[Leatherworker] Stop! I make your leather armor!",
-                            "§c[Leatherworker] Who will craft your gear?!",
-                            "§c[Leatherworker] I work hard on every piece!",
-                            "§c[Leatherworker] No more leather goods for you!",
-                            "§c[Leatherworker] Guards! Help!",
-                            "§c[Leatherworker] This is how you treat a craftsman?!",
-                            "§c[Leatherworker] My workshop is my livelihood!",
-                            "§c[Leatherworker] Ungrateful! I make quality goods!"
+                            "§c[Peletero] ¡Detente! ¡Hago tu armadura de cuero!",
+                            "§c[Peletero] ¿¡Quién fabricará tu equipo!?",
+                            "§c[Peletero] ¡Trabajo duro en cada pieza!",
+                            "§c[Peletero] ¡No más productos de cuero para ti!",
+                            "§c[Peletero] ¡Guardias! ¡Ayuda!",
+                            "§c[Peletero] ¿¡Así es como tratas a un artesano!?",
+                            "§c[Peletero] ¡Mi taller es mi sustento!",
+                            "§c[Peletero] ¡Ingrato! ¡Hago productos de calidad!"
                     };
                     break;
 
                 case "mason":
                     professionMessages = new String[] {
-                            "§c[Mason] I build with STONE! I'm tough!",
-                            "§c[Mason] Bad idea! I handle heavy blocks daily!",
-                            "§c[Mason] Stop! Who will build your structures?!",
-                            "§c[Mason] These hands shape STONE, they can handle you!",
-                            "§c[Mason] I'm a MASON! We're sturdy folk!",
-                            "§c[Mason] Guards! Someone's attacking the builder!",
-                            "§c[Mason] My work is permanent, so is my memory!",
-                            "§c[Mason] You mess with stone, you get the rock!"
+                            "§c[Albañil] ¡Construyo con PIEDRA! ¡Soy fuerte!",
+                            "§c[Albañil] ¡Mala idea! ¡Manejo bloques pesados diariamente!",
+                            "§c[Albañil] ¡Detente! ¿¡Quién construirá tus estructuras!?",
+                            "§c[Albañil] ¡Estas manos dan forma a la PIEDRA, pueden manejarte!",
+                            "§c[Albañil] ¡Soy un ALBAÑIL! ¡Somos gente resistente!",
+                            "§c[Albañil] ¡Guardias! ¡Alguien está atacando al constructor!",
+                            "§c[Albañil] ¡Mi trabajo es permanente, igual que mi memoria!",
+                            "§c[Albañil] ¡Te metes con la piedra, recibes la roca!"
                     };
                     break;
 
                 case "shepherd":
                     professionMessages = new String[] {
-                            "§c[Shepherd] Leave me alone! I just tend sheep!",
-                            "§c[Shepherd] All I do is shear wool!",
-                            "§c[Shepherd] Why attack a peaceful shepherd?!",
-                            "§c[Shepherd] My sheep need me!",
-                            "§c[Shepherd] Guards! Help the shepherd!",
-                            "§c[Shepherd] I provide wool for everyone!",
-                            "§c[Shepherd] This is how you treat a herder?!",
-                            "§c[Shepherd] No more wool for your beds!"
+                            "§c[Pastor] ¡Déjame en paz! ¡Solo cuido ovejas!",
+                            "§c[Pastor] ¡Todo lo que hago es esquilar lana!",
+                            "§c[Pastor] ¿¡Por qué atacar a un pastor pacífico!?",
+                            "§c[Pastor] ¡Mis ovejas me necesitan!",
+                            "§c[Pastor] ¡Guardias! ¡Ayuden al pastor!",
+                            "§c[Pastor] ¡Proporciono lana para todos!",
+                            "§c[Pastor] ¿¡Así es como tratas a un pastor!?",
+                            "§c[Pastor] ¡No más lana para tus camas!"
                     };
                     break;
 
                 case "nitwit":
                     professionMessages = new String[] {
-                            "§c[Nitwit] *confused* Why?! I don't even have a job!",
-                            "§c[Nitwit] I'm just... existing! Leave me alone!",
-                            "§c[Nitwit] *panics* HELP! Someone!",
-                            "§c[Nitwit] I don't understand! What did I do?!",
-                            "§c[Nitwit] *whimpers* Please stop!",
-                            "§c[Nitwit] I'm harmless! Why me?!",
-                            "§c[Nitwit] This makes no sense!"
+                            "§c[Tonto] *confundido* ¿¡Por qué!? ¡Ni siquiera tengo trabajo!",
+                            "§c[Tonto] ¡Solo estoy... existiendo! ¡Déjame en paz!",
+                            "§c[Tonto] *entra en pánico* ¡AYUDA! ¡Alguien!",
+                            "§c[Tonto] ¡No entiendo! ¿¡Qué hice!?",
+                            "§c[Tonto] *gime* ¡Por favor detente!",
+                            "§c[Tonto] ¡Soy inofensivo! ¿¡Por qué yo!?",
+                            "§c[Tonto] ¡Esto no tiene sentido!"
                     };
                     break;
 
                 default:
                     // Profesión desconocida o sin profesión
                     professionMessages = new String[] {
-                            "§c[Villager] OW! Why are you attacking me?!",
-                            "§c[Villager] Stop this at once!",
-                            "§c[Villager] What did I ever do to you?!",
-                            "§c[Villager] Guards! GUARDS!",
-                            "§c[Villager] You're going to regret this!",
-                            "§c[Villager] Have you lost your mind?!",
-                            "§c[Villager] Leave me alone you brute!",
-                            "§c[Villager] This is assault!",
-                            "§c[Villager] The Iron Golem will hear about this!"
+                            "§c[Aldeano] ¡AY! ¿¡Por qué me atacas!?",
+                            "§c[Aldeano] ¡Detente de inmediato!",
+                            "§c[Aldeano] ¿¡Qué te hice!?",
+                            "§c[Aldeano] ¡Guardias! ¡GUARDIAS!",
+                            "§c[Aldeano] ¡Te arrepentirás de esto!",
+                            "§c[Aldeano] ¿¡Has perdido la cabeza!?",
+                            "§c[Aldeano] ¡Déjame en paz, bruto!",
+                            "§c[Aldeano] ¡Esto es violencia!",
+                            "§c[Aldeano] ¡El Gólem de Hierro se enterará de esto!"
                     };
             }
 
@@ -668,142 +668,142 @@ public class VillagerEventHandler {
                         switch (animalType) {
                             case "cow":
                                 babyMessages = new String[] {
-                                        "§c[Baby Villager] Don't hurt our cows! We need milk!",
-                                        "§c[Baby Villager] That cow gives us milk! *cries*",
-                                        "§c[Baby Villager] Moosy is my friend!",
-                                        "§c[Baby Villager] Leave the cow alone!",
-                                        "§c[Baby Villager] I love that cow!"
+                                        "§c[Aldeano Bebé] ¡No lastimes a nuestras vacas! ¡Necesitamos leche!",
+                                        "§c[Aldeano Bebé] ¡Esa vaca nos da leche! *llora*",
+                                        "§c[Aldeano Bebé] ¡Muu es mi amiga!",
+                                        "§c[Aldeano Bebé] ¡Deja la vaca en paz!",
+                                        "§c[Aldeano Bebé] ¡Amo esa vaca!"
                                 };
                                 adultMessages = new String[] {
-                                        "§c[Villager] Stop! That cow provides milk for the village!",
-                                        "§c[Villager] Our dairy supply! Leave it alone!",
-                                        "§c[Villager] That cow feeds our children!",
-                                        "§c[Villager] We depend on those cows for milk and leather!",
-                                        "§c[Villager] Back away from our cattle!",
-                                        "§c[Villager] Those cows are essential to our survival!",
-                                        "§c[Villager] That's weeks of milk you're threatening!"
+                                        "§c[Aldeano] ¡Detente! ¡Esa vaca proporciona leche a la aldea!",
+                                        "§c[Aldeano] ¡Nuestro suministro de lácteos! ¡Déjala en paz!",
+                                        "§c[Aldeano] ¡Esa vaca alimenta a nuestros niños!",
+                                        "§c[Aldeano] ¡Dependemos de esas vacas para leche y cuero!",
+                                        "§c[Aldeano] ¡Aléjate de nuestro ganado!",
+                                        "§c[Aldeano] ¡Esas vacas son esenciales para nuestra supervivencia!",
+                                        "§c[Aldeano] ¡Son semanas de leche lo que estás amenazando!"
                                 };
                                 break;
 
                             case "sheep":
                                 babyMessages = new String[] {
-                                        "§c[Baby Villager] Don't hurt Fluffy! *cries*",
-                                        "§c[Baby Villager] That sheep makes our beds!",
-                                        "§c[Baby Villager] I like petting the sheep!",
-                                        "§c[Baby Villager] Leave the woolly alone!",
-                                        "§c[Baby Villager] The sheep is so soft!"
+                                        "§c[Aldeano Bebé] ¡No lastimes a Pelusa! *llora*",
+                                        "§c[Aldeano Bebé] ¡Esa oveja hace nuestras camas!",
+                                        "§c[Aldeano Bebé] ¡Me gusta acariciar las ovejas!",
+                                        "§c[Aldeano Bebé] ¡Deja a la lanuda en paz!",
+                                        "§c[Aldeano Bebé] ¡La oveja es tan suave!"
                                 };
                                 adultMessages = new String[] {
-                                        "§c[Villager] That sheep provides our wool!",
-                                        "§c[Villager] Stop! We need that wool for blankets!",
-                                        "§c[Villager] Our textile supply! Leave it be!",
-                                        "§c[Villager] Those sheep keep us warm in winter!",
-                                        "§c[Villager] We shear those sheep for clothing!",
-                                        "§c[Villager] That's our wool source, you brute!",
-                                        "§c[Villager] Without wool, we freeze!"
+                                        "§c[Aldeano] ¡Esa oveja proporciona nuestra lana!",
+                                        "§c[Aldeano] ¡Detente! ¡Necesitamos esa lana para mantas!",
+                                        "§c[Aldeano] ¡Nuestro suministro textil! ¡Déjala en paz!",
+                                        "§c[Aldeano] ¡Esas ovejas nos mantienen calientes en invierno!",
+                                        "§c[Aldeano] ¡Esquilamos esas ovejas para ropa!",
+                                        "§c[Aldeano] ¡Esa es nuestra fuente de lana, bruto!",
+                                        "§c[Aldeano] ¡Sin lana, nos congelamos!"
                                 };
                                 break;
 
                             case "pig":
                                 babyMessages = new String[] {
-                                        "§c[Baby Villager] Don't hurt the piggy! *sobs*",
-                                        "§c[Baby Villager] That pig makes funny sounds!",
-                                        "§c[Baby Villager] Oink-oink is nice!",
-                                        "§c[Baby Villager] Leave the piggy alone!",
-                                        "§c[Baby Villager] I feed that pig every day!"
+                                        "§c[Aldeano Bebé] ¡No lastimes al cerdito! *solloza*",
+                                        "§c[Aldeano Bebé] ¡Ese cerdo hace sonidos graciosos!",
+                                        "§c[Aldeano Bebé] ¡Oinc-oinc es lindo!",
+                                        "§c[Aldeano Bebé] ¡Deja al cerdito en paz!",
+                                        "§c[Aldeano Bebé] ¡Alimento a ese cerdo todos los días!"
                                 };
                                 adultMessages = new String[] {
-                                        "§c[Villager] That pig is valuable livestock!",
-                                        "§c[Villager] Stop! Those pigs are for breeding!",
-                                        "§c[Villager] We raise those pigs with care!",
-                                        "§c[Villager] That pig will feed families this winter!",
-                                        "§c[Villager] Leave our pork supply alone!",
-                                        "§c[Villager] Those pigs are our investment!",
-                                        "§c[Villager] Back off! That pig is spoken for!"
+                                        "§c[Aldeano] ¡Ese cerdo es ganado valioso!",
+                                        "§c[Aldeano] ¡Detente! ¡Esos cerdos son para cría!",
+                                        "§c[Aldeano] ¡Criamos esos cerdos con cuidado!",
+                                        "§c[Aldeano] ¡Ese cerdo alimentará familias este invierno!",
+                                        "§c[Aldeano] ¡Deja nuestro suministro de carne en paz!",
+                                        "§c[Aldeano] ¡Esos cerdos son nuestra inversión!",
+                                        "§c[Aldeano] ¡Atrás! ¡Ese cerdo está reservado!"
                                 };
                                 break;
 
                             case "chicken":
                                 babyMessages = new String[] {
-                                        "§c[Baby Villager] Don't hurt the chicken! *cries*",
-                                        "§c[Baby Villager] That chicken gives us eggs!",
-                                        "§c[Baby Villager] I collect eggs from them!",
-                                        "§c[Baby Villager] The chickens are my job!",
-                                        "§c[Baby Villager] Clucky is so nice!"
+                                        "§c[Aldeano Bebé] ¡No lastimes la gallina! *llora*",
+                                        "§c[Aldeano Bebé] ¡Esa gallina nos da huevos!",
+                                        "§c[Aldeano Bebé] ¡Colecciono huevos de ellas!",
+                                        "§c[Aldeano Bebé] ¡Las gallinas son mi trabajo!",
+                                        "§c[Aldeano Bebé] ¡Plumitas es tan linda!"
                                 };
                                 adultMessages = new String[] {
-                                        "§c[Villager] Those chickens lay our eggs!",
-                                        "§c[Villager] Stop! That chicken is our breakfast!",
-                                        "§c[Villager] We need those eggs daily!",
-                                        "§c[Villager] That chicken is part of our farm!",
-                                        "§c[Villager] Leave our poultry alone!",
-                                        "§c[Villager] Those chickens are egg producers!",
-                                        "§c[Villager] Without chickens, no eggs!"
+                                        "§c[Aldeano] ¡Esas gallinas ponen nuestros huevos!",
+                                        "§c[Aldeano] ¡Detente! ¡Esa gallina es nuestro desayuno!",
+                                        "§c[Aldeano] ¡Necesitamos esos huevos diariamente!",
+                                        "§c[Aldeano] ¡Esa gallina es parte de nuestra granja!",
+                                        "§c[Aldeano] ¡Deja nuestras aves en paz!",
+                                        "§c[Aldeano] ¡Esas gallinas son productoras de huevos!",
+                                        "§c[Aldeano] ¡Sin gallinas, no hay huevos!"
                                 };
                                 break;
 
                             case "rabbit":
                                 babyMessages = new String[] {
-                                        "§c[Baby Villager] Don't hurt the bunny! *cries*",
-                                        "§c[Baby Villager] Bunnies are so cute!",
-                                        "§c[Baby Villager] That's my favorite rabbit!",
-                                        "§c[Baby Villager] Leave the hoppy alone!",
-                                        "§c[Baby Villager] I want to pet them!"
+                                        "§c[Aldeano Bebé] ¡No lastimes al conejito! *llora*",
+                                        "§c[Aldeano Bebé] ¡Los conejitos son tan lindos!",
+                                        "§c[Aldeano Bebé] ¡Ese es mi conejo favorito!",
+                                        "§c[Aldeano Bebé] ¡Deja al saltador en paz!",
+                                        "§c[Aldeano Bebé] ¡Quiero acariciarlos!"
                                 };
                                 adultMessages = new String[] {
-                                        "§c[Villager] Those rabbits are part of our ecosystem!",
-                                        "§c[Villager] Leave the rabbits be!",
-                                        "§c[Villager] They're harmless creatures!",
-                                        "§c[Villager] Stop attacking innocent animals!",
-                                        "§c[Villager] Those rabbits help our gardens!",
-                                        "§c[Villager] What did that rabbit ever do to you?!",
-                                        "§c[Villager] They're just rabbits!"
+                                        "§c[Aldeano] ¡Esos conejos son parte de nuestro ecosistema!",
+                                        "§c[Aldeano] ¡Deja los conejos en paz!",
+                                        "§c[Aldeano] ¡Son criaturas inofensivas!",
+                                        "§c[Aldeano] ¡Deja de atacar animales inocentes!",
+                                        "§c[Aldeano] ¡Esos conejos ayudan a nuestros jardines!",
+                                        "§c[Aldeano] ¿¡Qué te hizo ese conejo!?",
+                                        "§c[Aldeano] ¡Solo son conejos!"
                                 };
                                 break;
 
                             case "horse":
                                 babyMessages = new String[] {
-                                        "§c[Baby Villager] Don't hurt the horsie! *cries*",
-                                        "§c[Baby Villager] I want to ride horses when I grow up!",
-                                        "§c[Baby Villager] That horse is so pretty!",
-                                        "§c[Baby Villager] Leave the horse alone!",
-                                        "§c[Baby Villager] Horses are noble!"
+                                        "§c[Aldeano Bebé] ¡No lastimes al caballito! *llora*",
+                                        "§c[Aldeano Bebé] ¡Quiero montar caballos cuando sea grande!",
+                                        "§c[Aldeano Bebé] ¡Ese caballo es tan bonito!",
+                                        "§c[Aldeano Bebé] ¡Deja el caballo en paz!",
+                                        "§c[Aldeano Bebé] ¡Los caballos son nobles!"
                                 };
                                 adultMessages = new String[] {
-                                        "§c[Villager] That horse is our transportation!",
-                                        "§c[Villager] Stop! We need that horse for travel!",
-                                        "§c[Villager] Those horses are expensive!",
-                                        "§c[Villager] That's weeks of breeding work!",
-                                        "§c[Villager] Leave our horses alone!",
-                                        "§c[Villager] We use those horses for trade routes!",
-                                        "§c[Villager] That horse carries our supplies!",
-                                        "§c[Villager] You're attacking our mobility!"
+                                        "§c[Aldeano] ¡Ese caballo es nuestro transporte!",
+                                        "§c[Aldeano] ¡Detente! ¡Necesitamos ese caballo para viajar!",
+                                        "§c[Aldeano] ¡Esos caballos son costosos!",
+                                        "§c[Aldeano] ¡Eso son semanas de trabajo de cría!",
+                                        "§c[Aldeano] ¡Deja nuestros caballos en paz!",
+                                        "§c[Aldeano] ¡Usamos esos caballos para rutas comerciales!",
+                                        "§c[Aldeano] ¡Ese caballo lleva nuestros suministros!",
+                                        "§c[Aldeano] ¡Estás atacando nuestra movilidad!"
                                 };
                                 break;
 
                             case "camel":
                                 babyMessages = new String[] {
-                                        "§c[Baby Villager] Don't hurt the camel! *cries*",
-                                        "§c[Baby Villager] Camels are for the desert!",
-                                        "§c[Baby Villager] That camel is cool!",
-                                        "§c[Baby Villager] Leave the camel alone!",
-                                        "§c[Baby Villager] I like camels!"
+                                        "§c[Aldeano Bebé] ¡No lastimes el camello! *llora*",
+                                        "§c[Aldeano Bebé] ¡Los camellos son para el desierto!",
+                                        "§c[Aldeano Bebé] ¡Ese camello es genial!",
+                                        "§c[Aldeano Bebé] ¡Deja el camello en paz!",
+                                        "§c[Aldeano Bebé] ¡Me gustan los camellos!"
                                 };
                                 adultMessages = new String[] {
-                                        "§c[Villager] That camel is our desert transportation!",
-                                        "§c[Villager] Stop! We need that camel for travel!",
-                                        "§c[Villager] Those camels are expensive!",
-                                        "§c[Villager] That's weeks of breeding work!",
-                                        "§c[Villager] Leave our camels alone!",
-                                        "§c[Villager] We use those camels for desert routes!",
-                                        "§c[Villager] That camel carries our supplies!",
-                                        "§c[Villager] You're attacking our mobility!"
+                                        "§c[Aldeano] ¡Ese camello es nuestro transporte del desierto!",
+                                        "§c[Aldeano] ¡Detente! ¡Necesitamos ese camello para viajar!",
+                                        "§c[Aldeano] ¡Esos camellos son costosos!",
+                                        "§c[Aldeano] ¡Eso son semanas de trabajo de cría!",
+                                        "§c[Aldeano] ¡Deja nuestros camellos en paz!",
+                                        "§c[Aldeano] ¡Usamos esos camellos para rutas del desierto!",
+                                        "§c[Aldeano] ¡Ese camello lleva nuestros suministros!",
+                                        "§c[Aldeano] ¡Estás atacando nuestra movilidad!"
                                 };
                                 break;
 
                             default:
-                                babyMessages = new String[] {"§c[Baby Villager] Don't hurt them!"};
-                                adultMessages = new String[] {"§c[Villager] Stop that!"};
+                                babyMessages = new String[] {"§c[Aldeano Bebé] ¡No los lastimes!"};
+                                adultMessages = new String[] {"§c[Aldeano] ¡Detente!"};
                         }
 
                         String[] messages = villager.isBaby() ? babyMessages : adultMessages;
@@ -864,151 +864,151 @@ public class VillagerEventHandler {
                     switch (animalType) {
                         case "cow":
                             babyMessages = new String[] {
-                                    "§c[Baby Villager] NOOOO! You killed Bessie! *wails*",
-                                    "§c[Baby Villager] No more milk now! *sobs*",
-                                    "§c[Baby Villager] That cow had a calf! *cries*",
-                                    "§c[Baby Villager] Why?! She gave us milk! *heartbroken*",
-                                    "§c[Baby Villager] Moosy is gone... *sniffles*"
+                                    "§c[Aldeano Bebé] ¡NOOOO! ¡Mataste a Bessie! *grita*",
+                                    "§c[Aldeano Bebé] ¡No más leche ahora! *solloza*",
+                                    "§c[Aldeano Bebé] ¡Esa vaca tenía un ternero! *llora*",
+                                    "§c[Aldeano Bebé] ¿¡Por qué!? ¡Nos daba leche! *desconsolado*",
+                                    "§c[Aldeano Bebé] Muu se fue... *solloza*"
                             };
                             adultMessages = new String[] {
-                                    "§c[Villager] YOU MURDERED OUR COW!",
-                                    "§c[Villager] That's MONTHS of milk production GONE!",
-                                    "§c[Villager] How will we feed our children without milk?!",
-                                    "§c[Villager] That cow was worth 10 emeralds!",
-                                    "§c[Villager] You've destroyed our dairy farm!",
-                                    "§c[Villager] ANIMAL MURDERER! That cow had calves!",
-                                    "§c[Villager] We raised that cow from birth!",
-                                    "§c[Villager] No milk, no cheese, no leather! Thanks to YOU!"
+                                    "§c[Aldeano] ¡ASESINASTE NUESTRA VACA!",
+                                    "§c[Aldeano] ¡Son MESES de producción de leche PERDIDOS!",
+                                    "§c[Aldeano] ¿¡Cómo alimentaremos a nuestros niños sin leche!?",
+                                    "§c[Aldeano] ¡Esa vaca valía 10 esmeraldas!",
+                                    "§c[Aldeano] ¡Has destruido nuestra granja láctea!",
+                                    "§c[Aldeano] ¡ASESINO DE ANIMALES! ¡Esa vaca tenía terneros!",
+                                    "§c[Aldeano] ¡Criamos esa vaca desde su nacimiento!",
+                                    "§c[Aldeano] ¡No hay leche, ni queso, ni cuero! ¡Gracias a TI!"
                             };
                             break;
 
                         case "sheep":
                             babyMessages = new String[] {
-                                    "§c[Baby Villager] You killed Fluffy! NOOO! *cries*",
-                                    "§c[Baby Villager] No more wool now! *sobs*",
-                                    "§c[Baby Villager] That sheep was so soft! *wails*",
-                                    "§c[Baby Villager] Why kill the woolly?! *heartbroken*",
-                                    "§c[Baby Villager] I was gonna shear it tomorrow! *devastated*"
+                                    "§c[Aldeano Bebé] ¡Mataste a Pelusa! ¡NOOO! *llora*",
+                                    "§c[Aldeano Bebé] ¡No más lana ahora! *solloza*",
+                                    "§c[Aldeano Bebé] ¡Esa oveja era tan suave! *grita*",
+                                    "§c[Aldeano Bebé] ¿¡Por qué matar a la lanuda!? *desconsolado*",
+                                    "§c[Aldeano Bebé] ¡Iba a esquilarla mañana! *devastado*"
                             };
                             adultMessages = new String[] {
-                                    "§c[Villager] YOU KILLED OUR SHEEP!",
-                                    "§c[Villager] That sheep produced wool for YEARS!",
-                                    "§c[Villager] How will we make blankets now?!",
-                                    "§c[Villager] We'll FREEZE without that wool!",
-                                    "§c[Villager] That sheep was our textile source!",
-                                    "§c[Villager] MURDERER! We bred that sheep carefully!",
-                                    "§c[Villager] No wool means no warm clothing!",
-                                    "§c[Villager] That sheep was white wool - RARE!"
+                                    "§c[Aldeano] ¡MATASTE NUESTRA OVEJA!",
+                                    "§c[Aldeano] ¡Esa oveja producía lana por AÑOS!",
+                                    "§c[Aldeano] ¿¡Cómo haremos mantas ahora!?",
+                                    "§c[Aldeano] ¡Nos CONGELAREMOS sin esa lana!",
+                                    "§c[Aldeano] ¡Esa oveja era nuestra fuente textil!",
+                                    "§c[Aldeano] ¡ASESINO! ¡Criamos esa oveja cuidadosamente!",
+                                    "§c[Aldeano] ¡No hay lana significa no hay ropa abrigada!",
+                                    "§c[Aldeano] ¡Esa oveja era de lana blanca - RARA!"
                             };
                             break;
 
                         case "pig":
                             babyMessages = new String[] {
-                                    "§c[Baby Villager] You killed the piggy! MONSTER! *cries*",
-                                    "§c[Baby Villager] That pig was gonna have babies! *sobs*",
-                                    "§c[Baby Villager] Oink-oink is gone! *wails*",
-                                    "§c[Baby Villager] Why?! He was so funny! *devastated*",
-                                    "§c[Baby Villager] I fed that pig carrots! *heartbroken*"
+                                    "§c[Aldeano Bebé] ¡Mataste al cerdito! ¡MONSTRUO! *llora*",
+                                    "§c[Aldeano Bebé] ¡Ese cerdo iba a tener bebés! *solloza*",
+                                    "§c[Aldeano Bebé] ¡Oinc-oinc se fue! *grita*",
+                                    "§c[Aldeano Bebé] ¿¡Por qué!? ¡Era tan gracioso! *devastado*",
+                                    "§c[Aldeano Bebé] ¡Le daba zanahorias a ese cerdo! *desconsolado*"
                             };
                             adultMessages = new String[] {
-                                    "§c[Villager] YOU SLAUGHTERED OUR PIG!",
-                                    "§c[Villager] That pig was breeding stock!",
-                                    "§c[Villager] You just killed WINTER'S MEAT SUPPLY!",
-                                    "§c[Villager] We raised that pig for MONTHS!",
-                                    "§c[Villager] THIEF! That pig was our investment!",
-                                    "§c[Villager] How DARE you kill our livestock!",
-                                    "§c[Villager] That pig was going to feed families!",
-                                    "§c[Villager] You've ruined our breeding program!"
+                                    "§c[Aldeano] ¡MASACRASTE NUESTRO CERDO!",
+                                    "§c[Aldeano] ¡Ese cerdo era ganado reproductor!",
+                                    "§c[Aldeano] ¡Acabas de matar el SUMINISTRO DE CARNE del invierno!",
+                                    "§c[Aldeano] ¡Criamos ese cerdo por MESES!",
+                                    "§c[Aldeano] ¡LADRÓN! ¡Ese cerdo era nuestra inversión!",
+                                    "§c[Aldeano] ¿¡Cómo TE ATREVES a matar nuestro ganado!?",
+                                    "§c[Aldeano] ¡Ese cerdo iba a alimentar familias!",
+                                    "§c[Aldeano] ¡Has arruinado nuestro programa de cría!"
                             };
                             break;
 
                         case "chicken":
                             babyMessages = new String[] {
-                                    "§c[Baby Villager] You killed Clucky! NOOO! *cries*",
-                                    "§c[Baby Villager] No more eggs now! *sobs*",
-                                    "§c[Baby Villager] That chicken laid eggs every day! *wails*",
-                                    "§c[Baby Villager] Why?! She was nice! *devastated*",
-                                    "§c[Baby Villager] I collected her eggs! *heartbroken*"
+                                    "§c[Aldeano Bebé] ¡Mataste a Plumitas! ¡NOOO! *llora*",
+                                    "§c[Aldeano Bebé] ¡No más huevos ahora! *solloza*",
+                                    "§c[Aldeano Bebé] ¡Esa gallina ponía huevos todos los días! *grita*",
+                                    "§c[Aldeano Bebé] ¿¡Por qué!? ¡Era linda! *devastado*",
+                                    "§c[Aldeano Bebé] ¡Yo recogía sus huevos! *desconsolado*"
                             };
                             adultMessages = new String[] {
-                                    "§c[Villager] YOU KILLED OUR CHICKEN!",
-                                    "§c[Villager] That was our BREAKFAST SOURCE!",
-                                    "§c[Villager] We needed those eggs daily!",
-                                    "§c[Villager] That chicken laid eggs reliably!",
-                                    "§c[Villager] How will we bake without eggs?!",
-                                    "§c[Villager] POULTRY KILLER! That was food security!",
-                                    "§c[Villager] One egg a day - GONE because of you!",
-                                    "§c[Villager] We raised that chicken from a chick!"
+                                    "§c[Aldeano] ¡MATASTE NUESTRA GALLINA!",
+                                    "§c[Aldeano] ¡Esa era nuestra FUENTE DE DESAYUNO!",
+                                    "§c[Aldeano] ¡Necesitábamos esos huevos diariamente!",
+                                    "§c[Aldeano] ¡Esa gallina ponía huevos confiablemente!",
+                                    "§c[Aldeano] ¿¡Cómo hornearemos sin huevos!?",
+                                    "§c[Aldeano] ¡ASESINO DE AVES! ¡Eso era seguridad alimentaria!",
+                                    "§c[Aldeano] ¡Un huevo al día - PERDIDO por tu culpa!",
+                                    "§c[Aldeano] ¡Criamos esa gallina desde pollito!"
                             };
                             break;
 
                         case "rabbit":
                             babyMessages = new String[] {
-                                    "§c[Baby Villager] You killed the bunny! CRUEL! *sobs*",
-                                    "§c[Baby Villager] Bunnies are so cute! Why?! *cries*",
-                                    "§c[Baby Villager] The hoppy is dead! *wails*",
-                                    "§c[Baby Villager] That was so mean! *devastated*",
-                                    "§c[Baby Villager] I loved that rabbit! *heartbroken*"
+                                    "§c[Aldeano Bebé] ¡Mataste al conejito! ¡CRUEL! *solloza*",
+                                    "§c[Aldeano Bebé] ¡Los conejitos son tan lindos! ¿¡Por qué!? *llora*",
+                                    "§c[Aldeano Bebé] ¡El saltador está muerto! *grita*",
+                                    "§c[Aldeano Bebé] ¡Eso fue tan malo! *devastado*",
+                                    "§c[Aldeano Bebé] ¡Amaba ese conejo! *desconsolado*"
                             };
                             adultMessages = new String[] {
-                                    "§c[Villager] YOU KILLED THE RABBIT!",
-                                    "§c[Villager] That rabbit helped control garden pests!",
-                                    "§c[Villager] What kind of MONSTER kills rabbits?!",
-                                    "§c[Villager] They're harmless creatures!",
-                                    "§c[Villager] The children loved that rabbit!",
-                                    "§c[Villager] You're a BRUTE and a BULLY!",
-                                    "§c[Villager] Killing innocent animals! Shame on you!",
-                                    "§c[Villager] That rabbit never hurt anyone!"
+                                    "§c[Aldeano] ¡MATASTE EL CONEJO!",
+                                    "§c[Aldeano] ¡Ese conejo ayudaba a controlar plagas del jardín!",
+                                    "§c[Aldeano] ¿¡Qué clase de MONSTRUO mata conejos!?",
+                                    "§c[Aldeano] ¡Son criaturas inofensivas!",
+                                    "§c[Aldeano] ¡Los niños amaban ese conejo!",
+                                    "§c[Aldeano] ¡Eres un BRUTO y un ABUSÓN!",
+                                    "§c[Aldeano] ¡Matar animales inocentes! ¡Vergüenza!",
+                                    "§c[Aldeano] ¡Ese conejo nunca lastimó a nadie!"
                             };
                             break;
 
                         case "horse":
                             babyMessages = new String[] {
-                                    "§c[Baby Villager] You killed the horsie! NOOO! *wails*",
-                                    "§c[Baby Villager] That horse was so strong! *cries*",
-                                    "§c[Baby Villager] I wanted to ride it! *devastated*",
-                                    "§c[Baby Villager] Horses are noble! Why?! *sobs*",
-                                    "§c[Baby Villager] That's the worst thing ever! *heartbroken*"
+                                    "§c[Aldeano Bebé] ¡Mataste al caballito! ¡NOOO! *grita*",
+                                    "§c[Aldeano Bebé] ¡Ese caballo era tan fuerte! *llora*",
+                                    "§c[Aldeano Bebé] ¡Quería montarlo! *devastado*",
+                                    "§c[Aldeano Bebé] ¡Los caballos son nobles! ¿¡Por qué!? *solloza*",
+                                    "§c[Aldeano Bebé] ¡Eso es lo peor! *desconsolado*"
                             };
                             adultMessages = new String[] {
-                                    "§c[Villager] YOU KILLED OUR HORSE!",
-                                    "§c[Villager] That horse was EXPENSIVE! 20 emeralds!",
-                                    "§c[Villager] We needed that horse for TRAVEL!",
-                                    "§c[Villager] That took WEEKS to tame and breed!",
-                                    "§c[Villager] How will we transport goods now?!",
-                                    "§c[Villager] HORSE KILLER! That was our LIVELIHOOD!",
-                                    "§c[Villager] We used that horse for trade routes!",
-                                    "§c[Villager] You've crippled our commerce!",
-                                    "§c[Villager] That horse was part of the family!",
-                                    "§c[Villager] Killing a horse?! You're HEARTLESS!"
+                                    "§c[Aldeano] ¡MATASTE NUESTRO CABALLO!",
+                                    "§c[Aldeano] ¡Ese caballo era COSTOSO! ¡20 esmeraldas!",
+                                    "§c[Aldeano] ¡Necesitábamos ese caballo para VIAJAR!",
+                                    "§c[Aldeano] ¡Eso tomó SEMANAS de domar y criar!",
+                                    "§c[Aldeano] ¿¡Cómo transportaremos bienes ahora!?",
+                                    "§c[Aldeano] ¡ASESINO DE CABALLOS! ¡Ese era nuestro SUSTENTO!",
+                                    "§c[Aldeano] ¡Usábamos ese caballo para rutas comerciales!",
+                                    "§c[Aldeano] ¡Has paralizado nuestro comercio!",
+                                    "§c[Aldeano] ¡Ese caballo era parte de la familia!",
+                                    "§c[Aldeano] ¿¡Matar un caballo!? ¡No tienes CORAZÓN!"
                             };
                             break;
 
                         case "camel":
                             babyMessages = new String[] {
-                                    "§c[Baby Villager] You killed the camel! NOOO! *wails*",
-                                    "§c[Baby Villager] That camel was so tall! *cries*",
-                                    "§c[Baby Villager] I wanted to ride it! *devastated*",
-                                    "§c[Baby Villager] Camels are amazing! Why?! *sobs*",
-                                    "§c[Baby Villager] That's so cruel! *heartbroken*"
+                                    "§c[Aldeano Bebé] ¡Mataste el camello! ¡NOOO! *grita*",
+                                    "§c[Aldeano Bebé] ¡Ese camello era tan alto! *llora*",
+                                    "§c[Aldeano Bebé] ¡Quería montarlo! *devastado*",
+                                    "§c[Aldeano Bebé] ¡Los camellos son increíbles! ¿¡Por qué!? *solloza*",
+                                    "§c[Aldeano Bebé] ¡Eso es tan cruel! *desconsolado*"
                             };
                             adultMessages = new String[] {
-                                    "§c[Villager] YOU KILLED OUR CAMEL!",
-                                    "§c[Villager] That camel was EXPENSIVE! 30 emeralds!",
-                                    "§c[Villager] We needed that camel for DESERT TRAVEL!",
-                                    "§c[Villager] That took WEEKS to tame and breed!",
-                                    "§c[Villager] How will we cross the desert now?!",
-                                    "§c[Villager] CAMEL KILLER! That was our LIVELIHOOD!",
-                                    "§c[Villager] We used that camel for desert routes!",
-                                    "§c[Villager] You've crippled our desert commerce!",
-                                    "§c[Villager] That camel was irreplaceable!",
-                                    "§c[Villager] Killing a camel?! You're HEARTLESS!"
+                                    "§c[Aldeano] ¡MATASTE NUESTRO CAMELLO!",
+                                    "§c[Aldeano] ¡Ese camello era COSTOSO! ¡30 esmeraldas!",
+                                    "§c[Aldeano] ¡Necesitábamos ese camello para VIAJES EN EL DESIERTO!",
+                                    "§c[Aldeano] ¡Eso tomó SEMANAS de domar y criar!",
+                                    "§c[Aldeano] ¿¡Cómo cruzaremos el desierto ahora!?",
+                                    "§c[Aldeano] ¡ASESINO DE CAMELLOS! ¡Ese era nuestro SUSTENTO!",
+                                    "§c[Aldeano] ¡Usábamos ese camello para rutas del desierto!",
+                                    "§c[Aldeano] ¡Has paralizado nuestro comercio del desierto!",
+                                    "§c[Aldeano] ¡Ese camello era irremplazable!",
+                                    "§c[Aldeano] ¿¡Matar un camello!? ¡No tienes CORAZÓN!"
                             };
                             break;
 
                         default:
-                            babyMessages = new String[] {"§c[Baby Villager] You killed it! *cries*"};
-                            adultMessages = new String[] {"§c[Villager] MURDERER!"};
+                            babyMessages = new String[] {"§c[Aldeano Bebé] ¡Lo mataste! *llora*"};
+                            adultMessages = new String[] {"§c[Aldeano] ¡ASESINO!"};
                     }
 
                     String[] messages = villager.isBaby() ? babyMessages : adultMessages;
@@ -1105,13 +1105,13 @@ public class VillagerEventHandler {
                 spawnPositiveFeedback(level, player);
 
                 String[] tradeMessages = {
-                        "§a[Village Diplomacy] Completed " + trades
-                                + " trade(s)! The village appreciates your business.",
-                        "§a[Village Diplomacy] " + trades + " successful trade(s)! Your reputation grows.",
-                        "§a[Village Diplomacy] Excellent trading! The villagers are pleased.",
-                        "§a[Village Diplomacy] " + trades + " trade(s) completed. The village trusts you more.",
-                        "§a[Village Diplomacy] Fair trading! The village values your commerce.",
-                        "§a[Village Diplomacy] " + trades + " trade(s) done. You're becoming a valued customer."
+                        "§a[Diplomacia de Aldeas] ¡Completaste " + trades
+                                + " intercambio(s)! La aldea aprecia tu negocio.",
+                        "§a[Diplomacia de Aldeas] ¡" + trades + " intercambio(s) exitoso(s)! Tu reputación crece.",
+                        "§a[Diplomacia de Aldeas] ¡Excelente comercio! Los aldeanos están complacidos.",
+                        "§a[Diplomacia de Aldeas] " + trades + " intercambio(s) completado(s). La aldea confía más en ti.",
+                        "§a[Diplomacia de Aldeas] ¡Buen comercio! La aldea valora tu negocio.",
+                        "§a[Diplomacia de Aldeas] " + trades + " intercambio(s) hecho(s). Te estás convirtiendo en un cliente valioso."
                 };
 
                 player.sendSystemMessage(Component.literal(
@@ -1202,48 +1202,48 @@ public class VillagerEventHandler {
             if (reputation >= 500) {
                 // MENSAJES EXPANDIDOS: Héroe/Amigo de confianza
                 String[] positiveOpenMessages = caughtByBaby ? new String[] {
-                        "§a[Baby Villager] Hi hero! *waves*",
-                        "§a[Baby Villager] Come in, you're the best!",
-                        "§a[Baby Villager] Welcome! *giggles*",
-                        "§a[Baby Villager] Our hero is here!",
-                        "§a[Baby Villager] Mom says you're really nice!"
+                        "§a[Aldeano Bebé] ¡Hola héroe! *saluda*",
+                        "§a[Aldeano Bebé] ¡Entra, eres el mejor!",
+                        "§a[Aldeano Bebé] ¡Bienvenido! *se ríe*",
+                        "§a[Aldeano Bebé] ¡Nuestro héroe está aquí!",
+                        "§a[Aldeano Bebé] ¡Mamá dice que eres muy bueno!"
                 }
                         : isNight ? new String[] {
-                                "§a[Villager] Welcome, friend. Safe travels at night!",
-                                "§a[Villager] Come in from the darkness, champion!",
-                                "§a[Villager] Our home is your home, even at night!",
-                                "§a[Villager] Please, stay safe inside!"
+                                "§a[Aldeano] Bienvenido, amigo. ¡Viaja seguro en la noche!",
+                                "§a[Aldeano] Entra de la oscuridad, ¡campeón!",
+                                "§a[Aldeano] ¡Nuestra casa es tu casa, incluso de noche!",
+                                "§a[Aldeano] ¡Por favor, quédate seguro adentro!"
                         }
                         : isMorning ? new String[] {
-                                "§a[Villager] Good morning, hero! Come in!",
-                                "§a[Villager] Early riser! Please, enter!",
-                                "§a[Villager] Fresh day, welcome friend!",
-                                "§a[Villager] Morning! Our doors are always open to you!"
+                                "§a[Aldeano] ¡Buenos días, héroe! ¡Entra!",
+                                "§a[Aldeano] ¡Madrugador! ¡Por favor, entra!",
+                                "§a[Aldeano] ¡Día fresco, bienvenido amigo!",
+                                "§a[Aldeano] ¡Buenos días! ¡Nuestras puertas siempre están abiertas para ti!"
                         }
                         : new String[] {
-                                "§a[Villager] Welcome, champion!",
-                                "§a[Villager] Please, come right in!",
-                                "§a[Villager] Our doors are open to you!",
-                                "§a[Villager] Feel free to enter, friend!",
-                                "§a[Villager] Come in, make yourself at home!",
-                                "§a[Villager] You're always welcome here!",
-                                "§a[Villager] Ah, our protector arrives!",
-                                "§a[Villager] Enter freely, brave one!"
+                                "§a[Aldeano] ¡Bienvenido, campeón!",
+                                "§a[Aldeano] ¡Por favor, pasa!",
+                                "§a[Aldeano] ¡Nuestras puertas están abiertas para ti!",
+                                "§a[Aldeano] ¡Siéntete libre de entrar, amigo!",
+                                "§a[Aldeano] ¡Entra, ponte cómodo!",
+                                "§a[Aldeano] ¡Siempre eres bienvenido aquí!",
+                                "§a[Aldeano] ¡Ah, nuestro protector llega!",
+                                "§a[Aldeano] ¡Entra libremente, valiente!"
                         };
 
                 String[] positiveCloseMessages = caughtByBaby ? new String[] {
-                        "§a[Baby Villager] Thanks! *smiles*",
-                        "§a[Baby Villager] Good manners!",
-                        "§a[Baby Villager] You're so nice!",
-                        "§a[Baby Villager] Mom taught me that too!"
+                        "§a[Aldeano Bebé] ¡Gracias! *sonríe*",
+                        "§a[Aldeano Bebé] ¡Buenos modales!",
+                        "§a[Aldeano Bebé] ¡Eres tan amable!",
+                        "§a[Aldeano Bebé] ¡Mamá también me enseñó eso!"
                 }
                         : new String[] {
-                                "§a[Villager] Thank you for closing it!",
-                                "§a[Villager] Appreciate the courtesy, friend!",
-                                "§a[Villager] Such good manners!",
-                                "§a[Villager] You're so considerate!",
-                                "§a[Villager] Thanks, keeps the cold out!",
-                                "§a[Villager] Much appreciated, hero!"
+                                "§a[Aldeano] ¡Gracias por cerrarla!",
+                                "§a[Aldeano] ¡Aprecio la cortesía, amigo!",
+                                "§a[Aldeano] ¡Qué buenos modales!",
+                                "§a[Aldeano] ¡Eres tan considerado!",
+                                "§a[Aldeano] ¡Gracias, mantiene el frío afuera!",
+                                "§a[Aldeano] ¡Muy apreciado, héroe!"
                         };
 
                 String[] messages = isClosing ? positiveCloseMessages : positiveOpenMessages;
@@ -1253,24 +1253,24 @@ public class VillagerEventHandler {
             } else if (reputation >= 100) {
                 // MENSAJES EXPANDIDOS: Reputación neutral/buena
                 String[] neutralOpenMessages = isNight ? new String[] {
-                        "§e[Villager] Come in. Careful, it's dark outside.",
-                        "§e[Villager] Go ahead. Watch for mobs.",
-                        "§e[Villager] Sure. Don't stay out too long."
+                        "§e[Aldeano] Entra. Cuidado, está oscuro afuera.",
+                        "§e[Aldeano] Adelante. Cuidado con los mobs.",
+                        "§e[Aldeano] Seguro. No te quedes afuera mucho tiempo."
                 }
                         : new String[] {
-                                "§e[Villager] Go ahead.",
-                                "§e[Villager] Sure, come in.",
-                                "§e[Villager] Alright.",
-                                "§e[Villager] Feel free.",
-                                "§e[Villager] Yeah, okay.",
-                                "§e[Villager] Come in if you need to."
+                                "§e[Aldeano] Adelante.",
+                                "§e[Aldeano] Seguro, entra.",
+                                "§e[Aldeano] De acuerdo.",
+                                "§e[Aldeano] Siéntete libre.",
+                                "§e[Aldeano] Sí, está bien.",
+                                "§e[Aldeano] Entra si lo necesitas."
                         };
 
                 String[] neutralCloseMessages = new String[] {
-                        "§e[Villager] Thanks.",
-                        "§e[Villager] Alright.",
-                        "§e[Villager] Appreciated.",
-                        "§e[Villager] Good."
+                        "§e[Aldeano] Gracias.",
+                        "§e[Aldeano] De acuerdo.",
+                        "§e[Aldeano] Apreciado.",
+                        "§e[Aldeano] Bien."
                 };
 
                 // 50% chance para mensajes neutrales (antes era 33%)
@@ -1283,17 +1283,17 @@ public class VillagerEventHandler {
             } else if (reputation >= -99) {
                 // NUEVO: Rango de reputación baja pero no criminal
                 String[] lowRepMessages = caughtByBaby ? new String[] {
-                        "§6[Baby Villager] Umm... I'm watching you...",
-                        "§6[Baby Villager] Mommy doesn't trust you...",
-                        "§6[Baby Villager] *hides behind door*"
+                        "§6[Aldeano Bebé] Umm... Te estoy observando...",
+                        "§6[Aldeano Bebé] Mami no confía en ti...",
+                        "§6[Aldeano Bebé] *se esconde detrás de la puerta*"
                 }
                         : new String[] {
-                                "§6[Villager] *watches suspiciously*",
-                                "§6[Villager] I've got my eye on you...",
-                                "§6[Villager] Don't try anything funny.",
-                                "§6[Villager] Make it quick.",
-                                "§6[Villager] I'm not happy about this.",
-                                "§6[Villager] You better not steal anything..."
+                                "§6[Aldeano] *observa sospechosamente*",
+                                "§6[Aldeano] Te tengo vigilado...",
+                                "§6[Aldeano] No intentes nada gracioso.",
+                                "§6[Aldeano] Hazlo rápido.",
+                                "§6[Aldeano] No estoy feliz con esto.",
+                                "§6[Aldeano] Mejor que no robes nada..."
                         };
 
                 if (level.getRandom().nextInt(2) == 0) { // 50% chance
@@ -1307,30 +1307,30 @@ public class VillagerEventHandler {
                 int newRep = data.getReputation(playerId, nearestVillage.get());
 
                 String[] negativeMessages = caughtByBaby ? new String[] {
-                        "§c[Baby Villager] Stop touching our doors!",
-                        "§c[Baby Villager] That's not yours!",
-                        "§c[Baby Villager] Mommy! There's a bad person! *cries*",
-                        "§c[Baby Villager] Go away! *scared*",
-                        "§c[Baby Villager] You're scary!",
-                        "§c[Baby Villager] HELP! *runs*"
+                        "§c[Aldeano Bebé] ¡Deja de tocar nuestras puertas!",
+                        "§c[Aldeano Bebé] ¡Eso no es tuyo!",
+                        "§c[Aldeano Bebé] ¡Mami! ¡Hay una mala persona! *llora*",
+                        "§c[Aldeano Bebé] ¡Vete! *asustado*",
+                        "§c[Aldeano Bebé] ¡Das miedo!",
+                        "§c[Aldeano Bebé] ¡AYUDA! *corre*"
                 }
                         : new String[] {
-                                "§c[Villager] Keep your hands off our doors!",
-                                "§c[Villager] That's private property!",
-                                "§c[Villager] You're not welcome here!",
-                                "§c[Villager] Stop entering our homes!",
-                                "§c[Villager] Get OUT of here!",
-                                "§c[Villager] How DARE you!",
-                                "§c[Villager] GUARDS! Intruder!",
-                                "§c[Villager] This is OUR home, thief!",
-                                "§c[Villager] You have NO right to be here!",
-                                "§c[Villager] I should call the Iron Golems!"
+                                "§c[Aldeano] ¡Quita tus manos de nuestras puertas!",
+                                "§c[Aldeano] ¡Eso es propiedad privada!",
+                                "§c[Aldeano] ¡No eres bienvenido aquí!",
+                                "§c[Aldeano] ¡Deja de entrar a nuestros hogares!",
+                                "§c[Aldeano] ¡SAL de aquí!",
+                                "§c[Aldeano] ¿¡Cómo TE ATREVES!?",
+                                "§c[Aldeano] ¡GUARDIAS! ¡Intruso!",
+                                "§c[Aldeano] ¡Esta es NUESTRA casa, ladrón!",
+                                "§c[Aldeano] ¡NO tienes derecho a estar aquí!",
+                                "§c[Aldeano] ¡Debería llamar a los Gólems de Hierro!"
                         };
 
                 player.sendSystemMessage(Component.literal(
                         negativeMessages[level.getRandom().nextInt(negativeMessages.length)]));
                 player.sendSystemMessage(Component.literal(
-                        "§c[Village Diplomacy] Entered uninvited! Reputation -5 (Total: " +
+                        "§c[Diplomacia de Aldeas] ¡Entraste sin invitación! Reputación -5 (Total: " +
                                 newRep + " - " + getReputationStatus(newRep) + ")"));
             }
         }
@@ -1384,7 +1384,7 @@ public class VillagerEventHandler {
 
                     player.sendSystemMessage(Component.literal(message));
                     player.sendSystemMessage(Component.literal(
-                            "§c[Village Diplomacy] Opened village chest! Reputation -10 (Total: " +
+                            "§c[Diplomacia de Aldeas] ¡Abriste cofre de la aldea! Reputación -10 (Total: " +
                                     newRep + " - " + getReputationStatus(newRep) + ")"));
 
                     VillageRelationshipData relationData = VillageRelationshipData.get(level);
@@ -1446,7 +1446,7 @@ public class VillagerEventHandler {
 
                 player.sendSystemMessage(Component.literal(message));
                 player.sendSystemMessage(Component.literal(
-                        "§c[Village Diplomacy] You stole from the village! Reputation -15 (Total: " +
+                        "§c[Diplomacia de Aldeas] ¡Robaste de la aldea! Reputación -15 (Total: " +
                                 newRep + " - " + getReputationStatus(newRep) + ")"));
 
                 chestLootCooldown.put(playerId, currentTime);
@@ -1505,7 +1505,7 @@ public class VillagerEventHandler {
 
                     player.sendSystemMessage(Component.literal(villagerMessage));
                     player.sendSystemMessage(Component.literal(
-                            "§c[Village Diplomacy] " + blockType.systemMessage + " Reputation " + penalty +
+                            "§c[Diplomacia de Aldeas] " + blockType.systemMessage + " Reputación " + penalty +
                                     " (Total: " + newRep + " - " + getReputationStatus(newRep) + ")"));
 
                     VillageRelationshipData relationData = VillageRelationshipData.get(level);
@@ -1554,389 +1554,389 @@ public class VillagerEventHandler {
                 if (placedBlock instanceof BedBlock) {
                     if (isWelcome) {
                         messages = new String[]{
-                            "§a[Villager] Make yourself at home, friend!",
-                            "§a[Villager] Feel free to rest here anytime.",
-                            "§a[Villager] Your own bed! You're really part of the village now.",
-                            "§a[Villager] Welcome home!",
-                            "§7[Villager] *smiles warmly* That's a nice spot.",
-                            "§a[Villager] It's good to have you living with us!"
+                            "§a[Aldeano] ¡Ponte cómodo, amigo!",
+                            "§a[Aldeano] Siéntete libre de descansar aquí cuando quieras.",
+                            "§a[Aldeano] ¡Tu propia cama! Ya eres parte de la aldea.",
+                            "§a[Aldeano] ¡Bienvenido a casa!",
+                            "§7[Aldeano] *sonríe cálidamente* Es un buen lugar.",
+                            "§a[Aldeano] ¡Es bueno tenerte viviendo con nosotros!"
                         };
                     } else if (isNeutral) {
                         messages = new String[]{
-                            "§e[Villager] Making yourself at home?",
-                            "§e[Villager] Ah, claiming a bed I see...",
-                            "§e[Villager] Planning to stay a while?",
-                            "§7[Villager] *nods* That's a good spot for a bed.",
-                            "§e[Villager] Settling in?",
-                            "§e[Villager] You're building here now?"
+                            "§e[Aldeano] ¿¡Poniéndote cómodo!?",
+                            "§e[Aldeano] Ah, reclamando una cama ya veo...",
+                            "§e[Aldeano] ¿¡Planeas quedarte un tiempo!?",
+                            "§7[Aldeano] *asiente* Es un buen lugar para una cama.",
+                            "§e[Aldeano] ¿¡Instalándote!?",
+                            "§e[Aldeano] ¿¡Ahora construyes aquí!?"
                         };
                     } else {
                         messages = new String[]{
-                            "§c[Villager] What are you doing?!",
-                            "§c[Villager] Hey! You're not welcome to build here!",
-                            "§7[Villager] *glares suspiciously*",
-                            "§c[Villager] We don't want you living here!",
-                            "§c[Villager] You think you can just move in?!",
-                            "§c[Villager] Get that out of our village!"
+                            "§c[Aldeano] ¿¡Qué estás haciendo!?",
+                            "§c[Aldeano] ¡Oye! ¡No eres bienvenido a construir aquí!",
+                            "§7[Aldeano] *mira con furia sospechosamente*",
+                            "§c[Aldeano] ¡No queremos que vivas aquí!",
+                            "§c[Aldeano] ¿¡Crees que puedes mudarte así sin más!?",
+                            "§c[Aldeano] ¡Saca eso de nuestra aldea!"
                         };
                     }
                 } else if (placedBlock instanceof ChestBlock || placedBlock instanceof BarrelBlock) {
                     if (isWelcome) {
                         messages = new String[]{
-                            "§a[Villager] Setting up storage? Smart!",
-                            "§a[Villager] Keep your valuables safe, friend.",
-                            "§7[Villager] That's a perfect spot for a chest.",
-                            "§a[Villager] You're really making this your home!",
-                            "§a[Villager] Need help organizing your things?",
-                            "§a[Villager] A chest! You're staying long-term then?"
+                            "§a[Aldeano] ¿¡Preparando almacenamiento!? ¡Inteligente!",
+                            "§a[Aldeano] Mantén tus objetos valiosos seguros, amigo.",
+                            "§7[Aldeano] Ese es un lugar perfecto para un cofre.",
+                            "§a[Aldeano] ¡Realmente estás haciendo de esto tu hogar!",
+                            "§a[Aldeano] ¿¡Necesitas ayuda organizando tus cosas!?",
+                            "§a[Aldeano] ¿¡Un cofre! ¿¡Te quedas a largo plazo entonces!?"
                         };
                     } else if (isNeutral) {
                         messages = new String[]{
-                            "§e[Villager] Storing your belongings here?",
-                            "§e[Villager] Ah, setting up storage...",
-                            "§7[Villager] That's a good spot for a chest.",
-                            "§e[Villager] Making this your home?",
-                            "§e[Villager] You're really settling in...",
-                            "§e[Villager] Planning to stay?"
+                            "§e[Aldeano] ¿¡Almacenando tus pertenencias aquí!?",
+                            "§e[Aldeano] Ah, preparando almacenamiento...",
+                            "§7[Aldeano] Ese es un buen lugar para un cofre.",
+                            "§e[Aldeano] ¿¡Haciendo de esto tu hogar!?",
+                            "§e[Aldeano] Realmente te estás instalando...",
+                            "§e[Aldeano] ¿¡Planeas quedarte!?"
                         };
                     } else {
                         messages = new String[]{
-                            "§c[Villager] What's in that chest?!",
-                            "§c[Villager] We don't want YOUR stuff here!",
-                            "§c[Villager] Taking over our village, are you?!",
-                            "§7[Villager] *watches suspiciously*",
-                            "§c[Villager] Don't think we won't check that!",
-                            "§c[Villager] You're up to something..."
+                            "§c[Aldeano] ¿¡Qué hay en ese cofre!?",
+                            "§c[Aldeano] ¡No queremos TUS cosas aquí!",
+                            "§c[Aldeano] ¿¡Te apoderas de nuestra aldea, verdad!?",
+                            "§7[Aldeano] *observa sospechosamente*",
+                            "§c[Aldeano] ¡No creas que no revisaremos eso!",
+                            "§c[Aldeano] Estás tramando algo..."
                         };
                     }
                 } else if (placedBlock instanceof FurnaceBlock || placedBlock instanceof BlastFurnaceBlock || placedBlock instanceof SmokerBlock) {
                     if (isWelcome) {
                         messages = new String[]{
-                            "§a[Villager] A furnace! We could use more industry!",
-                            "§a[Villager] Excellent! A new workshop!",
-                            "§a[Villager] You're contributing to the village economy!",
-                            "§7[Villager] That'll come in handy for everyone.",
-                            "§a[Villager] Good thinking! We need more crafters.",
-                            "§a[Villager] You're really helping the village grow!"
+                            "§a[Aldeano] ¿¡Un horno! ¡Podríamos usar más industria!",
+                            "§a[Aldeano] ¡Excelente! ¡Un nuevo taller!",
+                            "§a[Aldeano] ¡Estás contribuyendo a la economía de la aldea!",
+                            "§7[Aldeano] Eso será útil para todos.",
+                            "§a[Aldeano] ¡Buen pensamiento! Necesitamos más artesanos.",
+                            "§a[Aldeano] ¡Realmente estás ayudando a crecer la aldea!"
                         };
                     } else if (isNeutral) {
                         messages = new String[]{
-                            "§e[Villager] Setting up a furnace?",
-                            "§e[Villager] Oh, you're going to do some smelting!",
-                            "§e[Villager] Planning to craft here?",
-                            "§7[Villager] That'll come in handy.",
-                            "§e[Villager] Building your own workshop?",
-                            "§e[Villager] Going to make something?"
+                            "§e[Aldeano] ¿¡Preparando un horno!?",
+                            "§e[Aldeano] ¡Oh, vas a fundir!",
+                            "§e[Aldeano] ¿¡Planeas fabricar aquí!?",
+                            "§7[Aldeano] Eso será útil.",
+                            "§e[Aldeano] ¿¡Construyendo tu propio taller!?",
+                            "§e[Aldeano] ¿¡Vas a hacer algo!?"
                         };
                     } else {
                         messages = new String[]{
-                            "§c[Villager] What are you building?!",
-                            "§c[Villager] We don't need YOUR furnaces!",
-                            "§c[Villager] Stop cluttering our village!",
-                            "§7[Villager] *frowns deeply*",
-                            "§c[Villager] You're not a blacksmith here!",
-                            "§c[Villager] Take that somewhere else!"
+                            "§c[Aldeano] ¿¡Qué estás construyendo!?",
+                            "§c[Aldeano] ¡No necesitamos TUS hornos!",
+                            "§c[Aldeano] ¡Deja de saturar nuestra aldea!",
+                            "§7[Aldeano] *frunce el ceño profundamente*",
+                            "§c[Aldeano] ¡No eres herrero aquí!",
+                            "§c[Aldeano] ¡Lleva eso a otro lugar!"
                         };
                     }
                 } else if (placedBlock instanceof CraftingTableBlock) {
                     if (isWelcome) {
                         messages = new String[]{
-                            "§a[Villager] A crafting table! Perfect!",
-                            "§a[Villager] Oh, setting up a workshop! Great idea!",
-                            "§a[Villager] You're a true artisan!",
-                            "§7[Villager] We appreciate skilled crafters.",
-                            "§a[Villager] The village benefits from your skills!",
-                            "§a[Villager] You're becoming quite the craftsman!"
+                            "§a[Aldeano] ¿¡Una mesa de crafteo! ¡Perfecto!",
+                            "§a[Aldeano] ¡Oh, preparando un taller! ¡Buena idea!",
+                            "§a[Aldeano] ¡Eres un verdadero artesano!",
+                            "§7[Aldeano] Apreciamos a los artesanos hábiles.",
+                            "§a[Aldeano] ¡La aldea se beneficia de tus habilidades!",
+                            "§a[Aldeano] ¡Te estás convirtiendo en todo un artesano!"
                         };
                     } else if (isNeutral) {
                         messages = new String[]{
-                            "§e[Villager] A crafting table! Very useful.",
-                            "§e[Villager] Oh, setting up a workshop!",
-                            "§e[Villager] You're really making yourself at home.",
-                            "§7[Villager] Smart thinking.",
-                            "§e[Villager] Planning to make something?",
-                            "§e[Villager] Going to craft here?"
+                            "§e[Aldeano] ¿¡Una mesa de crafteo! Muy útil.",
+                            "§e[Aldeano] ¡Oh, preparando un taller!",
+                            "§e[Aldeano] Realmente te estás poniendo cómodo.",
+                            "§7[Aldeano] Pensamiento inteligente.",
+                            "§e[Aldeano] ¿¡Planeas hacer algo!?",
+                            "§e[Aldeano] ¿¡Vas a fabricar aquí!?"
                         };
                     } else {
                         messages = new String[]{
-                            "§c[Villager] We have our OWN crafting tables!",
-                            "§c[Villager] You're not part of this village!",
-                            "§c[Villager] Stop building in our territory!",
-                            "§7[Villager] *crosses arms*",
-                            "§c[Villager] You're not welcome to craft here!",
-                            "§c[Villager] Take that table elsewhere!"
+                            "§c[Aldeano] ¡Tenemos nuestras PROPIAS mesas de crafteo!",
+                            "§c[Aldeano] ¡No eres parte de esta aldea!",
+                            "§c[Aldeano] ¡Deja de construir en nuestro territorio!",
+                            "§7[Aldeano] *cruza los brazos*",
+                            "§c[Aldeano] ¡No eres bienvenido a fabricar aquí!",
+                            "§c[Aldeano] ¡Lleva esa mesa a otro lugar!"
                         };
                     }
                 } else if (placedBlock instanceof BellBlock) {
                     if (isWelcome) {
                         messages = new String[]{
-                            "§a[Villager] A bell! That'll help coordinate everyone!",
-                            "§a[Villager] Excellent! Now we can signal each other!",
-                            "§a[Villager] You're thinking like a true villager!",
-                            "§7[Villager] *impressed* That's very thoughtful.",
-                            "§a[Villager] A bell for the community! Thank you!"
+                            "§a[Aldeano] ¡Una campana! ¡Eso ayudará a coordinar a todos!",
+                            "§a[Aldeano] ¡Excelente! ¡Ahora podemos señalarnos entre nosotros!",
+                            "§a[Aldeano] ¡Estás pensando como un verdadero aldeano!",
+                            "§7[Aldeano] *impresionado* Eso es muy considerado.",
+                            "§a[Aldeano] ¡Una campana para la comunidad! ¡Gracias!"
                         };
                     } else if (isNeutral) {
                         messages = new String[]{
-                            "§e[Villager] A bell? Interesting...",
-                            "§7[Villager] That's... unusual.",
-                            "§e[Villager] Planning to call meetings?",
-                            "§e[Villager] A bell! That could be useful.",
-                            "§7[Villager] *looks curiously*"
+                            "§e[Aldeano] ¿¡Una campana! Interesante...",
+                            "§7[Aldeano] Eso es... inusual.",
+                            "§e[Aldeano] ¿¡Planeas llamar reuniones!?",
+                            "§e[Aldeano] ¡Una campana! Eso podría ser útil.",
+                            "§7[Aldeano] *mira con curiosidad*"
                         };
                     } else {
                         messages = new String[]{
-                            "§c[Villager] Don't you DARE ring that!",
-                            "§c[Villager] We already HAVE a bell!",
-                            "§c[Villager] You're not in charge here!",
-                            "§7[Villager] *glares angrily*",
-                            "§c[Villager] That's OUR gathering symbol!"
+                            "§c[Aldeano] ¡No te ATREVAS a tocarla!",
+                            "§c[Aldeano] ¡Ya TENEMOS una campana!",
+                            "§c[Aldeano] ¡Tú no estás a cargo aquí!",
+                            "§7[Aldeano] *mira con furia*",
+                            "§c[Aldeano] ¡Ese es NUESTRO símbolo de reunión!"
                         };
                     }
                 } else if (placedBlock instanceof net.minecraft.world.level.block.BrewingStandBlock) {
                     if (isWelcome) {
                         messages = new String[]{
-                            "§a[Villager] A brewing stand! You're an alchemist!",
-                            "§a[Villager] Oh! You know potion-making?",
-                            "§a[Villager] We could use someone with your skills!",
-                            "§7[Villager] *very impressed*",
-                            "§a[Villager] An alchemist in our village! Wonderful!",
-                            "§a[Villager] Your potions will benefit everyone!"
+                            "§a[Aldeano] ¡Un soporte de pociones! ¡Eres alquimista!",
+                            "§a[Aldeano] ¡Oh! ¿¡Sabes hacer pociones!",
+                            "§a[Aldeano] ¡Podríamos usar alguien con tus habilidades!",
+                            "§7[Aldeano] *muy impresionado*",
+                            "§a[Aldeano] ¡Un alquimista en nuestra aldea! ¡Maravilloso!",
+                            "§a[Aldeano] ¡Tus pociones beneficiarán a todos!"
                         };
                     } else if (isNeutral) {
                         messages = new String[]{
-                            "§e[Villager] A brewing stand? Fancy!",
-                            "§e[Villager] Oh! Going to make potions?",
-                            "§e[Villager] You know alchemy?",
-                            "§7[Villager] *impressed*",
-                            "§e[Villager] That's quite advanced!",
-                            "§e[Villager] An alchemist, eh?"
+                            "§e[Aldeano] ¿¡Un soporte de pociones! ¡Elegante!",
+                            "§e[Aldeano] ¡Oh! ¿¡Vas a hacer pociones!",
+                            "§e[Aldeano] ¿¡Conoces alquimia!?",
+                            "§7[Aldeano] *impresionado*",
+                            "§e[Aldeano] ¡Eso es bastante avanzado!",
+                            "§e[Aldeano] ¿¡Un alquimista, eh!?"
                         };
                     } else {
                         messages = new String[]{
-                            "§c[Villager] What potions are you brewing?!",
-                            "§c[Villager] We don't trust your alchemy!",
-                            "§c[Villager] Probably making POISON!",
-                            "§7[Villager] *backs away nervously*",
-                            "§c[Villager] Keep your suspicious potions away from us!",
-                            "§c[Villager] You're up to no good!"
+                            "§c[Aldeano] ¿¡Qué pociones estás preparando!",
+                            "§c[Aldeano] ¡No confiamos en tu alquimia!",
+                            "§c[Aldeano] ¡Probablemente estás haciendo VENENO!",
+                            "§7[Aldeano] *retrocede nerviosamente*",
+                            "§c[Aldeano] ¡Mantén tus pociones sospechosas lejos de nosotros!",
+                            "§c[Aldeano] ¡Estás tramando algo malo!"
                         };
                     }
                 } else if (placedBlock instanceof net.minecraft.world.level.block.EnchantmentTableBlock) {
                     if (isWelcome) {
                         messages = new String[]{
-                            "§d[Villager] An enchanting table! Incredible!",
-                            "§d[Villager] You practice magic! Amazing!",
-                            "§a[Villager] This will make the village so much stronger!",
-                            "§7[Villager] *stares in awe at the magical runes*",
-                            "§d[Villager] A true mage among us! We're honored!",
-                            "§a[Villager] Your magical expertise will protect us all!"
+                            "§d[Aldeano] ¡Una mesa de encantamientos! ¡Increíble!",
+                            "§d[Aldeano] ¡Practicas magia! ¡Asombroso!",
+                            "§a[Aldeano] ¡Esto hará la aldea mucho más fuerte!",
+                            "§7[Aldeano] *mira con asombro las runas mágicas*",
+                            "§d[Aldeano] ¡Un verdadero mago entre nosotros! ¡Es un honor!",
+                            "§a[Aldeano] ¡Tu experiencia mágica nos protegerá a todos!"
                         };
                     } else if (isNeutral) {
                         messages = new String[]{
-                            "§d[Villager] An enchanting table! Wow!",
-                            "§e[Villager] You know magic?",
-                            "§7[Villager] *looks at the floating book with wonder*",
-                            "§e[Villager] That's... that's real magic!",
-                            "§d[Villager] I've never seen one up close!",
-                            "§e[Villager] Are you a wizard?"
+                            "§d[Aldeano] ¡Una mesa de encantamientos! ¡Wow!",
+                            "§e[Aldeano] ¿¡Conoces magia!?",
+                            "§7[Aldeano] *mira el libro flotante con asombro*",
+                            "§e[Aldeano] ¡Eso es... eso es magia real!",
+                            "§d[Aldeano] ¡Nunca había visto una de cerca!",
+                            "§e[Aldeano] ¿¡Eres un mago!?"
                         };
                     } else {
                         messages = new String[]{
-                            "§c[Villager] Dark magic! I knew you were trouble!",
-                            "§c[Villager] We don't want witchcraft in our village!",
-                            "§c[Villager] That table gives me a bad feeling...",
-                            "§7[Villager] *makes warding gesture*",
-                            "§c[Villager] You're cursing our land!",
-                            "§c[Villager] Take your dark arts elsewhere!"
+                            "§c[Aldeano] ¡Magia oscura! ¡Sabía que eras problemático!",
+                            "§c[Aldeano] ¡No queremos brujería en nuestra aldea!",
+                            "§c[Aldeano] Esa mesa me da mala espina...",
+                            "§7[Aldeano] *hace un gesto de protección*",
+                            "§c[Aldeano] ¡Estás maldiciendo nuestra tierra!",
+                            "§c[Aldeano] ¡Lleva tus artes oscuras a otro lugar!"
                         };
                     }
                 } else if (placedBlock == Blocks.BOOKSHELF) {
                     if (isWelcome) {
                         messages = new String[]{
-                            "§6[Villager] Books! You're building a library!",
-                            "§a[Villager] Knowledge is precious! Thank you!",
-                            "§7[Villager] The children will love having books to read.",
-                            "§6[Villager] A scholar! We're lucky to have you.",
-                            "§a[Villager] You're enriching our culture!",
-                            "§6[Villager] A bookshelf! You truly are civilized."
+                            "§6[Aldeano] ¡Libros! ¡Estás construyendo una biblioteca!",
+                            "§a[Aldeano] ¡El conocimiento es precioso! ¡Gracias!",
+                            "§7[Aldeano] A los niños les encantará tener libros para leer.",
+                            "§6[Aldeano] ¡Un erudito! Tenemos suerte de tenerte.",
+                            "§a[Aldeano] ¡Estás enriqueciendo nuestra cultura!",
+                            "§6[Aldeano] ¡Una librería! Realmente eres civilizado."
                         };
                     } else if (isNeutral) {
                         messages = new String[]{
-                            "§e[Villager] A bookshelf! You like to read?",
-                            "§7[Villager] Books are valuable around here.",
-                            "§e[Villager] Building a personal library?",
-                            "§6[Villager] *examines the books curiously*",
-                            "§e[Villager] You collect knowledge?",
-                            "§7[Villager] That's quite scholarly."
+                            "§e[Aldeano] ¡Una librería! ¿¡Te gusta leer!?",
+                            "§7[Aldeano] Los libros son valiosos por aquí.",
+                            "§e[Aldeano] ¿¡Construyendo una biblioteca personal!?",
+                            "§6[Aldeano] *examina los libros con curiosidad*",
+                            "§e[Aldeano] ¿¡Coleccionas conocimiento!?",
+                            "§7[Aldeano] Eso es bastante erudito."
                         };
                     } else {
                         messages = new String[]{
-                            "§c[Villager] Stealing our knowledge traditions!",
-                            "§c[Villager] Those books should be in OUR library!",
-                            "§c[Villager] You don't deserve our wisdom!",
-                            "§7[Villager] *frowns at the bookshelf*",
-                            "§c[Villager] Trying to look smart, are you?",
-                            "§c[Villager] We know you can't even read!"
+                            "§c[Aldeano] ¡Robando nuestras tradiciones de conocimiento!",
+                            "§c[Aldeano] ¡Esos libros deberían estar en NUESTRA biblioteca!",
+                            "§c[Aldeano] ¡No mereces nuestra sabiduría!",
+                            "§7[Aldeano] *frunce el ceño ante la librería*",
+                            "§c[Aldeano] Intentas parecer inteligente, ¿¡verdad!",
+                            "§c[Aldeano] ¡Sabemos que ni siquiera puedes leer!"
                         };
                     }
                 } else if (placedBlock instanceof net.minecraft.world.level.block.LecternBlock) {
                     if (isWelcome) {
                         messages = new String[]{
-                            "§6[Villager] A lectern! For reading and study!",
-                            "§a[Villager] You're setting up a proper study!",
-                            "§7[Villager] The mark of a true scholar.",
-                            "§6[Villager] Will you share your knowledge with us?",
-                            "§a[Villager] A lectern shows dedication to learning!"
+                            "§6[Aldeano] ¡Un atril! ¡Para leer y estudiar!",
+                            "§a[Aldeano] ¡Estás preparando un estudio apropiado!",
+                            "§7[Aldeano] La marca de un verdadero erudito.",
+                            "§6[Aldeano] ¿¡Compartirás tu conocimiento con nosotros!",
+                            "§a[Aldeano] ¡Un atril muestra dedicación al aprendizaje!"
                         };
                     } else if (isNeutral) {
                         messages = new String[]{
-                            "§e[Villager] A lectern! Planning to read?",
-                            "§7[Villager] That's for displaying books, right?",
-                            "§e[Villager] Setting up a study area?",
-                            "§6[Villager] *nods approvingly*",
-                            "§e[Villager] You value knowledge, I see."
+                            "§e[Aldeano] ¡Un atril! ¿¡Planeas leer!",
+                            "§7[Aldeano] Eso es para exhibir libros, ¿¡verdad!",
+                            "§e[Aldeano] ¿¡Preparando un área de estudio!",
+                            "§6[Aldeano] *asiente con aprobación*",
+                            "§e[Aldeano] Valoras el conocimiento, veo."
                         };
                     } else {
                         messages = new String[]{
-                            "§c[Villager] Who do you think you are, a teacher?!",
-                            "§c[Villager] We don't need YOUR lectures!",
-                            "§c[Villager] Pretending to be educated...",
-                            "§7[Villager] *scoffs*",
-                            "§c[Villager] You can't teach us anything!"
+                            "§c[Aldeano] ¿¡Quién te crees que eres, un maestro!",
+                            "§c[Aldeano] ¡No necesitamos TUS lecciones!",
+                            "§c[Aldeano] Fingiendo estar educado...",
+                            "§7[Aldeano] *se burla*",
+                            "§c[Aldeano] ¡No puedes enseñarnos nada!"
                         };
                     }
                 } else if (placedBlock instanceof net.minecraft.world.level.block.AnvilBlock) {
                     if (isWelcome) {
                         messages = new String[]{
-                            "§8[Villager] An anvil! A proper smithy!",
-                            "§a[Villager] You're a blacksmith! Excellent!",
-                            "§7[Villager] We always need skilled metalworkers.",
-                            "§8[Villager] *nods with respect*",
-                            "§a[Villager] Your smithing will serve the village well!",
-                            "§8[Villager] A master craftsman among us!"
+                            "§8[Aldeano] ¡Un yunque! ¡Una forja apropiada!",
+                            "§a[Aldeano] ¡Eres herrero! ¡Excelente!",
+                            "§7[Aldeano] Siempre necesitamos trabajadores del metal hábiles.",
+                            "§8[Aldeano] *asiente con respeto*",
+                            "§a[Aldeano] ¡Tu trabajo de herrería servirá bien a la aldea!",
+                            "§8[Aldeano] ¡Un maestro artesano entre nosotros!"
                         };
                     } else if (isNeutral) {
                         messages = new String[]{
-                            "§e[Villager] An anvil! Are you a smith?",
-                            "§7[Villager] That's heavy-duty equipment.",
-                            "§e[Villager] Setting up a smithy?",
-                            "§8[Villager] You work metal?",
-                            "§e[Villager] Planning to repair tools?",
-                            "§7[Villager] That'll come in handy."
+                            "§e[Aldeano] ¡Un yunque! ¿¡Eres herrero!",
+                            "§7[Aldeano] Ese es equipo pesado.",
+                            "§e[Aldeano] ¿¡Preparando una forja!",
+                            "§8[Aldeano] ¿¡Trabajas el metal!",
+                            "§e[Aldeano] ¿¡Planeas reparar herramientas!",
+                            "§7[Aldeano] Eso será útil."
                         };
                     } else {
                         messages = new String[]{
-                            "§c[Villager] Making weapons against us?!",
-                            "§c[Villager] We don't trust you with an anvil!",
-                            "§c[Villager] You'll forge weapons to attack us!",
-                            "§7[Villager] *eyes the anvil suspiciously*",
-                            "§c[Villager] Take your smithy elsewhere!",
-                            "§c[Villager] No weapons in OUR village!"
+                            "§c[Aldeano] ¿¡Haciendo armas contra nosotros!",
+                            "§c[Aldeano] ¡No confiamos en ti con un yunque!",
+                            "§c[Aldeano] ¡Forjarás armas para atacarnos!",
+                            "§7[Aldeano] *mira el yunque sospechosamente*",
+                            "§c[Aldeano] ¡Lleva tu forja a otro lugar!",
+                            "§c[Aldeano] ¡No queremos armas en NUESTRA aldea!"
                         };
                     }
                 } else if (placedBlock instanceof net.minecraft.world.level.block.GrindstoneBlock) {
                     if (isWelcome) {
                         messages = new String[]{
-                            "§7[Villager] A grindstone! Very practical!",
-                            "§a[Villager] You think of everything!",
-                            "§7[Villager] We can all use that for repairs.",
-                            "§a[Villager] Community tools are always welcome!",
-                            "§7[Villager] *appreciates the utility*"
+                            "§7[Aldeano] ¡Una piedra de afilar! ¡Muy práctico!",
+                            "§a[Aldeano] ¡Piensas en todo!",
+                            "§7[Aldeano] Todos podemos usar eso para reparaciones.",
+                            "§a[Aldeano] ¡Las herramientas comunitarias siempre son bienvenidas!",
+                            "§7[Aldeano] *aprecia la utilidad*"
                         };
                     } else if (isNeutral) {
                         messages = new String[]{
-                            "§e[Villager] A grindstone! Useful.",
-                            "§7[Villager] For sharpening and repairs?",
-                            "§e[Villager] That's practical.",
-                            "§7[Villager] Good for maintaining tools.",
-                            "§e[Villager] Setting up a repair station?"
+                            "§e[Aldeano] ¡Una piedra de afilar! Útil.",
+                            "§7[Aldeano] ¿¡Para afilar y reparar!",
+                            "§e[Aldeano] Eso es práctico.",
+                            "§7[Aldeano] Bueno para mantener herramientas.",
+                            "§e[Aldeano] ¿¡Preparando una estación de reparación!"
                         };
                     } else {
                         messages = new String[]{
-                            "§c[Villager] Sharpening weapons, I bet!",
-                            "§c[Villager] We know what you're planning!",
-                            "§c[Villager] That's for making sharper swords!",
-                            "§7[Villager] *watches warily*",
-                            "§c[Villager] Preparing for violence..."
+                            "§c[Aldeano] ¡Afilando armas, apuesto!",
+                            "§c[Aldeano] ¡Sabemos lo que estás planeando!",
+                            "§c[Aldeano] ¡Eso es para hacer espadas más afiladas!",
+                            "§7[Aldeano] *observa con cautela*",
+                            "§c[Aldeano] Preparándote para la violencia..."
                         };
                     }
                 } else if (placedBlock instanceof net.minecraft.world.level.block.LoomBlock) {
                     if (isWelcome) {
                         messages = new String[]{
-                            "§d[Villager] A loom! You're a weaver!",
-                            "§a[Villager] The village needs more artisans!",
-                            "§7[Villager] Beautiful tapestries await!",
-                            "§d[Villager] You'll make wonderful banners!",
-                            "§a[Villager] A true artist among us!"
+                            "§d[Aldeano] ¡Un telar! ¡Eres tejedor!",
+                            "§a[Aldeano] ¡La aldea necesita más artesanos!",
+                            "§7[Aldeano] ¡Hermosos tapices nos esperan!",
+                            "§d[Aldeano] ¡Harás estandartes maravillosos!",
+                            "§a[Aldeano] ¡Un verdadero artista entre nosotros!"
                         };
                     } else if (isNeutral) {
                         messages = new String[]{
-                            "§e[Villager] A loom! You make banners?",
-                            "§7[Villager] For weaving patterns?",
-                            "§e[Villager] That's creative.",
-                            "§d[Villager] You're artistic?",
-                            "§e[Villager] Planning to make decorations?"
+                            "§e[Aldeano] ¡Un telar! ¿¡Haces estandartes!",
+                            "§7[Aldeano] ¿¡Para tejer patrones!",
+                            "§e[Aldeano] Eso es creativo.",
+                            "§d[Aldeano] ¿¡Eres artístico!",
+                            "§e[Aldeano] ¿¡Planeas hacer decoraciones!"
                         };
                     } else {
                         messages = new String[]{
-                            "§c[Villager] Making YOUR banners in OUR village?!",
-                            "§c[Villager] We don't want your symbols here!",
-                            "§c[Villager] Trying to mark this as YOUR territory!",
-                            "§7[Villager] *disapproves strongly*",
-                            "§c[Villager] Remove that loom!"
+                            "§c[Aldeano] ¿¡Haciendo TUS estandartes en NUESTRA aldea!",
+                            "§c[Aldeano] ¡No queremos tus símbolos aquí!",
+                            "§c[Aldeano] ¡Intentas marcar esto como TU territorio!",
+                            "§7[Aldeano] *desaprueba fuertemente*",
+                            "§c[Aldeano] ¡Quita ese telar!"
                         };
                     }
                 } else if (placedBlock instanceof net.minecraft.world.level.block.ComposterBlock) {
                     if (isWelcome) {
                         messages = new String[]{
-                            "§2[Villager] A composter! You're farming!",
-                            "§a[Villager] Excellent! We need more farmers!",
-                            "§7[Villager] You'll help our crops grow!",
-                            "§2[Villager] Contributing to our agriculture!",
-                            "§a[Villager] The fields will prosper!"
+                            "§2[Aldeano] ¡Una compostera! ¡Estás cultivando!",
+                            "§a[Aldeano] ¡Excelente! ¡Necesitamos más granjeros!",
+                            "§7[Aldeano] ¡Ayudarás a crecer nuestros cultivos!",
+                            "§2[Aldeano] ¡Contribuyendo a nuestra agricultura!",
+                            "§a[Aldeano] ¡Los campos prosperarán!"
                         };
                     } else if (isNeutral) {
                         messages = new String[]{
-                            "§e[Villager] A composter! Planning to farm?",
-                            "§7[Villager] For making bone meal?",
-                            "§2[Villager] You're growing crops?",
-                            "§e[Villager] That's useful for farming.",
-                            "§7[Villager] Good for the gardens."
+                            "§e[Aldeano] ¡Una compostera! ¿¡Planeas cultivar!",
+                            "§7[Aldeano] ¿¡Para hacer harina de huesos!",
+                            "§2[Aldeano] ¿¡Estás cultivando!",
+                            "§e[Aldeano] Eso es útil para cultivar.",
+                            "§7[Aldeano] Bueno para los jardines."
                         };
                     } else {
                         messages = new String[]{
-                            "§c[Villager] Stealing our farming methods!",
-                            "§c[Villager] That's for OUR crops, not yours!",
-                            "§c[Villager] You'll ruin the soil!",
-                            "§7[Villager] *protective of the farmland*",
-                            "§c[Villager] Leave our agriculture alone!"
+                            "§c[Aldeano] ¡Robando nuestros métodos de cultivo!",
+                            "§c[Aldeano] ¡Eso es para NUESTROS cultivos, no los tuyos!",
+                            "§c[Aldeano] ¡Arruinarás el suelo!",
+                            "§7[Aldeano] *protector de las tierras de cultivo*",
+                            "§c[Aldeano] ¡Deja nuestra agricultura en paz!"
                         };
                     }
                 } else if (placedBlock instanceof net.minecraft.world.level.block.CauldronBlock) {
                     if (isWelcome) {
                         messages = new String[]{
-                            "§b[Villager] A cauldron! Very useful!",
-                            "§a[Villager] We can all use that!",
-                            "§7[Villager] For water storage and washing.",
-                            "§b[Villager] Practical thinking!",
-                            "§a[Villager] The village benefits from this!"
+                            "§b[Aldeano] ¡Un caldero! ¡Muy útil!",
+                            "§a[Aldeano] ¡Todos podemos usar eso!",
+                            "§7[Aldeano] Para almacenar agua y lavar.",
+                            "§b[Aldeano] ¡Pensamiento práctico!",
+                            "§a[Aldeano] ¡La aldea se beneficia de esto!"
                         };
                     } else if (isNeutral) {
                         messages = new String[]{
-                            "§e[Villager] A cauldron! For water?",
-                            "§7[Villager] That's handy to have around.",
-                            "§b[Villager] Multi-purpose tool.",
-                            "§e[Villager] For potions or washing?",
-                            "§7[Villager] Practical."
+                            "§e[Aldeano] ¡Un caldero! ¿¡Para agua!",
+                            "§7[Aldeano] Eso es práctico tener a mano.",
+                            "§b[Aldeano] Herramienta multifunción.",
+                            "§e[Aldeano] ¿¡Para pociones o lavar!",
+                            "§7[Aldeano] Práctico."
                         };
                     } else {
                         messages = new String[]{
-                            "§c[Villager] What are you brewing in there?!",
-                            "§c[Villager] Probably making poison!",
-                            "§c[Villager] Witch! Witch!",
-                            "§7[Villager] *backs away from the cauldron*",
-                            "§c[Villager] No dark magic here!"
+                            "§c[Aldeano] ¿¡Qué estás preparando ahí!",
+                            "§c[Aldeano] ¡Probablemente estás haciendo veneno!",
+                            "§c[Aldeano] ¡Bruja! ¡Bruja!",
+                            "§7[Aldeano] *retrocede del caldero*",
+                            "§c[Aldeano] ¡No queremos magia oscura aquí!"
                         };
                     }
                 } else {
@@ -2209,21 +2209,21 @@ public class VillagerEventHandler {
                 event.setResult(net.minecraft.world.entity.player.Player.BedSleepingProblem.OTHER_PROBLEM);
                 
                 String[] denialMessages = reputation < -500 ? new String[] {
-                        "§4[Villager] Get OUT! You're not welcome here!",
-                        "§4[Villager] A criminal in OUR beds?! NEVER!",
-                        "§4[Villager] Guards! Remove this intruder!",
-                        "§4[Villager] You have NO right to rest here!"
+                        "§4[Aldeano] ¡FUERA! ¡No eres bienvenido aquí!",
+                        "§4[Aldeano] ¿¡Un criminal en NUESTRAS camas!? ¡NUNCA!",
+                        "§4[Aldeano] ¡Guardias! ¡Remuevan a este intruso!",
+                        "§4[Aldeano] ¡NO tienes derecho a descansar aquí!"
                 } : new String[] {
-                        "§c[Villager] You're not welcome to use our beds.",
-                        "§c[Villager] Find somewhere else to sleep, outsider.",
-                        "§c[Villager] These beds are for villagers only.",
-                        "§c[Villager] Your reputation doesn't grant you this privilege."
+                        "§c[Aldeano] No eres bienvenido a usar nuestras camas.",
+                        "§c[Aldeano] Busca otro lugar para dormir, forastero.",
+                        "§c[Aldeano] Estas camas son solo para aldeanos.",
+                        "§c[Aldeano] Tu reputación no te otorga este privilegio."
                 };
                 
                 player.sendSystemMessage(Component.literal(
                         denialMessages[level.getRandom().nextInt(denialMessages.length)]));
                 player.sendSystemMessage(Component.literal(
-                        "§c✗ Denied! Your reputation is too low to use village beds."));
+                        "§c✗ ¡Denegado! Tu reputación es muy baja para usar camas de aldea."));
                 
                 return; // Salir sin procesar más
             }
@@ -2268,17 +2268,17 @@ public class VillagerEventHandler {
                 checkAndNotifyReputationChange(player, oldRep, newRep);
 
                 String[] adultMessages = {
-                        "§c[Villager] HEY! That's MY bed!",
-                        "§c[Villager] Get out of my bed, you creep!",
-                        "§c[Villager] Have you no shame?!",
-                        "§c[Villager] That's private property!",
-                        "§c[Villager] *angrily* OUT!"
+                        "§c[Aldeano] ¡OYE! ¡Esa es MI cama!",
+                        "§c[Aldeano] ¡Sal de mi cama, raro!",
+                        "§c[Aldeano] ¿¡No tienes vergüenza!?",
+                        "§c[Aldeano] ¡Eso es propiedad privada!",
+                        "§c[Aldeano] *enojado* ¡FUERA!"
                 };
 
                 String[] babyMessages = {
-                        "§c[Baby Villager] That's where I sleep! *cries*",
-                        "§c[Baby Villager] Noooo! My bed!",
-                        "§c[Baby Villager] Mommy! A stranger is in my bed!"
+                        "§c[Aldeano Bebé] ¡Ahí es donde duermo! *llora*",
+                        "§c[Aldeano Bebé] ¡Noooo! ¡Mi cama!",
+                        "§c[Aldeano Bebé] ¡Mami! ¡Un extraño está en mi cama!"
                 };
 
                 String message = caughtByBaby ? babyMessages[level.getRandom().nextInt(babyMessages.length)]
@@ -2286,7 +2286,7 @@ public class VillagerEventHandler {
 
                 player.sendSystemMessage(Component.literal(message));
                 player.sendSystemMessage(Component.literal(
-                        "§c[Village Diplomacy] Used a villager's bed! Reputation -20 (Total: " +
+                        "§c[Diplomacia de Aldeas] ¡Usaste la cama de un aldeano! Reputación -20 (Total: " +
                                 newRep + " - " + getReputationStatus(newRep) + ")"));
 
                 bedUsageCooldown.put(playerId, currentTime);
@@ -2327,15 +2327,15 @@ public class VillagerEventHandler {
                     String[] denialMessages;
                     if (reputation < -500) {
                         denialMessages = new String[]{
-                            "§4[Villager] You have NO right to ring our bell!",
-                            "§4[Villager] Get away from there, criminal!",
-                            "§c[Villager] That bell is not for the likes of you!"
+                            "§4[Aldeano] ¡NO tienes derecho a tocar nuestra campana!",
+                            "§4[Aldeano] ¡Aléjate de ahí, criminal!",
+                            "§c[Aldeano] ¡Esa campana no es para gente como tú!"
                         };
                     } else {
                         denialMessages = new String[]{
-                            "§c[Villager] We can't trust you with the village bell.",
-                            "§c[Villager] Earn our trust first.",
-                            "§e[Villager] The bell is for villagers only."
+                            "§c[Aldeano] No podemos confiar en ti con la campana de la aldea.",
+                            "§c[Aldeano] Ganáte nuestra confianza primero.",
+                            "§e[Aldeano] La campana es solo para aldeanos."
                         };
                     }
                     
@@ -2368,9 +2368,9 @@ public class VillagerEventHandler {
                     // Reutilizar las variables ya definidas arriba
                     if (reputation >= 500) {
                         String[] positiveMessages = {
-                                "§a[Villager] Gathering everyone, champion!",
-                                "§a[Villager] Calling the village for you!",
-                                "§a[Villager] *nods approvingly*"
+                                "§a[Aldeano] ¡Reuniendo a todos, campeón!",
+                                "§a[Aldeano] ¡Llamando a la aldea por ti!",
+                                "§a[Aldeano] *asiente con aprobación*"
                         };
                         player.sendSystemMessage(Component.literal(
                                 positiveMessages[level.getRandom().nextInt(positiveMessages.length)]));
@@ -2379,19 +2379,19 @@ public class VillagerEventHandler {
                         int newRep = data.getReputation(playerId);
 
                         String[] messages = {
-                                "§c[Villager] Stop ringing the bell!",
-                                "§c[Villager] That's for emergencies only!",
-                                "§c[Villager] Are you trying to cause panic?!",
-                                "§c[Villager] This isn't funny!",
-                                "§c[Villager] *covers ears* STOP IT!",
-                                "§c[Villager] You're abusing our emergency system!",
-                                "§c[Villager] The guards will hear about this!"
+                                "§c[Aldeano] ¡Deja de tocar la campana!",
+                                "§c[Aldeano] ¡Eso es solo para emergencias!",
+                                "§c[Aldeano] ¿¡Estás intentando causar pánico!?",
+                                "§c[Aldeano] ¡Esto no es gracioso!",
+                                "§c[Aldeano] *se cubre los oídos* ¡DETENTE!",
+                                "§c[Aldeano] ¡Estás abusando de nuestro sistema de emergencias!",
+                                "§c[Aldeano] ¡Los guardias se§ enterarán de esto!"
                         };
 
                         player.sendSystemMessage(Component.literal(
                                 messages[level.getRandom().nextInt(messages.length)]));
                         player.sendSystemMessage(Component.literal(
-                                "§c[Village Diplomacy] Rang the village bell! Reputation -15 (Total: " +
+                                "§c[Diplomacia de Aldeas] ¡Tocaste la campana de la aldea! Reputación -15 (Total: " +
                                         newRep + " - " + getReputationStatus(newRep) + ")"));
                     }
 
@@ -2481,16 +2481,16 @@ public class VillagerEventHandler {
                         checkAndNotifyReputationChange(player, oldRep, newRep);
 
                         String[] messages = {
-                                "§c[Villager] HEY! Don't let the animals out!",
-                                "§c[Villager] That's our farm! Stay away!",
-                                "§c[Villager] What are you doing?!",
-                                "§c[Villager] Leave our crops alone!"
+                                "§c[Aldeano] ¡OYE! ¡No dejes salir a los animales!",
+                                "§c[Aldeano] ¡Esa es nuestra granja! ¡Aléjate!",
+                                "§c[Aldeano] ¿¡Qué estás haciendo!?",
+                                "§c[Aldeano] ¡Deja nuestros cultivos en paz!"
                         };
 
                         player.sendSystemMessage(Component.literal(
                                 messages[level.getRandom().nextInt(messages.length)]));
                         player.sendSystemMessage(Component.literal(
-                                "§c[Village Diplomacy] Opened farm trapdoor! Reputation -10 (Total: " +
+                                "§c[Diplomacia de Aldeas] ¡Abriste trampilla de granja! Reputación -10 (Total: " +
                                         newRep + " - " + getReputationStatus(newRep) + ")"));
 
                         trapdoorCooldown.put(playerId, currentTime);
@@ -2552,17 +2552,17 @@ public class VillagerEventHandler {
                     }
 
                     String[] messages = {
-                            "§c[Villager] Hey! That's our " + blockName + "!",
-                            "§c[Villager] Don't touch our equipment!",
-                            "§c[Villager] You're using OUR resources!",
-                            "§c[Villager] That's village property!",
-                            "§c[Villager] Stop using our tools!"
+                            "§c[Aldeano] ¡Oye! ¡Esa es nuestra " + blockName + "!",
+                            "§c[Aldeano] ¡No toques nuestro equipo!",
+                            "§c[Aldeano] ¡Estás usando NUESTROS recursos!",
+                            "§c[Aldeano] ¡Eso es propiedad de la aldea!",
+                            "§c[Aldeano] ¡Deja de usar nuestras herramientas!"
                     };
 
                     player.sendSystemMessage(Component.literal(
                             messages[level.getRandom().nextInt(messages.length)]));
                     player.sendSystemMessage(Component.literal(
-                            "§c[Village Diplomacy] Used village " + blockName + "! Reputation -8 (Total: " +
+                            "§c[Diplomacia de Aldeas] ¡Usaste " + blockName + " de la aldea! Reputación -8 (Total: " +
                                     newRep + " - " + getReputationStatus(newRep) + ")"));
 
                     VillageRelationshipData relationData = VillageRelationshipData.get(level);
@@ -2619,15 +2619,15 @@ public class VillagerEventHandler {
                         checkAndNotifyReputationChange(player, oldRep, newRep);
 
                         String[] messages = {
-                                "§c[Villager] That's MY crafting table!",
-                                "§c[Villager] Make your own tools!",
-                                "§c[Villager] Hey! Don't use my stuff!"
+                                "§c[Aldeano] ¡Esa es MI mesa de crafteo!",
+                                "§c[Aldeano] ¡Haz tus propias herramientas!",
+                                "§c[Aldeano] ¡Oye! ¡No uses mis cosas!"
                         };
 
                         player.sendSystemMessage(Component.literal(
                                 messages[level.getRandom().nextInt(messages.length)]));
                         player.sendSystemMessage(Component.literal(
-                                "§c[Village Diplomacy] Used villager's crafting table! Reputation -8 (Total: " +
+                                "§c[Diplomacia de Aldeas] ¡Usaste mesa de crafteo del aldeano! Reputación -8 (Total: " +
                                         newRep + " - " + getReputationStatus(newRep) + ")"));
 
                         craftingTableCooldown.put(playerId, currentTime);
@@ -2692,26 +2692,26 @@ public class VillagerEventHandler {
                         checkAndNotifyReputationChange(player, oldRep, newRep);
 
                         String[] adultMessages = {
-                                "§c[Villager] HEY! You're letting the animals out!",
-                                "§c[Villager] NO! Close that gate!",
-                                "§c[Villager] The livestock will escape!",
-                                "§c[Villager] What are you doing?! Those are OUR animals!",
-                                "§c[Villager] STOP! It took forever to get them in there!",
-                                "§c[Villager] You're releasing our livelihood!",
-                                "§c[Villager] Those animals feed the whole village!",
-                                "§c[Villager] Are you trying to sabotage us?!",
-                                "§c[Villager] Close that gate NOW!",
-                                "§c[Villager] They're escaping! Someone help!"
+                                "§c[Aldeano] ¡OYE! ¡Estás dejando salir a los animales!",
+                                "§c[Aldeano] ¡NO! ¡Cierra esa verja!",
+                                "§c[Aldeano] ¡El ganado escapará!",
+                                "§c[Aldeano] ¿¡Qué estás haciendo!? ¡Esos son NUESTROS animales!",
+                                "§c[Aldeano] ¡DETENTE! ¡Tomó una eternidad meterlos ahí!",
+                                "§c[Aldeano] ¡Estás liberando nuestro sustento!",
+                                "§c[Aldeano] ¡Esos animales alimentan a toda la aldea!",
+                                "§c[Aldeano] ¿¡Estás intentando sabotearnos!?",
+                                "§c[Aldeano] ¡Cierra esa verja AHORA!",
+                                "§c[Aldeano] ¡Están escapando! ¡Alguien ayude!"
                         };
 
                         String[] babyMessages = {
-                                "§c[Baby Villager] Nooo! The animals are getting out!",
-                                "§c[Baby Villager] *cries* Stop them!",
-                                "§c[Baby Villager] My pet cow! She's running away!",
-                                "§c[Baby Villager] Why would you do that?!",
-                                "§c[Baby Villager] Daddy's gonna be so mad!",
-                                "§c[Baby Villager] Bad! Bad person!",
-                                "§c[Baby Villager] *sobs* They're escaping!"
+                                "§c[Aldeano Bebé] ¡Noooo! ¡Los animales se están saliendo!",
+                                "§c[Aldeano Bebé] *llora* ¡Deténlos!",
+                                "§c[Aldeano Bebé] ¡Mi vaca mascota! ¡Se está escapando!",
+                                "§c[Aldeano Bebé] ¿¡Por qué harías eso!?",
+                                "§c[Aldeano Bebé] ¡Papi se va a enojar mucho!",
+                                "§c[Aldeano Bebé] ¡Malo! ¡Mala persona!",
+                                "§c[Aldeano Bebé] *solloza* ¡Están escapando!"
                         };
 
                         String message = caughtByBaby ? babyMessages[level.getRandom().nextInt(babyMessages.length)]
@@ -2719,7 +2719,7 @@ public class VillagerEventHandler {
 
                         player.sendSystemMessage(Component.literal(message));
                         player.sendSystemMessage(Component.literal(
-                                "§c[Village Diplomacy] Released village animals! Reputation -12 (Total: " +
+                                "§c[Diplomacia de Aldeas] ¡Liberaste animales de la aldea! Reputación -12 (Total: " +
                                         newRep + " - " + getReputationStatus(newRep) + ")"));
 
                         fenceGateCooldown.put(playerId, currentTime);
@@ -2859,7 +2859,7 @@ public class VillagerEventHandler {
             villagerAttackTimes.remove(playerId);
 
             player.sendSystemMessage(Component.literal(
-                    "§4[Village Diplomacy] Iron Golems are now HOSTILE for 30 seconds!"));
+                    "§4[Diplomacia de Aldeas] ¡Los Golems de Hierro ahora son HOSTILES por 30 segundos!"));
 
             for (IronGolem golem : nearbyGolems) {
                 golem.setTarget(player);
@@ -3131,7 +3131,7 @@ public class VillagerEventHandler {
                     gift = reputation >= 1000 ? new ItemStack(Items.EMERALD, 2)
                             : reputation >= 800 ? new ItemStack(Items.EMERALD, 1)
                             : new ItemStack(Items.BREAD, 3);
-                    message = "§a[Villager] For our hero!";
+                    message = "§a[Aldeano] ¡Para nuestro héroe!";
             }
             
             if (gift != null) {
@@ -3187,15 +3187,15 @@ public class VillagerEventHandler {
 
     private String getReputationLevelChangeMessage(int level, int reputation) {
         return switch (level) {
-            case 8 -> "§6✦✦✦ [Villager] *kneels* A LEGEND walks among us! All hail!§6✦✦✦";
-            case 7 -> "§6✦ [Villager] *bows respectfully* Our hero! Welcome back, champion!";
-            case 6 -> "§a[Villager] *cheers* The village champion returns!";
-            case 5 -> "§a[Villager] *smiles warmly* Welcome back, friend!";
-            case 4 -> "§2[Villager] Good to see you again.";
-            case 3 -> "§7[Villager] *nods*";
-            case 2 -> "§e[Villager] *looks warily* ...";
-            case 1 -> "§c[Villager] *frowns* Keep your distance...";
-            case 0 -> "§4[Villager] *looks away in fear* Stay away from us!";
+            case 8 -> "§6✦✦✦ [Aldeano] *se arrodilla* ¡Una LEYENDA camina entre nosotros! ¡Todos saluden!§6✦✦✦";
+            case 7 -> "§6✦ [Aldeano] *se inclina respetuosamente* ¡Nuestro héroe! ¡Bienvenido de vuelta, campeón!";
+            case 6 -> "§a[Aldeano] *vitorea* ¡El campeón de la aldea regresa!";
+            case 5 -> "§a[Aldeano] *sonríe cálidamente* ¡Bienvenido de vuelta, amigo!";
+            case 4 -> "§2[Aldeano] Es bueno verte de nuevo.";
+            case 3 -> "§7[Aldeano] *asiente*";
+            case 2 -> "§e[Aldeano] *mira con cautela* ...";
+            case 1 -> "§c[Aldeano] *frunce el ceño* Mantén tu distancia...";
+            case 0 -> "§4[Aldeano] *mira hacia otro lado con miedo* ¡Aléjate de nosotros!";
             default -> null;
         };
     }
@@ -3280,38 +3280,38 @@ public class VillagerEventHandler {
             
             player.sendSystemMessage(Component.literal(""));
             player.sendSystemMessage(Component.literal("§6§l━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"));
-            player.sendSystemMessage(Component.literal("§e§l         REPUTATION CHANGED!"));
+            player.sendSystemMessage(Component.literal("§e§l         ¡REPUTACIÓN CAMBIADA!"));
             player.sendSystemMessage(Component.literal(""));
             player.sendSystemMessage(Component.literal("  §7" + oldStatus + " §8" + arrow + " " + color + "§l" + newStatus));
             player.sendSystemMessage(Component.literal(""));
             
             if (isPositive) {
                 if (newRep >= 1000) {
-                    player.sendSystemMessage(Component.literal("  §6§l" + emoji + " Villagers bow in your presence!"));
+                    player.sendSystemMessage(Component.literal("  §6§l" + emoji + " ¡Los aldeanos se inclinan ante tu presencia!"));
                 } else if (newRep >= 800) {
-                    player.sendSystemMessage(Component.literal("  §a§l" + emoji + " You are a hero to this village!"));
+                    player.sendSystemMessage(Component.literal("  §a§l" + emoji + " ¡Eres un héroe para esta aldea!"));
                 } else if (newRep >= 500) {
-                    player.sendSystemMessage(Component.literal("  §a§l" + emoji + " The villagers celebrate you!"));
+                    player.sendSystemMessage(Component.literal("  §a§l" + emoji + " ¡Los aldeanos te celebran!"));
                 } else if (newRep >= 300) {
-                    player.sendSystemMessage(Component.literal("  §a§l" + emoji + " The village trusts you completely!"));
+                    player.sendSystemMessage(Component.literal("  §a§l" + emoji + " ¡La aldea confía en ti completamente!"));
                 } else if (newRep >= 100) {
-                    player.sendSystemMessage(Component.literal("  §a§l" + emoji + " Villagers greet you warmly!"));
+                    player.sendSystemMessage(Component.literal("  §a§l" + emoji + " ¡Los aldeanos te saludan cálidamente!"));
                 } else if (newRep >= 0) {
-                    player.sendSystemMessage(Component.literal("  §e§l" + emoji + " Relations are improving..."));
+                    player.sendSystemMessage(Component.literal("  §e§l" + emoji + " Las relaciones están mejorando..."));
                 }
             } else {
                 if (newRep < -899) {
-                    player.sendSystemMessage(Component.literal("  §4§l" + emoji + " Golems attack on sight!"));
+                    player.sendSystemMessage(Component.literal("  §4§l" + emoji + " ¡Los Golems atacan a la vista!"));
                 } else if (newRep < -699) {
-                    player.sendSystemMessage(Component.literal("  §c§l" + emoji + " You are an enemy of the village!"));
+                    player.sendSystemMessage(Component.literal("  §c§l" + emoji + " ¡Eres un enemigo de la aldea!"));
                 } else if (newRep < -499) {
-                    player.sendSystemMessage(Component.literal("  §c§l" + emoji + " Villagers refuse to trade with you!"));
+                    player.sendSystemMessage(Component.literal("  §c§l" + emoji + " ¡Los aldeanos se niegan a comerciar contigo!"));
                 } else if (newRep < -200) {
-                    player.sendSystemMessage(Component.literal("  §c§l" + emoji + " You are not welcome here!"));
+                    player.sendSystemMessage(Component.literal("  §c§l" + emoji + " ¡No eres bienvenido aquí!"));
                 } else if (newRep < -100) {
-                    player.sendSystemMessage(Component.literal("  §c§l" + emoji + " Villagers dislike you!"));
+                    player.sendSystemMessage(Component.literal("  §c§l" + emoji + " ¡Los aldeanos te desagradan!"));
                 } else if (newRep < 0) {
-                    player.sendSystemMessage(Component.literal("  §e§l" + emoji + " Relations are deteriorating..."));
+                    player.sendSystemMessage(Component.literal("  §e§l" + emoji + " Las relaciones se están deteriorando..."));
                 }
             }
             
@@ -3421,130 +3421,130 @@ public class VillagerEventHandler {
     private enum BlockType {
         BELL(-50, "Broke the village bell!",
                 new String[] {
-                        "§4[Villager] THE BELL! Our emergency system!",
-                        "§4[Villager] NO! That was our warning bell!",
-                        "§4[Villager] You destroyed our bell!",
-                        "§4[Villager] *horrified* The bell is our lifeline!",
-                        "§4[Villager] How will we call for help now?!",
-                        "§4[Villager] That bell has saved lives!",
-                        "§4[Villager] Guards! The bell is destroyed!",
-                        "§4[Villager] This is unforgivable!",
-                        "§c[Villager] *panicking* Our warning system!",
-                        "§c[Villager] Raiders will attack and we won't know!"
+                        "§4[Aldeano] ¡LA CAMPANA! ¡Nuestro sistema de emergencia!",
+                        "§4[Aldeano] ¡NO! ¡Esa era nuestra campana de alerta!",
+                        "§4[Aldeano] ¡Destruiste nuestra campana!",
+                        "§4[Aldeano] *horrorizado* ¡La campana es nuestra línea de vida!",
+                        "§4[Aldeano] ¿¡Cómo pediremos ayuda ahora!",
+                        "§4[Aldeano] ¡Esa campana ha salvado vidas!",
+                        "§4[Aldeano] ¡Guardias! ¡La campana está destruida!",
+                        "§4[Aldeano] ¡Esto es imperdonable!",
+                        "§c[Aldeano] *en pánico* ¡Nuestro sistema de alerta!",
+                        "§c[Aldeano] ¡Los saqueadores atacarán y no lo sabremos!"
                 },
                 new String[] {
-                        "§c[Baby Villager] *cries loudly* The bell! It's broken!",
-                        "§c[Baby Villager] Why did you break it?!",
-                        "§c[Baby Villager] Mommy! The bell!",
-                        "§c[Baby Villager] *sobbing* That was important!"
+                        "§c[Aldeano Bebé] *llora en voz alta* ¡La campana! ¡Está rota!",
+                        "§c[Aldeano Bebé] ¿¡Por qué la rompiste!",
+                        "§c[Aldeano Bebé] ¡Mamá! ¡La campana!",
+                        "§c[Aldeano Bebé] *sollozando* ¡Eso era importante!"
                 }),
         BED(-20, "Broke a villager's bed!",
                 new String[] {
-                        "§c[Villager] That's MY bed!",
-                        "§c[Villager] Where am I supposed to sleep now?!",
-                        "§c[Villager] You monster!",
-                        "§c[Villager] *furious* That took me weeks to make!",
-                        "§c[Villager] I JUST made that bed!",
-                        "§c[Villager] You have no respect for others!",
-                        "§c[Villager] That's my only bed!",
-                        "§c[Villager] I work all day and you break my bed?!",
-                        "§c[Villager] *outraged* I'll sleep on the floor because of you!",
-                        "§c[Villager] Breaking someone's bed? Really?!"
+                        "§c[Aldeano] ¡Esa es MI cama!",
+                        "§c[Aldeano] ¿¡Dónde se supone que duerma ahora!",
+                        "§c[Aldeano] ¡Monstruo!",
+                        "§c[Aldeano] *furioso* ¡Me tomó semanas hacerla!",
+                        "§c[Aldeano] ¡ACABO de hacer esa cama!",
+                        "§c[Aldeano] ¡No tienes respeto por los demás!",
+                        "§c[Aldeano] ¡Esa es mi única cama!",
+                        "§c[Aldeano] ¡Trabajo todo el día y rompes mi cama!",
+                        "§c[Aldeano] *indignado* ¡Dormiré en el suelo por tu culpa!",
+                        "§c[Aldeano] ¿¡Romper la cama de alguien! ¿¡En serio!"
                 },
                 new String[] {
-                        "§c[Baby Villager] My bed! *sobs uncontrollably*",
-                        "§c[Baby Villager] I need that to sleep!",
-                        "§c[Baby Villager] *crying* Where will I sleep?!",
-                        "§c[Baby Villager] Daddy! My bed is broken!",
-                        "§c[Baby Villager] *wailing* Why?!"
+                        "§c[Aldeano Bebé] ¡Mi cama! *solloza incontrolablemente*",
+                        "§c[Aldeano Bebé] ¡Necesito eso para dormir!",
+                        "§c[Aldeano Bebé] *llorando* ¿¡Dónde dormiré!",
+                        "§c[Aldeano Bebé] ¡Papá! ¡Mi cama está rota!",
+                        "§c[Aldeano Bebé] *lamentando* ¿¡Por qué!"
                 }),
         CROP(-15, "Destroyed village crops!",
                 new String[] {
-                        "§c[Villager] Our food! You're destroying our crops!",
-                        "§c[Villager] We need those to survive!",
-                        "§c[Villager] STOP trampling our farm!",
-                        "§c[Villager] That took MONTHS to grow!",
-                        "§c[Villager] We'll go hungry because of you!",
-                        "§c[Villager] *desperate* That's our winter supply!",
-                        "§c[Villager] Do you know how hard farming is?!",
-                        "§c[Villager] Those crops feed the entire village!",
-                        "§c[Villager] *angry* Stay away from our fields!",
-                        "§c[Villager] You're destroying our livelihood!",
-                        "§c[Villager] The whole village depends on these crops!",
-                        "§c[Villager] Have you no shame?!"
+                        "§c[Aldeano] ¡Nuestra comida! ¡Estás destruyendo nuestros cultivos!",
+                        "§c[Aldeano] ¡Los necesitamos para sobrevivir!",
+                        "§c[Aldeano] ¡DEJA de pisotear nuestra granja!",
+                        "§c[Aldeano] ¡Eso tomó MESES en crecer!",
+                        "§c[Aldeano] ¡Pasaremos hambre por tu culpa!",
+                        "§c[Aldeano] *desesperado* ¡Esa es nuestra reserva de invierno!",
+                        "§c[Aldeano] ¿¡Sabes lo difícil que es cultivar!",
+                        "§c[Aldeano] ¡Esos cultivos alimentan a toda la aldea!",
+                        "§c[Aldeano] *enojado* ¡Aléjate de nuestros campos!",
+                        "§c[Aldeano] ¡Estás destruyendo nuestro sustento!",
+                        "§c[Aldeano] ¡Toda la aldea depende de estos cultivos!",
+                        "§c[Aldeano] ¿¡No tienes vergüenza!"
                 },
                 new String[] {
-                        "§c[Baby Villager] The food! *cries*",
-                        "§c[Baby Villager] Mommy said not to touch the crops!",
-                        "§c[Baby Villager] *points* Bad! Bad!",
-                        "§c[Baby Villager] Those were going to be bread!"
+                        "§c[Aldeano Bebé] ¡La comida! *llora*",
+                        "§c[Aldeano Bebé] ¡Mamá dijo que no toqué los cultivos!",
+                        "§c[Aldeano Bebé] *señala* ¡Malo! ¡Malo!",
+                        "§c[Aldeano Bebé] ¡Esos iban a ser pan!"
                 }),
         WORKSTATION(-25, "Broke a workstation!",
                 new String[] {
-                        "§4[Villager] That's my livelihood!",
-                        "§4[Villager] I need that to work!",
-                        "§4[Villager] How dare you!",
-                        "§4[Villager] *shocked* My crafting table!",
-                        "§4[Villager] I've had that for YEARS!",
-                        "§4[Villager] That's how I make a living!",
-                        "§4[Villager] You just destroyed my job!",
-                        "§4[Villager] *furious* How am I supposed to work now?!",
-                        "§4[Villager] That station was essential to the village!",
-                        "§c[Villager] Without that I can't earn emeralds!",
-                        "§c[Villager] Do you know how expensive those are?!",
-                        "§c[Villager] My entire profession depends on that!"
+                        "§4[Aldeano] ¡Ese es mi sustento!",
+                        "§4[Aldeano] ¡Necesito eso para trabajar!",
+                        "§4[Aldeano] ¿¡Cómo te atreves!",
+                        "§4[Aldeano] *conmocionado* ¡Mi mesa de trabajo!",
+                        "§4[Aldeano] ¡La he tenido por AÑOS!",
+                        "§4[Aldeano] ¡Así es como me gano la vida!",
+                        "§4[Aldeano] ¡Acabas de destruir mi trabajo!",
+                        "§4[Aldeano] *furioso* ¿¡Cómo se supone que trabaje ahora!",
+                        "§4[Aldeano] ¡Esa estación era esencial para la aldea!",
+                        "§c[Aldeano] ¡Sin eso no puedo ganar esmeraldas!",
+                        "§c[Aldeano] ¿¡Sabes lo caras que son esas cosas!",
+                        "§c[Aldeano] ¡Mi profesión entera depende de eso!"
                 },
                 new String[] {
-                        "§c[Baby Villager] Daddy's workstation!",
-                        "§c[Baby Villager] *gasps* You broke it!"
+                        "§c[Aldeano Bebé] ¡La estación de trabajo de papá!",
+                        "§c[Aldeano Bebé] *jadea* ¡La rompiste!"
                 }),
         DECORATION(-5, "Broke village decoration!",
                 new String[] {
-                        "§c[Villager] Hey! That made the village look nice!",
-                        "§c[Villager] Why would you do that?",
-                        "§c[Villager] We worked hard to decorate!",
-                        "§6[Villager] *sighs* That was pretty...",
-                        "§6[Villager] Can't we have nice things?",
-                        "§c[Villager] Show some respect for our village!",
-                        "§6[Villager] I just placed that yesterday...",
-                        "§c[Villager] Breaking our decorations now?"
+                        "§c[Aldeano] ¡Oye! ¡Eso hacía que la aldea se viera bonita!",
+                        "§c[Aldeano] ¿¡Por qué harías eso!",
+                        "§c[Aldeano] ¡Trabajamos duro para decorar!",
+                        "§6[Aldeano] *suspira* Eso era bonito...",
+                        "§6[Aldeano] ¿¡No podemos tener cosas lindas!",
+                        "§c[Aldeano] ¡Muestra algo de respeto por nuestra aldea!",
+                        "§6[Aldeano] Acabo de colocar eso ayer...",
+                        "§c[Aldeano] ¿¡Ahora rompes nuestras decoraciones!"
                 },
                 new String[] {}),
         WELL(-30, "Damaged the village well!",
                 new String[] {
-                        "§4[Villager] THE WELL! Our water source!",
-                        "§4[Villager] That's our only water supply!",
-                        "§4[Villager] *horrified* The well is destroyed!",
-                        "§4[Villager] We'll die of thirst!",
-                        "§c[Villager] How will we get water now?!",
-                        "§c[Villager] That well has served us for generations!",
-                        "§c[Villager] You've doomed us all!",
-                        "§c[Villager] *panicking* Our water! Our precious water!",
-                        "§4[Villager] This is a catastrophe!"
+                        "§4[Aldeano] ¡EL POZO! ¡Nuestra fuente de agua!",
+                        "§4[Aldeano] ¡Ese es nuestro único suministro de agua!",
+                        "§4[Aldeano] *horrorizado* ¡El pozo está destruido!",
+                        "§4[Aldeano] ¡Moriremos de sed!",
+                        "§c[Aldeano] ¿¡Cómo obtendremos agua ahora!",
+                        "§c[Aldeano] ¡Ese pozo nos ha servido por generaciones!",
+                        "§c[Aldeano] ¡Nos has condenado a todos!",
+                        "§c[Aldeano] *en pánico* ¡Nuestra agua! ¡Nuestra preciosa agua!",
+                        "§4[Aldeano] ¡Esto es una catástrofe!"
                 },
                 new String[] {
-                        "§c[Baby Villager] *crying* Where do we get water?!",
-                        "§c[Baby Villager] I'm thirsty! The well!",
-                        "§c[Baby Villager] Mommy! The water place is broken!"
+                        "§c[Aldeano Bebé] *llorando* ¿¡Dónde obtenemos agua!",
+                        "§c[Aldeano Bebé] ¡Tengo sed! ¡El pozo!",
+                        "§c[Aldeano Bebé] ¡Mamá! ¡El lugar del agua está roto!"
                 }),
         HOUSE(-15, "Damaged a house!",
                 new String[] {
-                        "§c[Villager] You're destroying my home!",
-                        "§c[Villager] STOP! This is where I live!",
-                        "§c[Villager] My house! You're tearing it apart!",
-                        "§c[Villager] *desperate* I have nowhere else to go!",
-                        "§c[Villager] That's my HOUSE you're breaking!",
-                        "§c[Villager] I built this with my own hands!",
-                        "§c[Villager] *furious* Get away from my home!",
-                        "§c[Villager] This house protects me from mobs!",
-                        "§c[Villager] You're making me homeless!",
-                        "§c[Villager] Have you no decency?!"
+                        "§c[Aldeano] ¡Estás destruyendo mi hogar!",
+                        "§c[Aldeano] ¡DETENTE! ¡Aquí es donde vivo!",
+                        "§c[Aldeano] ¡Mi casa! ¡La estás destrozando!",
+                        "§c[Aldeano] *desesperado* ¡No tengo otro lugar a donde ir!",
+                        "§c[Aldeano] ¡Esa es MI CASA que estás rompiendo!",
+                        "§c[Aldeano] ¡Construí esto con mis propias manos!",
+                        "§c[Aldeano] *furioso* ¡Aléjate de mi hogar!",
+                        "§c[Aldeano] ¡Esta casa me protege de los monstruos!",
+                        "§c[Aldeano] ¡Me estás dejando sin hogar!",
+                        "§c[Aldeano] ¿¡No tienes decencia!"
                 },
                 new String[] {
-                        "§c[Baby Villager] Our house! *cries*",
-                        "§c[Baby Villager] *sobbing* Where will we live?!",
-                        "§c[Baby Villager] Don't break our home!",
-                        "§c[Baby Villager] Daddy! Our house!"
+                        "§c[Aldeano Bebé] ¡Nuestra casa! *llora*",
+                        "§c[Aldeano Bebé] *sollozando* ¿¡Dónde viviremos!",
+                        "§c[Aldeano Bebé] ¡No rompas nuestro hogar!",
+                        "§c[Aldeano Bebé] ¡Papá! ¡Nuestra casa!"
                 }),
         NONE(0, "", new String[] {}, new String[] {});
 
@@ -3594,22 +3594,22 @@ public class VillagerEventHandler {
 
                     if (level.getRandom().nextInt(50) == 0) {
                         String[] fearMessages = reputation <= -800 ? new String[] {
-                                "§4[Villager] RUN! The criminal is here!",
-                                "§4[Villager] HELP! Someone help us!",
-                                "§4[Villager] Stay away from us!",
-                                "§4[Villager] Guards! GUARDS!",
-                                "§4[Baby Villager] *screaming* SCARY!"
+                                "§4[Aldeano] ¡CORRAN! ¡El criminal está aquí!",
+                                "§4[Aldeano] ¡AYUDA! ¡Alguien ayúdenos!",
+                                "§4[Aldeano] ¡Aléjense de nosotros!",
+                                "§4[Aldeano] ¡Guardias! ¡GUARDIAS!",
+                                "§4[Aldeano Bebé] *gritando* ¡DA MIEDO!"
                         }
                                 : reputation <= -500 ? new String[] {
-                                        "§c[Villager] Get away from me!",
-                                        "§c[Villager] I don't want trouble!",
-                                        "§c[Villager] Leave us alone!",
-                                        "§c[Baby Villager] Mama! I'm scared!"
+                                        "§c[Aldeano] ¡Aléjate de mí!",
+                                        "§c[Aldeano] ¡No quiero problemas!",
+                                        "§c[Aldeano] ¡Déjanos en paz!",
+                                        "§c[Aldeano Bebé] ¡Mamá! ¡Tengo miedo!"
                                 }
                                         : new String[] {
-                                                "§6[Villager] Please, stay back...",
-                                                "§6[Villager] I'd rather you keep your distance.",
-                                                "§6[Villager] Not comfortable with you around."
+                                                "§6[Aldeano] Por favor, mantente atrás...",
+                                                "§6[Aldeano] Preferiría que mantuvieras tu distancia.",
+                                                "§6[Aldeano] No me siento cómodo contigo cerca."
                                         };
 
                         player.sendSystemMessage(Component.literal(
@@ -3644,11 +3644,11 @@ public class VillagerEventHandler {
 
                         // Mensajes contextuales cuando el golem empieza a perseguir
                         String[] warningMessages = {
-                            "§4[Village Guard] You are a wanted criminal! Surrender now!",
-                            "§c[Village Guard] *stomps aggressively* LEAVE THIS VILLAGE!",
-                            "§4[Village Guard] Your crimes will not go unpunished!",
-                            "§c[Village Guard] *raises fist* Justice will be served!",
-                            "§4[Village Diplomacy] You are WANTED! Guards attack on sight!"
+                            "§4[Guardia de la Aldea] ¡Eres un criminal buscado! ¡Ríndete ahora!",
+                            "§c[Guardia de la Aldea] *pisa agresivamente* ¡SAL DE ESTA ALDEA!",
+                            "§4[Guardia de la Aldea] ¡Tus crímenes no quedarán impunes!",
+                            "§c[Guardia de la Aldea] *levanta el puño* ¡Se hará justicia!",
+                            "§4[Diplomacia de Aldeas] ¡Estás BUSCADO! ¡Los guardias atacan a la vista!"
                         };
                         
                         if (level.getRandom().nextInt(3) == 0) {

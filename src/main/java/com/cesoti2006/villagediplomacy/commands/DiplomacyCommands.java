@@ -272,10 +272,10 @@ public class DiplomacyCommands {
         
         // Mensajes de éxito
         player.sendSystemMessage(Component.literal("§8▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬"));
-        player.sendSystemMessage(Component.literal("§a[" + villageName + "] Crimes pardoned (Testing Mode - FREE)"));
-        player.sendSystemMessage(Component.literal("§7Current reputation: §e" + currentReputation));
+        player.sendSystemMessage(Component.literal("§a[" + villageName + "] Crímenes perdonados (Modo de Prueba - GRATIS)"));
+        player.sendSystemMessage(Component.literal("§7Reputación actual: §e" + currentReputation));
         if (golemsCalmed > 0) {
-            player.sendSystemMessage(Component.literal("§7" + golemsCalmed + " Iron Golem(s) calmed down."));
+            player.sendSystemMessage(Component.literal("§7" + golemsCalmed + " Golem(s) de Hierro calmado(s)."));
         }
         player.sendSystemMessage(Component.literal("§8▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬"));
         

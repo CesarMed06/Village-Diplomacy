@@ -56,13 +56,13 @@ public class TradeModifierHandler {
             event.setCanceled(true);
 
             String[] rejectMessages = reputation < -800 ? new String[] {
-                "§4[Villager] A CRIMINAL! Guards, help!",
-                "§4[Villager] Get away from me, criminal!",
-                "§4[Villager] I won't help someone like you!"
+                "§4[Aldeano] ¡UN CRIMINAL! ¡Guardias, ayuda!",
+                "§4[Aldeano] ¡Aléjate de mí, criminal!",
+                "§4[Aldeano] ¡No ayudaré a alguien como tú!"
             } : new String[] {
-                "§c[Villager] I don't want to trade with you!",
-                "§c[Villager] Leave me alone!",
-                "§c[Villager] Your reputation precedes you..."
+                "§c[Aldeano] ¡No quiero comerciar contigo!",
+                "§c[Aldeano] ¡Déjame en paz!",
+                "§c[Aldeano] Tu reputación te precede..."
             };
 
             player.sendSystemMessage(Component.literal(

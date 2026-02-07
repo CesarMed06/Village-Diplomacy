@@ -73,7 +73,7 @@ public class VillagerEventHandler {
     private static final long TRADE_WINDOW_MS = 500;
     private static final long MAJOR_CRIME_DURATION_MS = 120000;
     private static final long MINOR_CRIME_DURATION_MS = 30000;
-    private static final long GREETING_COOLDOWN_MS = 180000;
+    private static final long GREETING_COOLDOWN_MS = 600000; // 10 minutos
     private static final long STRIKE_WINDOW_MS = 60000;
     private static final int STRIKES_REQUIRED = 3;
     private static final long CHEST_LOOT_COOLDOWN_MS = 3000;
@@ -626,15 +626,15 @@ public class VillagerEventHandler {
         if (!(event.getEntity().level() instanceof ServerLevel level))
             return;
 
-        // Detectar tipo específico de animal
+        // Detectar tipo específico de animal (Camel ANTES de AbstractHorse porque Camel extends AbstractHorse)
         String animalType = null;
         if (event.getEntity() instanceof Cow) animalType = "cow";
         else if (event.getEntity() instanceof Sheep) animalType = "sheep";
         else if (event.getEntity() instanceof Pig) animalType = "pig";
         else if (event.getEntity() instanceof Chicken) animalType = "chicken";
         else if (event.getEntity() instanceof Rabbit) animalType = "rabbit";
-        else if (event.getEntity() instanceof AbstractHorse) animalType = "horse";
         else if (event.getEntity() instanceof Camel) animalType = "camel";
+        else if (event.getEntity() instanceof AbstractHorse) animalType = "horse";
         
         if (animalType == null) return;
 
@@ -829,15 +829,15 @@ public class VillagerEventHandler {
         if (!(event.getEntity().level() instanceof ServerLevel level))
             return;
 
-        // Detectar tipo específico de animal
+        // Detectar tipo específico de animal (Camel ANTES de AbstractHorse porque Camel extends AbstractHorse)
         String animalType = null;
         if (event.getEntity() instanceof Cow) animalType = "cow";
         else if (event.getEntity() instanceof Sheep) animalType = "sheep";
         else if (event.getEntity() instanceof Pig) animalType = "pig";
         else if (event.getEntity() instanceof Chicken) animalType = "chicken";
         else if (event.getEntity() instanceof Rabbit) animalType = "rabbit";
-        else if (event.getEntity() instanceof AbstractHorse) animalType = "horse";
         else if (event.getEntity() instanceof Camel) animalType = "camel";
+        else if (event.getEntity() instanceof AbstractHorse) animalType = "horse";
         
         if (animalType == null) return;
 
@@ -1939,23 +1939,52 @@ public class VillagerEventHandler {
                             "§c[Villager] No dark magic here!"
                         };
                     }
+                } else {
+                    // CUALQUIER otro bloque: mensaje genérico según reputación
+                    if (isWelcome) {
+                        messages = new String[]{
+                            "§a[Villager] Building something? Nice!",
+                            "§a[Villager] Feel free to expand the village!",
+                            "§7[Villager] *nods approvingly*",
+                            "§a[Villager] Making improvements!",
+                            "§a[Villager] You're really part of the village now!"
+                        };
+                    } else if (isNeutral) {
+                        messages = new String[]{
+                            "§e[Villager] Building here?",
+                            "§e[Villager] What are you making?",
+                            "§7[Villager] *watches curiously*",
+                            "§e[Villager] Adding to the village...",
+                            "§e[Villager] Hmm, interesting..."
+                        };
+                    } else {
+                        messages = new String[]{
+                            "§c[Villager] Hey! What are you doing?!",
+                            "§c[Villager] You're not welcome to build here!",
+                            "§c[Villager] Stop placing blocks in OUR village!",
+                            "§7[Villager] *glares angrily*",
+                            "§c[Villager] Get out with your constructions!",
+                            "§c[Villager] This isn't YOUR land!"
+                        };
+                    }
                 }
                 
+                // SIEMPRE mostrar mensaje si hay aldeanos mirando
                 if (messages != null) {
                     player.sendSystemMessage(Component.literal(
                         messages[level.getRandom().nextInt(messages.length)]));
+                }
+                
+                // PENALIZACIÓN solo si tienes mala reputación
+                if (isUnwelcome) {
+                    int oldRep = data.getReputation(player.getUUID(), nearestVillage.get());
+                    data.addReputation(player.getUUID(), nearestVillage.get(), -5);
+                    int newRep = data.getReputation(player.getUUID(), nearestVillage.get());
+                    checkAndNotifyReputationChange(player, oldRep, newRep);
                     
-                    // PENALIZACIÓN si tienes mala reputación
-                    if (isUnwelcome) {
-                        int oldRep = data.getReputation(player.getUUID(), nearestVillage.get());
-                        data.addReputation(player.getUUID(), nearestVillage.get(), -5);
-                        int newRep = data.getReputation(player.getUUID(), nearestVillage.get());
-                        checkAndNotifyReputationChange(player, oldRep, newRep);
-                        
-                        player.sendSystemMessage(Component.literal(
-                            "§c[Village Diplomacy] Building in village with bad reputation! -5 (Total: " +
-                                    newRep + " - " + getReputationStatus(newRep) + ")"));
-                    }
+                    player.sendSystemMessage(Component.literal(
+                        "§c[Village Diplomacy] Building in village with bad reputation! -5 (Total: " +
+                                newRep + " - " + getReputationStatus(newRep) + ")"));
                 }
             }
         }
@@ -1973,21 +2002,130 @@ public class VillagerEventHandler {
         Optional<BlockPos> nearestVillage = VillageDetector.findNearestVillage(level, blockPos, 100);
         if (nearestVillage.isEmpty()) return;
         
-        // Village structure blocks
+        // Village structure blocks - LISTA COMPLETA de bloques de aldeas
         boolean isVillageBlock = 
+            // Piedras
             block == Blocks.COBBLESTONE ||
+            block == Blocks.MOSSY_COBBLESTONE ||
+            block == Blocks.STONE ||
+            block == Blocks.SMOOTH_STONE ||
             block == Blocks.STONE_BRICKS ||
+            block == Blocks.MOSSY_STONE_BRICKS ||
+            block == Blocks.CRACKED_STONE_BRICKS ||
+            block == Blocks.CHISELED_STONE_BRICKS ||
+            block == Blocks.DIORITE ||
+            block == Blocks.POLISHED_DIORITE ||
+            block == Blocks.ANDESITE ||
+            block == Blocks.POLISHED_ANDESITE ||
+            block == Blocks.GRANITE ||
+            block == Blocks.POLISHED_GRANITE ||
+            
+            // Maderas - Planks
             block == Blocks.OAK_PLANKS ||
             block == Blocks.SPRUCE_PLANKS ||
             block == Blocks.BIRCH_PLANKS ||
+            block == Blocks.ACACIA_PLANKS ||
+            block == Blocks.DARK_OAK_PLANKS ||
+            block == Blocks.JUNGLE_PLANKS ||
+            
+            // Logs
             block == Blocks.OAK_LOG ||
             block == Blocks.SPRUCE_LOG ||
+            block == Blocks.BIRCH_LOG ||
+            block == Blocks.ACACIA_LOG ||
+            block == Blocks.DARK_OAK_LOG ||
+            block == Blocks.JUNGLE_LOG ||
+            block == Blocks.STRIPPED_OAK_LOG ||
+            block == Blocks.STRIPPED_SPRUCE_LOG ||
+            block == Blocks.STRIPPED_BIRCH_LOG ||
+            
+            // Stairs
+            block == Blocks.COBBLESTONE_STAIRS ||
+            block == Blocks.STONE_BRICK_STAIRS ||
+            block == Blocks.MOSSY_COBBLESTONE_STAIRS ||
+            block == Blocks.MOSSY_STONE_BRICK_STAIRS ||
+            block == Blocks.DIORITE_STAIRS ||
+            block == Blocks.ANDESITE_STAIRS ||
+            block == Blocks.GRANITE_STAIRS ||
+            block == Blocks.POLISHED_DIORITE_STAIRS ||
+            block == Blocks.POLISHED_ANDESITE_STAIRS ||
+            block == Blocks.POLISHED_GRANITE_STAIRS ||
+            block == Blocks.OAK_STAIRS ||
+            block == Blocks.SPRUCE_STAIRS ||
+            block == Blocks.BIRCH_STAIRS ||
+            block == Blocks.ACACIA_STAIRS ||
+            block == Blocks.DARK_OAK_STAIRS ||
+            
+            // Slabs
+            block == Blocks.COBBLESTONE_SLAB ||
+            block == Blocks.STONE_SLAB ||
+            block == Blocks.SMOOTH_STONE_SLAB ||
+            block == Blocks.STONE_BRICK_SLAB ||
+            block == Blocks.MOSSY_COBBLESTONE_SLAB ||
+            block == Blocks.MOSSY_STONE_BRICK_SLAB ||
+            block == Blocks.DIORITE_SLAB ||
+            block == Blocks.ANDESITE_SLAB ||
+            block == Blocks.GRANITE_SLAB ||
+            block == Blocks.POLISHED_DIORITE_SLAB ||
+            block == Blocks.POLISHED_ANDESITE_SLAB ||
+            block == Blocks.POLISHED_GRANITE_SLAB ||
+            block == Blocks.OAK_SLAB ||
+            block == Blocks.SPRUCE_SLAB ||
+            block == Blocks.BIRCH_SLAB ||
+            block == Blocks.ACACIA_SLAB ||
+            block == Blocks.DARK_OAK_SLAB ||
+            
+            // Fences y Gates
+            block == Blocks.OAK_FENCE ||
+            block == Blocks.SPRUCE_FENCE ||
+            block == Blocks.BIRCH_FENCE ||
+            block == Blocks.ACACIA_FENCE ||
+            block == Blocks.DARK_OAK_FENCE ||
+            block == Blocks.OAK_FENCE_GATE ||
+            block == Blocks.SPRUCE_FENCE_GATE ||
+            block == Blocks.BIRCH_FENCE_GATE ||
+            block == Blocks.ACACIA_FENCE_GATE ||
+            block == Blocks.DARK_OAK_FENCE_GATE ||
+            
+            // Doors
+            block == Blocks.OAK_DOOR ||
+            block == Blocks.SPRUCE_DOOR ||
+            block == Blocks.BIRCH_DOOR ||
+            block == Blocks.ACACIA_DOOR ||
+            block == Blocks.DARK_OAK_DOOR ||
+            block == Blocks.IRON_DOOR ||
+            
+            // Glass
             block == Blocks.GLASS_PANE ||
             block == Blocks.GLASS ||
+            block == Blocks.WHITE_STAINED_GLASS ||
+            block == Blocks.WHITE_STAINED_GLASS_PANE ||
+            block == Blocks.YELLOW_STAINED_GLASS ||
+            block == Blocks.YELLOW_STAINED_GLASS_PANE ||
+            
+            // Iluminación
             block == Blocks.TORCH ||
-            block == Blocks.LANTERN;
+            block == Blocks.WALL_TORCH ||
+            block == Blocks.LANTERN ||
+            block == Blocks.SOUL_LANTERN ||
+            
+            // Otros bloques comunes de aldeas
+            block == Blocks.HAY_BLOCK ||
+            block == Blocks.DIRT_PATH ||
+            block == Blocks.COBBLESTONE_WALL ||
+            block == Blocks.MOSSY_COBBLESTONE_WALL ||
+            block == Blocks.TERRACOTTA ||
+            block == Blocks.WHITE_TERRACOTTA ||
+            block == Blocks.BELL ||
+            block == Blocks.DIRT ||
+            block == Blocks.GRASS_BLOCK ||
+            block == Blocks.GRAVEL ||
+            block == Blocks.SAND;
         
         if (!isVillageBlock) return;
+        
+        // Excluir job site blocks (el jugador puede romper sus propios bloques de trabajo sin penalización)
+        if (isJobSiteBlock(block)) return;
         
         // Penalize
         VillageReputationData data = VillageReputationData.get(level);
@@ -1997,8 +2135,58 @@ public class VillagerEventHandler {
         int newRep = data.getReputation(player.getUUID(), villagePos);
         checkAndNotifyReputationChange(player, oldRep, newRep);
         
-        // Penalización silenciosa para bloques comunes (sin mensajes spam)
-        // Los aldeanos no se quejan por cada bloque individual
+        // Buscar aldeanos cercanos para mensajes
+        List<Villager> nearbyVillagers = level.getEntitiesOfClass(
+                Villager.class,
+                AABB.ofSize(Vec3.atCenterOf(blockPos), 32, 32, 32));
+        
+        boolean caughtByVillager = false;
+        for (Villager villager : nearbyVillagers) {
+            if (hasLineOfSight(villager, player, level)) {
+                caughtByVillager = true;
+                break;
+            }
+        }
+        
+        if (caughtByVillager) {
+            // Mensajes según reputación
+            int reputation = data.getReputation(player.getUUID(), villagePos);
+            String[] messages;
+            
+            if (reputation >= 100) {
+                // FRIENDLY - menos agresivos
+                messages = new String[]{
+                    "§e[Villager] Hey, careful with that!",
+                    "§e[Villager] That's part of our village...",
+                    "§7[Villager] *looks concerned*",
+                    "§e[Villager] Are you sure you need to break that?"
+                };
+            } else if (reputation >= 0) {
+                // NEUTRAL
+                messages = new String[]{
+                    "§e[Villager] What are you doing?",
+                    "§e[Villager] That's village property!",
+                    "§7[Villager] *frowns*",
+                    "§e[Villager] Hey! We built that!"
+                };
+            } else {
+                // UNFRIENDLY/ENEMY - muy agresivos
+                messages = new String[]{
+                    "§c[Villager] STOP! That's OURS!",
+                    "§c[Villager] You're destroying our home!",
+                    "§c[Villager] VANDAL! THIEF!",
+                    "§7[Villager] *yells angrily*",
+                    "§c[Villager] How DARE you!",
+                    "§c[Villager] Guards! Stop this criminal!"
+                };
+            }
+            
+            player.sendSystemMessage(Component.literal(
+                messages[level.getRandom().nextInt(messages.length)]));
+            player.sendSystemMessage(Component.literal(
+                "§c[Village Diplomacy] Broke village structure! Reputation -10 (Total: " +
+                        newRep + " - " + getReputationStatus(newRep) + ")"));
+        }
     }
 
     @SubscribeEvent
@@ -3134,6 +3322,11 @@ public class VillagerEventHandler {
     }
 
     private BlockType categorizeBlock(Block block, ServerLevel level, BlockPos pos) {
+        // Excluir job site blocks (los maneja el jugador)
+        if (isJobSiteBlock(block)) {
+            return BlockType.NONE;
+        }
+        
         if (block instanceof BellBlock) {
             return BlockType.BELL;
         } else if (block instanceof BedBlock) {
@@ -3144,13 +3337,11 @@ public class VillagerEventHandler {
         } else if (block instanceof FlowerPotBlock || block instanceof TorchBlock ||
                 block instanceof LanternBlock) {
             return BlockType.DECORATION;
-        } else if (isWorkstation(block)) {
-            return BlockType.WORKSTATION;
         } else if (isWell(level, pos)) {
             return BlockType.WELL;
-        } else if (isHouseBlock(level, pos, block)) {
-            return BlockType.HOUSE;
         }
+        // HOUSE y WORKSTATION ya no se procesan aquí
+        // Los bloques genéricos los maneja onBlockBreakInVillage()
         return BlockType.NONE;
     }
 

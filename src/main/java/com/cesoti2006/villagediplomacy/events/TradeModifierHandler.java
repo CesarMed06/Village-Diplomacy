@@ -208,6 +208,7 @@ public class TradeModifierHandler {
             case "CHARITABLE" -> "Charitable";
             case "LAZY" -> "Lazy";
             case "RELAXED" -> "Relaxed";
+            case "NEUTRAL_WORK" -> "Normal";
             case "NEUTRAL_WORK_ETHIC" -> "Normal";
             case "DILIGENT" -> "Diligent";
             case "WORKAHOLIC" -> "Hardworking";

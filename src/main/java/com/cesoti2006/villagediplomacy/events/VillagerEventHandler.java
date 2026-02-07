@@ -2964,7 +2964,7 @@ public class VillagerEventHandler {
                         player.sendSystemMessage(Component.literal(
                                 "§8▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬"));
                         player.sendSystemMessage(Component.literal(
-                                "  §7◄ Leaving §6" + villageName));
+                                "  §7◄ Saliendo de §6" + villageName));
                         player.sendSystemMessage(Component.literal(
                                 "§8▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬"));
                     }
@@ -3002,9 +3002,9 @@ public class VillagerEventHandler {
             player.sendSystemMessage(Component.literal(
                     "§8▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬"));
             player.sendSystemMessage(Component.literal(
-                    "  " + icon + " §6Entering " + villageName));
+                    "  " + icon + " §6Entrando a " + villageName));
             player.sendSystemMessage(Component.literal(
-                    "  §7Reputation: §e" + reputation + " §8[§f" + status + "§8]"));
+                    "  §7Reputación: §e" + reputation + " §8[§f" + status + "§8]"));
             player.sendSystemMessage(Component.literal(
                     "§8▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬"));
 

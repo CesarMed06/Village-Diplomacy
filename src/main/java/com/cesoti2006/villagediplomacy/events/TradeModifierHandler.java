@@ -211,11 +211,13 @@ public class TradeModifierHandler {
             case "RELAXED" -> "Relajado";
             case "NEUTRAL_WORK" -> "Normal";
             case "NEUTRAL_WORK_ETHIC" -> "Normal";
+            case "HARDWORKING" -> "Trabajador";
             case "DILIGENT" -> "Diligente";
-            case "WORKAHOLIC" -> "Trabajador";
+            case "WORKAHOLIC" -> "Adicto al trabajo";
             case "SHY" -> "Tímido";
             case "RESERVED" -> "Reservado";
             case "NEUTRAL_SOCIAL" -> "Normal";
+            case "OUTGOING" -> "Sociable";
             case "SOCIABLE" -> "Sociable";
             case "EXTROVERTED" -> "Extrovertido";
             case "CALM" -> "Calmado";
@@ -230,6 +232,7 @@ public class TradeModifierHandler {
             case "HONEST" -> "Honesto";
             case "TRUSTWORTHY" -> "Confiable";
             case "PESSIMISTIC" -> "Pesimista";
+            case "REALISTIC" -> "Realista";
             case "NEUTRAL_OUTLOOK" -> "Normal";
             case "OPTIMISTIC" -> "Optimista";
             case "CHEERFUL" -> "Alegre";

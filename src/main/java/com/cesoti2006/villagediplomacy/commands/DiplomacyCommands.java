@@ -261,9 +261,9 @@ public class DiplomacyCommands {
         String status = getReputationStatus(reputation);
         
         player.sendSystemMessage(Component.literal("§8▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬"));
-        player.sendSystemMessage(Component.literal("§6✦ Village: §e" + villageName));
-        player.sendSystemMessage(Component.literal("§7Reputation: §e" + reputation + " §8(§7" + status + "§8)"));
-        player.sendSystemMessage(Component.literal("§7Position: §e" + villagePos.getX() + ", " + villagePos.getY() + ", " + villagePos.getZ()));
+        player.sendSystemMessage(Component.literal("§6✦ Aldea: §e" + villageName));
+        player.sendSystemMessage(Component.literal("§7Reputación: §e" + reputation + " §8(§7" + status + "§8)"));
+        player.sendSystemMessage(Component.literal("§7Posición: §e" + villagePos.getX() + ", " + villagePos.getY() + ", " + villagePos.getZ()));
         player.sendSystemMessage(Component.literal("§8▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬"));
         
         return 1;

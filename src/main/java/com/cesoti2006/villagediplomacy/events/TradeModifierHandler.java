@@ -29,6 +29,7 @@ public class TradeModifierHandler {
         if (!(event.getTarget() instanceof Villager villager)) return;
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
         if (!(event.getLevel() instanceof ServerLevel level)) return;
+        if (event.getHand() != net.minecraft.world.InteractionHand.MAIN_HAND) return; // Evitar duplicación de eventos
 
         if (villager.isBaby()) {
             return;
@@ -69,8 +70,8 @@ public class TradeModifierHandler {
                     rejectMessages[(int)(Math.random() * rejectMessages.length)]));
             
             String statusMsg = reputation < -800 ?
-                    "§4[Village Diplomacy] Villagers refuse to trade with WANTED criminals!" :
-                    "§c[Village Diplomacy] This villager refuses to trade due to your ENEMY reputation!";
+                    "§4[Diplomacia de Aldeas] ¡Los aldeanos se niegan a comerciar con criminales BUSCADOS!" :
+                    "§c[Diplomacia de Aldeas] ¡Este aldeano se niega a comerciar debido a tu reputación de ENEMIGO!";
             
             player.sendSystemMessage(Component.literal(statusMsg));
         } else {
@@ -136,18 +137,18 @@ public class TradeModifierHandler {
             personalityData.getPersonality(villager.getUUID());
         
         if (personality == null) {
-            player.sendSystemMessage(Component.literal("§c[System] Villager has no personality data yet."));
+            player.sendSystemMessage(Component.literal("§c[Sistema] El aldeano aún no tiene datos de personalidad."));
             return;
         }
         
         // Get correct professional level
         int profLevel = villager.getVillagerData().getLevel();
         String profLevelName = switch(profLevel) {
-            case 1 -> "§7Novice";
-            case 2 -> "§fApprentice";
-            case 3 -> "§eJourneyman";
-            case 4 -> "§6Expert";
-            case 5 -> "§6✦ Master";
+            case 1 -> "§7Novato";
+            case 2 -> "§fAprendiz";
+            case 3 -> "§eOficial";
+            case 4 -> "§6Experto";
+            case 5 -> "§6✦ Maestro";
             default -> "§7Unknown";
         };
         
@@ -164,24 +165,24 @@ public class TradeModifierHandler {
                 "§7" + profession + " §8| " + profLevelName
             ));
         } else {
-            player.sendSystemMessage(Component.literal("§7Unemployed"));
+            player.sendSystemMessage(Component.literal("§7Desempleado"));
         }
         
         player.sendSystemMessage(Component.literal("§8▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬"));
         
         // PERSONALITY (Only show relevant traits)
-        player.sendSystemMessage(Component.literal("§e● §7Courage: " + getTraitColor(personality.getCourage()) + getTraitName(personality.getCourage())));
-        player.sendSystemMessage(Component.literal("§e● §7Generosity: " + getTraitColor(personality.getGenerosity()) + getTraitName(personality.getGenerosity())));
+        player.sendSystemMessage(Component.literal("§e● §7Valentía: " + getTraitColor(personality.getCourage()) + getTraitName(personality.getCourage())));
+        player.sendSystemMessage(Component.literal("§e● §7Generosidad: " + getTraitColor(personality.getGenerosity()) + getTraitName(personality.getGenerosity())));
         
         // Only show work ethic if has job
         if (hasJob) {
-            player.sendSystemMessage(Component.literal("§e● §7Work Ethic: " + getTraitColor(personality.getWorkEthic()) + getTraitName(personality.getWorkEthic())));
+            player.sendSystemMessage(Component.literal("§e● §7Ética de Trabajo: " + getTraitColor(personality.getWorkEthic()) + getTraitName(personality.getWorkEthic())));
         }
         
         player.sendSystemMessage(Component.literal("§e● §7Social: " + getTraitColor(personality.getSocialBehavior()) + getTraitName(personality.getSocialBehavior())));
-        player.sendSystemMessage(Component.literal("§e● §7Temperament: " + getTraitColor(personality.getTemperament()) + getTraitName(personality.getTemperament())));
-        player.sendSystemMessage(Component.literal("§e● §7Honesty: " + getTraitColor(personality.getHonesty()) + getTraitName(personality.getHonesty())));
-        player.sendSystemMessage(Component.literal("§e● §7Outlook: " + getTraitColor(personality.getOutlook()) + getTraitName(personality.getOutlook())));
+        player.sendSystemMessage(Component.literal("§e● §7Temperamento: " + getTraitColor(personality.getTemperament()) + getTraitName(personality.getTemperament())));
+        player.sendSystemMessage(Component.literal("§e● §7Honestidad: " + getTraitColor(personality.getHonesty()) + getTraitName(personality.getHonesty())));
+        player.sendSystemMessage(Component.literal("§e● §7Perspectiva: " + getTraitColor(personality.getOutlook()) + getTraitName(personality.getOutlook())));
         
         player.sendSystemMessage(Component.literal("§8▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬"));
     }
@@ -196,42 +197,42 @@ public class TradeModifierHandler {
     
     private String getTraitName(PersonalityTrait trait) {
         return switch(trait.name()) {
-            case "COWARD" -> "Coward";
-            case "CAUTIOUS" -> "Cautious";
+            case "COWARD" -> "Cobarde";
+            case "CAUTIOUS" -> "Cauteloso";
             case "NEUTRAL_COURAGE" -> "Normal";
-            case "BRAVE" -> "Brave";
-            case "FEARLESS" -> "Fearless";
-            case "GREEDY" -> "Greedy";
-            case "THRIFTY" -> "Thrifty";
+            case "BRAVE" -> "Valiente";
+            case "FEARLESS" -> "Intrépido";
+            case "GREEDY" -> "Avaro";
+            case "THRIFTY" -> "Ahorrativo";
             case "NEUTRAL_GENEROSITY" -> "Normal";
-            case "GENEROUS" -> "Generous";
-            case "CHARITABLE" -> "Charitable";
-            case "LAZY" -> "Lazy";
-            case "RELAXED" -> "Relaxed";
+            case "GENEROUS" -> "Generoso";
+            case "CHARITABLE" -> "Caritativo";
+            case "LAZY" -> "Perezoso";
+            case "RELAXED" -> "Relajado";
             case "NEUTRAL_WORK" -> "Normal";
             case "NEUTRAL_WORK_ETHIC" -> "Normal";
-            case "DILIGENT" -> "Diligent";
-            case "WORKAHOLIC" -> "Hardworking";
-            case "SHY" -> "Shy";
-            case "RESERVED" -> "Reserved";
+            case "DILIGENT" -> "Diligente";
+            case "WORKAHOLIC" -> "Trabajador";
+            case "SHY" -> "Tímido";
+            case "RESERVED" -> "Reservado";
             case "NEUTRAL_SOCIAL" -> "Normal";
             case "SOCIABLE" -> "Sociable";
-            case "EXTROVERTED" -> "Extroverted";
-            case "CALM" -> "Calm";
-            case "PATIENT" -> "Patient";
+            case "EXTROVERTED" -> "Extrovertido";
+            case "CALM" -> "Calmado";
+            case "PATIENT" -> "Paciente";
             case "NEUTRAL" -> "Normal";
             case "IRRITABLE" -> "Irritable";
-            case "IMPULSIVE" -> "Impulsive";
-            case "HOTHEADED" -> "Hotheaded";
-            case "CUNNING" -> "Cunning";
-            case "SHREWD" -> "Shrewd";
+            case "IMPULSIVE" -> "Impulsivo";
+            case "HOTHEADED" -> "Irascible";
+            case "CUNNING" -> "Astuto";
+            case "SHREWD" -> "Sagaz";
             case "NEUTRAL_HONESTY" -> "Normal";
-            case "HONEST" -> "Honest";
-            case "TRUSTWORTHY" -> "Trustworthy";
-            case "PESSIMISTIC" -> "Pessimistic";
+            case "HONEST" -> "Honesto";
+            case "TRUSTWORTHY" -> "Confiable";
+            case "PESSIMISTIC" -> "Pesimista";
             case "NEUTRAL_OUTLOOK" -> "Normal";
-            case "OPTIMISTIC" -> "Optimistic";
-            case "CHEERFUL" -> "Cheerful";
+            case "OPTIMISTIC" -> "Optimista";
+            case "CHEERFUL" -> "Alegre";
             default -> trait.name();
         };
     }

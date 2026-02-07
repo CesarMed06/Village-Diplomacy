@@ -73,11 +73,11 @@ public class GolemBehaviorHandler {
         if (golem.getTarget() == player || 
             (golem.getPersistentAngerTarget() != null && golem.getPersistentAngerTarget().equals(player.getUUID()))) {
             String[] dangerMessages = {
-                "§c[" + personality.getName() + "] You have made an enemy of this village!",
-                "§4[" + personality.getName() + "] *raises fist menacingly* LEAVE NOW!",
-                "§c[" + personality.getName() + "] Your crimes will not go unpunished!",
-                "§4[" + personality.getName() + "] *ANGRY STOMPING*",
-                "§c[" + personality.getName() + "] The village demands justice!"
+                "§c[" + personality.getName() + "] ¡Te has convertido en enemigo de esta aldea!",
+                "§4[" + personality.getName() + "] *levanta el puño amenazadoramente* ¡VETE AHORA!",
+                "§c[" + personality.getName() + "] ¡Tus crímenes no quedarán impunes!",
+                "§4[" + personality.getName() + "] *PISOTONES ENFADADOS*",
+                "§c[" + personality.getName() + "] ¡La aldea exige justicia!"
             };
             player.sendSystemMessage(Component.literal(
                 dangerMessages[level.getRandom().nextInt(dangerMessages.length)]));
@@ -87,7 +87,7 @@ public class GolemBehaviorHandler {
         // Cooldown de interacción
         if (!data.canInteract(golem.getUUID(), INTERACTION_COOLDOWN_MS)) {
             player.sendSystemMessage(Component.literal(
-                "§7[" + personality.getName() + "] *busy patrolling*"));
+                "§7[" + personality.getName() + "] *ocupado patrullando*"));
             return;
         }
         
@@ -123,19 +123,19 @@ public class GolemBehaviorHandler {
     
     private static String getLoyaltyMessage(GolemPersonality personality) {
         return switch (personality.getLoyalty()) {
-            case DEVOTED -> "§6[" + personality.getName() + "] I will protect this village with my life!";
-            case DUTIFUL -> "§e[" + personality.getName() + "] Just doing my duty.";
-            case INDEPENDENT -> "§b[" + personality.getName() + "] I protect those who deserve it.";
-            default -> "§7[" + personality.getName() + "] I serve the village.";
+            case DEVOTED -> "§6[" + personality.getName() + "] ¡Protegeré esta aldea con mi vida!";
+            case DUTIFUL -> "§e[" + personality.getName() + "] Solo cumplo mi deber.";
+            case INDEPENDENT -> "§b[" + personality.getName() + "] Protejo a quienes lo merecen.";
+            default -> "§7[" + personality.getName() + "] Sirvo a la aldea.";
         };
     }
     
     private static String getTemperamentMessage(GolemPersonality personality) {
         return switch (personality.getTemperament()) {
-            case GENTLE -> "§a[" + personality.getName() + "] Peace is what we fight for.";
-            case STERN -> "§7[" + personality.getName() + "] Vigilance is eternal.";
-            case FIERCE -> "§c[" + personality.getName() + "] *pounds fists together*";
-            default -> "§7[" + personality.getName() + "] *silent*";
+            case GENTLE -> "§a[" + personality.getName() + "] La paz es por lo que luchamos.";
+            case STERN -> "§7[" + personality.getName() + "] La vigilancia es eterna.";
+            case FIERCE -> "§c[" + personality.getName() + "] *golpea sus puños*";
+            default -> "§7[" + personality.getName() + "] *silencioso*";
         };
     }
     

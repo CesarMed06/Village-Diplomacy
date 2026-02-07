@@ -83,7 +83,7 @@ public class VillageHUDHandler {
                 Long lastChange = lastVillageChangeTime.get(playerId);
 
                 if (lastChange == null || currentTime - lastChange > 3000) {
-                    player.sendSystemMessage(Component.literal("§7You left the village"));
+                    player.sendSystemMessage(Component.literal("§7Saliste de la aldea"));
                     currentVillage.remove(playerId);
                     lastVillageChangeTime.put(playerId, currentTime);
                 }
@@ -92,10 +92,10 @@ public class VillageHUDHandler {
     }
 
     private String getReputationSubtitle(int reputation) {
-        if (reputation >= 500) return "§6✦ Hero of the Village ✦";
-        if (reputation >= 200) return "§aFriendly Village";
-        if (reputation >= -200) return "§7Neutral Territory";
-        if (reputation >= -500) return "§cUnfriendly Village";
-        return "§4⚠ Hostile Territory ⚠";
+        if (reputation >= 500) return "§6✦ Héroe de la Aldea ✦";
+        if (reputation >= 200) return "§aAldea Amistosa";
+        if (reputation >= -200) return "§7Territorio Neutral";
+        if (reputation >= -500) return "§cAldea Poco Amistosa";
+        return "§4⚠ Territorio Hostil ⚠";
     }
 }

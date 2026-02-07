@@ -13,14 +13,14 @@ public class GolemPersonality {
     
     public enum GolemTrait {
         // Temperamento
-        GENTLE("Gentle", "§a"),      // Pacífico, amigable
-        STERN("Stern", "§7"),          // Serio, estricto
-        FIERCE("Fierce", "§c"),        // Feroz, agresivo
+        GENTLE("Gentil", "§a"),      // Pacífico, amigable
+        STERN("Severo", "§7"),          // Serio, estricto
+        FIERCE("Feroz", "§c"),        // Feroz, agresivo
         
         // Lealtad
-        DEVOTED("Devoted", "§6"),      // Devoto, protector extremo
-        DUTIFUL("Dutiful", "§e"),      // Cumplidor, hace su trabajo
-        INDEPENDENT("Independent", "§b"); // Independiente, hace lo suyo
+        DEVOTED("Devoto", "§6"),      // Devoto, protector extremo
+        DUTIFUL("Cumplidor", "§e"),      // Cumplidor, hace su trabajo
+        INDEPENDENT("Independiente", "§b"); // Independiente, hace lo suyo
         
         private final String displayName;
         private final String color;
@@ -62,13 +62,13 @@ public class GolemPersonality {
     
     private static String generateGolemName(Random random) {
         String[] prefixes = {
-            "Iron", "Steel", "Bronze", "Stone", "Guardian",
-            "Sentinel", "Warden", "Protector", "Defender", "Keeper"
+            "Hierro", "Acero", "Bronce", "Piedra", "Guardián",
+            "Centinela", "Celador", "Protector", "Defensor", "Custodio"
         };
         
         String[] suffixes = {
-            "fist", "heart", "shield", "wall", "guard",
-            "watch", "stand", "forge", "anvil", "hammer"
+            "puño", "corazón", "escudo", "muro", "guardia",
+            "vigía", "firme", "forja", "yunque", "martillo"
         };
         
         return prefixes[random.nextInt(prefixes.length)] + 
@@ -78,13 +78,13 @@ public class GolemPersonality {
     private static String generateCreationStory(String villageName, GolemTrait temperament, 
                                                 GolemTrait loyalty, Random random) {
         String[] stories = {
-            "Created during a zombie siege to protect " + villageName,
-            "Forged by the village blacksmith in ancient times",
-            "Awakened when the village was in grave danger",
-            "Built by the elders to guard the village gates",
-            "Formed from iron donated by grateful traders",
-            "Crafted during a great celebration of peace",
-            "Raised to honor a fallen village hero"
+            "Creado durante un asedio zombi para proteger " + villageName,
+            "Forjado por el herrero de la aldea en tiempos antiguos",
+            "Despertado cuando la aldea estaba en grave peligro",
+            "Construido por los ancianos para guardar las puertas de la aldea",
+            "Formado de hierro donado por comerciantes agradecidos",
+            "Creado durante una gran celebración de paz",
+            "Alzado para honrar a un héroe caído de la aldea"
         };
         
         return stories[random.nextInt(stories.length)];
@@ -95,10 +95,10 @@ public class GolemPersonality {
      */
     public String getGreetingMessage() {
         return switch (temperament) {
-            case GENTLE -> "§a[" + name + "] *nods peacefully*";
-            case STERN -> "§7[" + name + "] *stands watch silently*";
-            case FIERCE -> "§c[" + name + "] *stomps ground, ready for battle*";
-            default -> "§7[" + name + "] *stares silently*";
+            case GENTLE -> "§a[" + name + "] *asiente pacíficamente*";
+            case STERN -> "§7[" + name + "] *permanece en guardia silenciosamente*";
+            case FIERCE -> "§c[" + name + "] *pisa fuerte, listo para la batalla*";
+            default -> "§7[" + name + "] *mira silenciosamente*";
         };
     }
     
@@ -107,10 +107,10 @@ public class GolemPersonality {
      */
     public String getPatrolMessage() {
         return switch (loyalty) {
-            case DEVOTED -> "§6[" + name + "] Nothing will harm this village!";
-            case DUTIFUL -> "§e[" + name + "] *patrols the perimeter*";
-            case INDEPENDENT -> "§b[" + name + "] *wanders freely*";
-            default -> "§7[" + name + "] *patrols*";
+            case DEVOTED -> "§6[" + name + "] ¡Nada dañará esta aldea!";
+            case DUTIFUL -> "§e[" + name + "] *patrulla el perímetro*";
+            case INDEPENDENT -> "§b[" + name + "] *vaga libremente*";
+            default -> "§7[" + name + "] *patrulla*";
         };
     }
     
@@ -119,10 +119,10 @@ public class GolemPersonality {
      */
     public String getThreatDetectedMessage() {
         return switch (temperament) {
-            case GENTLE -> "§a[" + name + "] Please, leave peacefully!";
-            case STERN -> "§7[" + name + "] You're not welcome here.";
-            case FIERCE -> "§c[" + name + "] *HOSTILE ROAR*";
-            default -> "§c[" + name + "] *alert*";
+            case GENTLE -> "§a[" + name + "] ¡Por favor, vete en paz!";
+            case STERN -> "§7[" + name + "] No eres bienvenido aquí.";
+            case FIERCE -> "§c[" + name + "] *RUGIDO HOSTIL*";
+            default -> "§c[" + name + "] *alerta*";
         };
     }
     
@@ -132,20 +132,20 @@ public class GolemPersonality {
     public String getFriendlyHitResponse(int strikes) {
         if (strikes == 1) {
             return switch (temperament) {
-                case GENTLE -> "§a[" + name + "] Friend... why?";
-                case STERN -> "§7[" + name + "] Stop. Now.";
-                case FIERCE -> "§c[" + name + "] *growls* Don't test me!";
-                default -> "§e[" + name + "] Hey!";
+                case GENTLE -> "§a[" + name + "] Amigo... ¿por qué?";
+                case STERN -> "§7[" + name + "] Para. Ahora.";
+                case FIERCE -> "§c[" + name + "] *gruñe* ¡No me pongas a prueba!";
+                default -> "§e[" + name + "] ¡Hey!";
             };
         } else if (strikes == 2) {
             return switch (temperament) {
-                case GENTLE -> "§6[" + name + "] Please... I don't want to hurt you!";
-                case STERN -> "§c[" + name + "] This is your final warning.";
-                case FIERCE -> "§4[" + name + "] YOU'RE MAKING A MISTAKE!";
-                default -> "§c[" + name + "] Stop!";
+                case GENTLE -> "§6[" + name + "] ¡Por favor... no quiero hacerte daño!";
+                case STERN -> "§c[" + name + "] Esta es tu última advertencia.";
+                case FIERCE -> "§4[" + name + "] ¡ESTÁS COMETIENDO UN ERROR!";
+                default -> "§c[" + name + "] ¡Para!";
             };
         } else {
-            return "§4[" + name + "] So be it!";
+            return "§4[" + name + "] ¡Que así sea!";
         }
     }
     

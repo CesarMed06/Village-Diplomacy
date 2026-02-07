@@ -85,7 +85,7 @@ public class DiplomacyCommands {
         Optional<BlockPos> nearestVillage = VillageDetector.findNearestVillage(level, player.blockPosition(), 200);
         
         if (nearestVillage.isEmpty()) {
-            context.getSource().sendFailure(Component.literal("§cNo village nearby. Must be within 200 blocks of a village."));
+            context.getSource().sendFailure(Component.literal("§cNo hay aldea cercana. Debes estar dentro de 200 bloques de una aldea."));
             return 0;
         }
         
@@ -98,8 +98,7 @@ public class DiplomacyCommands {
         String villageName = relationData.getVillageName(villageId);
 
         context.getSource().sendSuccess(() -> Component.literal(
-                "§6Reputation of " + player.getName().getString() + " in §e" + villageName + "§6: §f" + reputation + " §7(" + status + "§7)"), false);
-
+                "§6Reputación de " + player.getName().getString() + " en §e" + villageName + "§6: §f" + reputation + " §7(" + status + "§7)"), false);
         return reputation;
     }
 
@@ -110,7 +109,7 @@ public class DiplomacyCommands {
         Optional<BlockPos> nearestVillage = VillageDetector.findNearestVillage(level, player.blockPosition(), 200);
         
         if (nearestVillage.isEmpty()) {
-            context.getSource().sendFailure(Component.literal("§cNo village nearby. Must be within 200 blocks of a village."));
+            context.getSource().sendFailure(Component.literal("§cNo hay aldea cercana. Debes estar dentro de 200 bloques de una aldea."));
             return 0;
         }
         
@@ -125,7 +124,7 @@ public class DiplomacyCommands {
         String villageName = relationData.getVillageName(villageId);
 
         context.getSource().sendSuccess(() -> Component.literal(
-                "§aReputation of " + player.getName().getString() + " in §e" + villageName + "§a: §f" + oldRep + " §7→ §f" + newRep + " §7(" + status + "§7)"), false);
+                "§aReputación de " + player.getName().getString() + " en §e" + villageName + "§a: §f" + oldRep + " §7→ §f" + newRep + " §7(" + status + "§7)"), false);
 
         return 1;
     }
@@ -137,7 +136,7 @@ public class DiplomacyCommands {
         Optional<BlockPos> nearestVillage = VillageDetector.findNearestVillage(level, player.blockPosition(), 200);
         
         if (nearestVillage.isEmpty()) {
-            context.getSource().sendFailure(Component.literal("§cNo village nearby. Must be within 200 blocks of a village."));
+            context.getSource().sendFailure(Component.literal("§cNo hay aldea cercana. Debes estar dentro de 200 bloques de una aldea."));
             return 0;
         }
         
@@ -152,7 +151,7 @@ public class DiplomacyCommands {
         String villageName = relationData.getVillageName(villageId);
 
         context.getSource().sendSuccess(() -> Component.literal(
-                "§aReputation of " + player.getName().getString() + " in §e" + villageName + "§a: §f" + oldRep + " §7→ §f" + newRep +
+                "§aReputación de " + player.getName().getString() + " en §e" + villageName + "§a: §f" + oldRep + " §7→ §f" + newRep +
                         " §7(" + status + "§7)"), false);
 
         return 1;
@@ -244,7 +243,7 @@ public class DiplomacyCommands {
      */
     private static int pardonMe(CommandContext<CommandSourceStack> context) {
         if (!(context.getSource().getEntity() instanceof ServerPlayer player)) {
-            context.getSource().sendFailure(Component.literal("§cOnly players can use this command."));
+            context.getSource().sendFailure(Component.literal("§cSolo los jugadores pueden usar este comando."));
             return 0;
         }
         
@@ -253,7 +252,7 @@ public class DiplomacyCommands {
         // Verificar si está en una aldea
         Optional<BlockPos> nearestVillage = VillageDetector.findNearestVillage(level, player.blockPosition(), 100);
         if (nearestVillage.isEmpty()) {
-            player.sendSystemMessage(Component.literal("§cYou must be inside a village to ask for pardon!"));
+            player.sendSystemMessage(Component.literal("§c¡Debes estar dentro de una aldea para pedir perdón!"));
             return 0;
         }
         
@@ -295,7 +294,7 @@ public class DiplomacyCommands {
         // Verificar si está en una aldea
         Optional<BlockPos> nearestVillage = VillageDetector.findNearestVillage(level, player.blockPosition(), 100);
         if (nearestVillage.isEmpty()) {
-            player.sendSystemMessage(Component.literal("§cYou are not in a village!"));
+            player.sendSystemMessage(Component.literal("§c¡No estás en una aldea!"));
             return 0;
         }
         
@@ -323,7 +322,7 @@ public class DiplomacyCommands {
      */
     private static int nameCurrentVillage(CommandContext<CommandSourceStack> context, String newName) {
         if (!(context.getSource().getEntity() instanceof ServerPlayer player)) {
-            context.getSource().sendFailure(Component.literal("§cOnly players can use this command!"));
+            context.getSource().sendFailure(Component.literal("§c¡Solo los jugadores pueden usar este comando!"));
             return 0;
         }
         
@@ -331,7 +330,7 @@ public class DiplomacyCommands {
         Optional<BlockPos> nearestVillage = VillageDetector.findNearestVillage(level, player.blockPosition(), 100);
         
         if (nearestVillage.isEmpty()) {
-            player.sendSystemMessage(Component.literal("§cYou must be inside a village to name it!"));
+            player.sendSystemMessage(Component.literal("§c¡Debes estar dentro de una aldea para nombrarla!"));
             return 0;
         }
         
@@ -344,26 +343,26 @@ public class DiplomacyCommands {
         relationData.setVillageName(villageId, newName);
         
         player.sendSystemMessage(Component.literal("§8▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬"));
-        player.sendSystemMessage(Component.literal("  §6✦ Village named: §e" + newName));
+        player.sendSystemMessage(Component.literal("  §6✦ Aldea nombrada: §e" + newName));
         player.sendSystemMessage(Component.literal("§8▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬"));
         
         return 1;
     }
 
     private static String getReputationStatus(int reputation) {
-        if (reputation >= 1000) return "§6LEGENDARY HERO";
-        if (reputation >= 800) return "§6HERO";
-        if (reputation >= 500) return "§aCHAMPION";
-        if (reputation >= 300) return "§aTRUSTED FRIEND";
-        if (reputation >= 100) return "§aFRIENDLY";
+        if (reputation >= 1000) return "§6HÉROE LEGENDARIO";
+        if (reputation >= 800) return "§6HÉROE";
+        if (reputation >= 500) return "§aCAPEÓN";
+        if (reputation >= 300) return "§aAMIGO DE CONFIANZA";
+        if (reputation >= 100) return "§aAMISTOSO";
         if (reputation >= 0) return "§7NEUTRAL";
-        if (reputation >= -99) return "§6SUSPICIOUS";
-        if (reputation >= -199) return "§cDISLIKED";
-        if (reputation >= -299) return "§cUNWELCOME";
-        if (reputation >= -499) return "§cUNFRIENDLY";
-        if (reputation >= -699) return "§4HOSTILE";
-        if (reputation >= -899) return "§4ENEMY";
-        return "§4WANTED CRIMINAL";
+        if (reputation >= -99) return "§6SOSPECHOSO";
+        if (reputation >= -199) return "§cMAL VISTO";
+        if (reputation >= -299) return "§cNO BIENVENIDO";
+        if (reputation >= -499) return "§cPOCO AMISTOSO";
+        if (reputation >= -699) return "§4HOSTIL";
+        if (reputation >= -899) return "§4ENEMIGO";
+        return "§4CRIMINAL BUSCADO";
     }
     
     /**

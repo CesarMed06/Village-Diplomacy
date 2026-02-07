@@ -3242,30 +3242,30 @@ public class VillagerEventHandler {
 
     private String getReputationStatus(int reputation) {
         if (reputation >= 1000)
-            return "LEGENDARY HERO";
+            return "HÉROE LEGENDARIO";
         if (reputation >= 800)
-            return "HERO";
+            return "HÉROE";
         if (reputation >= 500)
-            return "CHAMPION";
+            return "CAMPEÓN";
         if (reputation >= 300)
-            return "TRUSTED FRIEND";
+            return "AMIGO DE CONFIANZA";
         if (reputation >= 100)
-            return "FRIENDLY";
+            return "AMISTOSO";
         if (reputation >= 0)
             return "NEUTRAL";
         if (reputation >= -99)
-            return "SUSPICIOUS";
+            return "SOSPECHOSO";
         if (reputation >= -100)
-            return "DISLIKED";
+            return "MAL VISTO";
         if (reputation >= -200)
-            return "UNWELCOME";
+            return "NO BIENVENIDO";
         if (reputation >= -499)
-            return "UNFRIENDLY";
+            return "POCO AMISTOSO";
         if (reputation >= -699)
-            return "HOSTILE";
+            return "HOSTIL";
         if (reputation >= -899)
-            return "ENEMY";
-        return "WANTED CRIMINAL";
+            return "ENEMIGO";
+        return "CRIMINAL BUSCADO";
     }
     
     private void checkAndNotifyReputationChange(ServerPlayer player, int oldRep, int newRep) {
@@ -3438,7 +3438,7 @@ public class VillagerEventHandler {
                         "§c[Aldeano Bebé] ¡Mamá! ¡La campana!",
                         "§c[Aldeano Bebé] *sollozando* ¡Eso era importante!"
                 }),
-        BED(-20, "Broke a villager's bed!",
+        BED(-20, "¡Rompió la cama de un aldeano!",
                 new String[] {
                         "§c[Aldeano] ¡Esa es MI cama!",
                         "§c[Aldeano] ¿¡Dónde se supone que duerma ahora!",
@@ -3458,7 +3458,7 @@ public class VillagerEventHandler {
                         "§c[Aldeano Bebé] ¡Papá! ¡Mi cama está rota!",
                         "§c[Aldeano Bebé] *lamentando* ¿¡Por qué!"
                 }),
-        CROP(-15, "Destroyed village crops!",
+        CROP(-15, "¡Destruyó los cultivos de la aldea!",
                 new String[] {
                         "§c[Aldeano] ¡Nuestra comida! ¡Estás destruyendo nuestros cultivos!",
                         "§c[Aldeano] ¡Los necesitamos para sobrevivir!",
@@ -3479,7 +3479,7 @@ public class VillagerEventHandler {
                         "§c[Aldeano Bebé] *señala* ¡Malo! ¡Malo!",
                         "§c[Aldeano Bebé] ¡Esos iban a ser pan!"
                 }),
-        WORKSTATION(-25, "Broke a workstation!",
+        WORKSTATION(-25, "¡Rompió una estación de trabajo!",
                 new String[] {
                         "§4[Aldeano] ¡Ese es mi sustento!",
                         "§4[Aldeano] ¡Necesito eso para trabajar!",
@@ -3498,7 +3498,7 @@ public class VillagerEventHandler {
                         "§c[Aldeano Bebé] ¡La estación de trabajo de papá!",
                         "§c[Aldeano Bebé] *jadea* ¡La rompiste!"
                 }),
-        DECORATION(-5, "Broke village decoration!",
+        DECORATION(-5, "¡Rompió una decoración de la aldea!",
                 new String[] {
                         "§c[Aldeano] ¡Oye! ¡Eso hacía que la aldea se viera bonita!",
                         "§c[Aldeano] ¿¡Por qué harías eso!",
@@ -3510,7 +3510,7 @@ public class VillagerEventHandler {
                         "§c[Aldeano] ¿¡Ahora rompes nuestras decoraciones!"
                 },
                 new String[] {}),
-        WELL(-30, "Damaged the village well!",
+        WELL(-30, "¡Dañó el pozo de la aldea!",
                 new String[] {
                         "§4[Aldeano] ¡EL POZO! ¡Nuestra fuente de agua!",
                         "§4[Aldeano] ¡Ese es nuestro único suministro de agua!",
@@ -3527,7 +3527,7 @@ public class VillagerEventHandler {
                         "§c[Aldeano Bebé] ¡Tengo sed! ¡El pozo!",
                         "§c[Aldeano Bebé] ¡Mamá! ¡El lugar del agua está roto!"
                 }),
-        HOUSE(-15, "Damaged a house!",
+        HOUSE(-15, "¡Dañó una casa!",
                 new String[] {
                         "§c[Aldeano] ¡Estás destruyendo mi hogar!",
                         "§c[Aldeano] ¡DETENTE! ¡Aquí es donde vivo!",
@@ -3863,39 +3863,39 @@ public class VillagerEventHandler {
         if (isHero) {
             return switch (temperament) {
                 case "BRAVE" -> new String[]{
-                    "§6[" + villagerName + "] Hero! It's an honor!",
-                    "§6[" + villagerName + "] Our champion returns!",
-                    "§6[" + villagerName + "] Brave one! Welcome back!"
+                    "§6[" + villagerName + "] ¡Héroe! ¡Es un honor!",
+                    "§6[" + villagerName + "] ¡Nuestro campeón ha vuelto!",
+                    "§6[" + villagerName + "] ¡Valiente! ¡Bienvenido de vuelta!"
                 };
                 case "SHY" -> new String[]{
-                    "§b[" + villagerName + "] H-hero! *bows nervously*",
-                    "§b[" + villagerName + "] *waves shyly* You're amazing!",
-                    "§b[" + villagerName + "] I... I admire you so much!"
+                    "§b[" + villagerName + "] ¡H-héroe! *se inclina nerviosamente*",
+                    "§b[" + villagerName + "] *saluda tímidamente* ¡Eres increíble!",
+                    "§b[" + villagerName + "] ¡Te... te admiro mucho!"
                 };
                 case "GREEDY" -> new String[]{
-                    "§e[" + villagerName + "] Our most valued customer!",
-                    "§e[" + villagerName + "] The hero! Care to trade?",
-                    "§e[" + villagerName + "] Best customer ever! Welcome!"
+                    "§e[" + villagerName + "] ¡Nuestro cliente más valorado!",
+                    "§e[" + villagerName + "] ¡El héroe! ¿Quieres comerciar?",
+                    "§e[" + villagerName + "] ¡El mejor cliente! ¡Bienvenido!"
                 };
                 case "WISE" -> new String[]{
-                    "§d[" + villagerName + "] Greetings, legendary one.",
-                    "§d[" + villagerName + "] Your reputation precedes you, hero.",
-                    "§d[" + villagerName + "] The village owes you much."
+                    "§d[" + villagerName + "] Saludos, legendario.",
+                    "§d[" + villagerName + "] Tu reputación te precede, héroe.",
+                    "§d[" + villagerName + "] La aldea te debe mucho."
                 };
                 case "GOSSIP" -> new String[]{
-                    "§a[" + villagerName + "] HERO! Everyone talks about you!",
-                    "§a[" + villagerName + "] Did you hear? Oh wait, YOU'RE the hero!",
-                    "§a[" + villagerName + "] The whole village loves you!"
+                    "§a[" + villagerName + "] ¡HÉROE! ¡Todos hablan de ti!",
+                    "§a[" + villagerName + "] ¿¡Escuchaste! ¡Oh espera, TÚ ERES el héroe!",
+                    "§a[" + villagerName + "] ¡Toda la aldea te ama!"
                 };
                 case "CHEERFUL" -> new String[]{
-                    "§a[" + villagerName + "] YAY! Our hero is here!",
-                    "§a[" + villagerName + "] Best day ever! You're back!",
-                    "§a[" + villagerName + "] *jumps excitedly* HERO!"
+                    "§a[" + villagerName + "] ¡GENIAL! ¡Nuestro héroe está aquí!",
+                    "§a[" + villagerName + "] ¡El mejor día! ¡Has vuelto!",
+                    "§a[" + villagerName + "] *salta emocionado* ¡HÉROE!"
                 };
                 default -> new String[]{
-                    "§6[" + villagerName + "] Welcome back, hero!",
-                    "§6[" + villagerName + "] Good to see you, champion!",
-                    "§6[" + villagerName + "] The village is safe with you here!"
+                    "§6[" + villagerName + "] ¡Bienvenido de vuelta, héroe!",
+                    "§6[" + villagerName + "] ¡Bueno verte, campeón!",
+                    "§6[" + villagerName + "] ¡La aldea está segura contigo aquí!"
                 };
             };
         }
@@ -3903,44 +3903,44 @@ public class VillagerEventHandler {
         // Mensajes para ALLY (200-499)
         return switch (temperament) {
             case "BRAVE" -> new String[]{
-                "§a[" + villagerName + "] Good day, friend!",
-                "§a[" + villagerName + "] Ally! Welcome!",
-                "§a[" + villagerName + "] A pleasure to see you!"
+                "§a[" + villagerName + "] ¡Buen día, amigo!",
+                "§a[" + villagerName + "] ¡Aliado! ¡Bienvenido!",
+                "§a[" + villagerName + "] ¡Un placer verte!"
             };
             case "SHY" -> new String[]{
-                "§b[" + villagerName + "] *smiles* Hello...",
-                "§b[" + villagerName + "] *waves* H-hi there!",
-                "§b[" + villagerName + "] Oh! Hello, friend..."
+                "§b[" + villagerName + "] *sonríe* Hola...",
+                "§b[" + villagerName + "] *saluda* ¡H-hola!",
+                "§b[" + villagerName + "] ¡Oh! Hola, amigo..."
             };
             case "GREEDY" -> new String[]{
-                "§e[" + villagerName + "] My favorite customer!",
-                "§e[" + villagerName + "] Good deals today, friend!",
-                "§e[" + villagerName + "] Always a pleasure!"
+                "§e[" + villagerName + "] ¡Mi cliente favorito!",
+                "§e[" + villagerName + "] ¡Buenos tratos hoy, amigo!",
+                "§e[" + villagerName + "] ¡Siempre es un placer!"
             };
             case "WISE" -> new String[]{
-                "§d[" + villagerName + "] Greetings, trusted one.",
-                "§d[" + villagerName + "] Peace be with you, friend.",
-                "§d[" + villagerName + "] Welcome, ally."
+                "§d[" + villagerName + "] Saludos, de confianza.",
+                "§d[" + villagerName + "] La paz sea contigo, amigo.",
+                "§d[" + villagerName + "] Bienvenido, aliado."
             };
             case "GOSSIP" -> new String[]{
-                "§a[" + villagerName + "] Oh! Hi! Did you hear about...?",
-                "§a[" + villagerName + "] Perfect timing! I have news!",
-                "§a[" + villagerName + "] You! I was just talking about you!"
+                "§a[" + villagerName + "] ¡Oh! ¡Hola! ¿¡Escuchaste sobre...!?",
+                "§a[" + villagerName + "] ¡Perfecto momento! ¡Tengo noticias!",
+                "§a[" + villagerName + "] ¡Tú! ¡Justo estaba hablando de ti!"
             };
             case "FRIENDLY" -> new String[]{
-                "§a[" + villagerName + "] Hey there, buddy!",
-                "§a[" + villagerName + "] Great to see you!",
-                "§a[" + villagerName + "] How's it going, friend?"
+                "§a[" + villagerName + "] ¡Hola, amigo!",
+                "§a[" + villagerName + "] ¡Genial verte!",
+                "§a[" + villagerName + "] ¿Cómo te va, amigo?"
             };
             case "CHEERFUL" -> new String[]{
-                "§a[" + villagerName + "] Hi! What a lovely day!",
-                "§a[" + villagerName + "] *smiles* Hello, friend!",
-                "§a[" + villagerName + "] Wonderful to see you!"
+                "§a[" + villagerName + "] ¡Hola! ¡Qué día tan hermoso!",
+                "§a[" + villagerName + "] *sonríe* ¡Hola, amigo!",
+                "§a[" + villagerName + "] ¡Maravilloso verte!"
             };
             default -> new String[]{
-                "§a[" + villagerName + "] Hello, friend!",
-                "§a[" + villagerName + "] Good day!",
-                "§a[" + villagerName + "] Welcome!"
+                "§a[" + villagerName + "] ¡Hola, amigo!",
+                "§a[" + villagerName + "] ¡Buen día!",
+                "§a[" + villagerName + "] ¡Bienvenido!"
             };
         };
     }

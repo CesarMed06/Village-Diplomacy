@@ -166,20 +166,20 @@ public class PersonalityBehaviorHandler {
         // Mostrar mensaje a jugadores cercanos
         String name = personality.getCustomName();
         String[] messages = personality.getCourage() == PersonalityTrait.COWARD ? new String[] {
-            "§e[" + name + "] AAAH! Get away from me!",
-            "§e[" + name + "] *screams* I'm out of here!",
-            "§e[" + name + "] No no no! *runs away*",
-            "§e[" + name + "] Help! Someone help!",
-            "§e[" + name + "] *cries* I don't want to die!",
-            "§e[" + name + "] *flees in terror*",
-            "§e[" + name + "] Leave me alone! *panicking*"
+            "§e[" + name + "] ¡AAAH! ¡Aléjate de mí!",
+            "§e[" + name + "] *grita* ¡Me largo de aquí!",
+            "§e[" + name + "] ¡No no no! *huye corriendo*",
+            "§e[" + name + "] ¡Ayuda! ¡Que alguien ayude!",
+            "§e[" + name + "] *llora* ¡No quiero morir!",
+            "§e[" + name + "] *huye aterrorizado*",
+            "§e[" + name + "] ¡Déjame en paz! *entrando en pánico*"
         } : new String[] {
-            "§e[" + name + "] *backs away cautiously*",
-            "§e[" + name + "] I should get out of here...",
-            "§e[" + name + "] This doesn't look safe.",
-            "§e[" + name + "] *nervously retreats*",
-            "§e[" + name + "] Better safe than sorry...",
-            "§e[" + name + "] I'll find somewhere safer."
+            "§e[" + name + "] *retrocede cautelosamente*",
+            "§e[" + name + "] Debería salir de aquí...",
+            "§e[" + name + "] Esto no parece seguro.",
+            "§e[" + name + "] *se retira nerviosamente*",
+            "§e[" + name + "] Mejor prevenir que lamentar...",
+            "§e[" + name + "] Encontraré un lugar más seguro."
         };
         
         String message = messages[level.getRandom().nextInt(messages.length)];
@@ -448,7 +448,7 @@ public class PersonalityBehaviorHandler {
                     String name = personality != null ? personality.getCustomName() : "Villager";
                     
                     player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
-                        "§a[" + name + "] Here, take this bread! You look hurt."));
+                        "§a[" + name + "] ¡Toma, toma este pan! Te ves herido."));
                     
                     lastGiftTime.put(villagerId, currentTime);
                 }
@@ -546,7 +546,7 @@ public class PersonalityBehaviorHandler {
         
         // NOMBRE PERSONALIZADO con color dorado
         net.minecraft.network.chat.Component customName = net.minecraft.network.chat.Component.literal(
-            "§6§lTestament of " + personality.getCustomName()
+            "§6§lTestamento de " + personality.getCustomName()
         );
         
         // LORE detallado
@@ -558,12 +558,12 @@ public class PersonalityBehaviorHandler {
         ));
         loreList.add(net.minecraft.nbt.StringTag.valueOf(
             net.minecraft.network.chat.Component.Serializer.toJson(
-                net.minecraft.network.chat.Component.literal("§7Last Will and Testament")
+                net.minecraft.network.chat.Component.literal("§7Última Voluntad y Testamento")
             )
         ));
         loreList.add(net.minecraft.nbt.StringTag.valueOf(
             net.minecraft.network.chat.Component.Serializer.toJson(
-                net.minecraft.network.chat.Component.literal("§7of " + personality.getFullName())
+                net.minecraft.network.chat.Component.literal("§7de " + personality.getFullName())
             )
         ));
         loreList.add(net.minecraft.nbt.StringTag.valueOf(
@@ -578,17 +578,17 @@ public class PersonalityBehaviorHandler {
         ));
         loreList.add(net.minecraft.nbt.StringTag.valueOf(
             net.minecraft.network.chat.Component.Serializer.toJson(
-                net.minecraft.network.chat.Component.literal("§e'To my dearest friend,'")
+                net.minecraft.network.chat.Component.literal("§e'A mi querido amigo,'")
             )
         ));
         loreList.add(net.minecraft.nbt.StringTag.valueOf(
             net.minecraft.network.chat.Component.Serializer.toJson(
-                net.minecraft.network.chat.Component.literal("§e'Thank you for your'")
+                net.minecraft.network.chat.Component.literal("§e'Gracias por tu'")
             )
         ));
         loreList.add(net.minecraft.nbt.StringTag.valueOf(
             net.minecraft.network.chat.Component.Serializer.toJson(
-                net.minecraft.network.chat.Component.literal("§e'kindness and trust.'")
+                net.minecraft.network.chat.Component.literal("§e'bondad y confianza.'")
             )
         ));
         loreList.add(net.minecraft.nbt.StringTag.valueOf(
@@ -598,12 +598,12 @@ public class PersonalityBehaviorHandler {
         ));
         loreList.add(net.minecraft.nbt.StringTag.valueOf(
             net.minecraft.network.chat.Component.Serializer.toJson(
-                net.minecraft.network.chat.Component.literal("§8Died at: " + villager.blockPosition().toShortString())
+                net.minecraft.network.chat.Component.literal("§8Murió en: " + villager.blockPosition().toShortString())
             )
         ));
         loreList.add(net.minecraft.nbt.StringTag.valueOf(
             net.minecraft.network.chat.Component.Serializer.toJson(
-                net.minecraft.network.chat.Component.literal("§8Profession: " + personality.getProfession())
+                net.minecraft.network.chat.Component.literal("§8Profesión: " + personality.getProfession())
             )
         ));
         

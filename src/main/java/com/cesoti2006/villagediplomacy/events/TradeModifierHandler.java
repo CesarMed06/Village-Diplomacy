@@ -90,13 +90,13 @@ public class TradeModifierHandler {
                     // SOLO mostrar mensaje si hay descuento significativo (no neutral)
                     if (priceModifier < 0) {
                         player.sendSystemMessage(Component.literal(
-                                "§a[Village Diplomacy] Your reputation grants a " + 
-                                Math.abs(priceModifier * 10) + "% trade discount!"));
+                                "§a[Diplomacia de Aldeas] ¡Tu reputación otorga un " + 
+                                Math.abs(priceModifier * 10) + "% de descuento en comercio!"));
                         tradeMessageCooldown.put(playerId, currentTime);
                     } else if (priceModifier > 0) {
                         player.sendSystemMessage(Component.literal(
-                                "§6[Village Diplomacy] Your reputation adds a " + 
-                                (priceModifier * 10) + "% trade markup."));
+                                "§6[Diplomacia de Aldeas] Tu reputación añade un " + 
+                                (priceModifier * 10) + "% de sobreprecio en comercio."));
                         tradeMessageCooldown.put(playerId, currentTime);
                     }
                 }

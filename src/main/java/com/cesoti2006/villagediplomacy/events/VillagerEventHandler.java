@@ -335,10 +335,10 @@ public class VillagerEventHandler {
             // Mensaje según personalidad
             if (personality != null) {
                 String message = switch (personality.getTemperament()) {
-                    case GENTLE -> "§e[" + personality.getName() + "] Why...? I must defend myself!";
-                    case STERN -> "§c[" + personality.getName() + "] You've made your choice.";
-                    case FIERCE -> "§4[" + personality.getName() + "] *ROARS* YOU DIE NOW!";
-                    default -> "§c[" + personality.getName() + "] So be it!";
+                    case GENTLE -> "§e[" + personality.getName() + "] ¿Por qué...? ¡Debo defenderme!";
+                    case STERN -> "§c[" + personality.getName() + "] Tú elegiste esto.";
+                    case FIERCE -> "§4[" + personality.getName() + "] *RUGE* ¡AHORA MUERES!";
+                    default -> "§c[" + personality.getName() + "] ¡Que así sea!";
                 };
                 player.sendSystemMessage(Component.literal(message));
             } else {
@@ -346,7 +346,7 @@ public class VillagerEventHandler {
                 String golemName = golem.hasCustomName() ? 
                     golem.getCustomName().getString() : "Iron Golem";
                 player.sendSystemMessage(Component.literal(
-                    "§c[" + golemName + "] You asked for this!"));
+                    "§c[" + golemName + "] ¡Tú te lo buscaste!"));
             }
         }
         
@@ -1073,7 +1073,7 @@ public class VillagerEventHandler {
             int currentBonus = personality.getPlayerReputationBonus();
             if (currentBonus >= 30 && currentBonus % 10 == 0) {
                 player.sendSystemMessage(Component.literal(
-                    "§7[Debug] " + personality.getCustomName() + "'s bond: " + currentBonus + "/30 for testament"));
+                    "§7[Debug] " + personality.getCustomName() + " vínculo: " + currentBonus + "/30 para testamento"));
             }
         }
     }
@@ -2771,14 +2771,14 @@ public class VillagerEventHandler {
             }
             
             String[] violentMessages = {
-                "§c[" + golemName + "] YOU DARE ATTACK MORE VILLAGERS?!",
-                "§4[" + golemName + "] *FURIOUS STOMPING* STOP THIS NOW!",
-                "§c[" + golemName + "] YOU'RE MAKING IT WORSE FOR YOURSELF!",
-                "§4[" + golemName + "] I'LL CRUSH YOU FOR THIS!",
-                "§c[" + golemName + "] *ROARS* ENOUGH OF YOUR VIOLENCE!",
-                "§4[" + golemName + "] EVERY HIT SEALS YOUR DOOM!",
-                "§c[" + golemName + "] YOU'LL PAY FOR EVERY VILLAGER YOU HURT!",
-                "§4[" + golemName + "] *POUNDS FISTS* THIS ENDS NOW!"
+                "§c[" + golemName + "] ¿¡TE ATREVES A ATACAR MÁS ALDEANOS!?",
+                "§4[" + golemName + "] *PISOTONES FURIOSOS* ¡DETENTE AHORA!",
+                "§c[" + golemName + "] ¡ESTÁS EMPEORANDO TU SITUACIÓN!",
+                "§4[" + golemName + "] ¡TE APLASTARÉ POR ESTO!",
+                "§c[" + golemName + "] *RUGE* ¡BASTA DE VIOLENCIA!",
+                "§4[" + golemName + "] ¡CADA GOLPE SELLA TU DESTINO!",
+                "§c[" + golemName + "] ¡PAGARÁS POR CADA ALDEANO QUE LASTIMES!",
+                "§4[" + golemName + "] *GOLPES DE PUÑO* ¡ESTO TERMINA AHORA!"
             };
             
             if (level.getRandom().nextInt(2) == 0) { // 50% chance para no spamear
@@ -2811,46 +2811,46 @@ public class VillagerEventHandler {
 
         if (strikeCount == 1) {
             String[] messages = {
-                "§e[" + golemName + "] Hey! Stop that.",
-                "§e[" + golemName + "] Don't touch them.",
-                "§e[" + golemName + "] I'm watching you...",
-                "§e[" + golemName + "] Leave them alone.",
-                "§e[" + golemName + "] That's enough.",
-                "§e[" + golemName + "] Back away from them.",
-                "§e[" + golemName + "] Don't make me come over there.",
-                "§e[" + golemName + "] You don't want trouble.",
-                "§e[" + golemName + "] These villagers are under MY protection.",
-                "§e[" + golemName + "] Keep your hands to yourself."
+                "§e[" + golemName + "] ¡Oye! Detén eso.",
+                "§e[" + golemName + "] No los toques.",
+                "§e[" + golemName + "] Te estoy vigilando...",
+                "§e[" + golemName + "] Déjalos en paz.",
+                "§e[" + golemName + "] Es suficiente.",
+                "§e[" + golemName + "] Aléjate de ellos.",
+                "§e[" + golemName + "] No hagas que vaya hasta allá.",
+                "§e[" + golemName + "] No quieres problemas.",
+                "§e[" + golemName + "] Estos aldeanos están bajo MI protección.",
+                "§e[" + golemName + "] Mantén tus manos quietas."
             };
             player.sendSystemMessage(Component.literal(
                     messages[level.getRandom().nextInt(messages.length)]));
         } else if (strikeCount == 2) {
             String[] messages = {
-                "§6[" + golemName + "] I said STOP!",
-                "§6[" + golemName + "] You're pushing your luck...",
-                "§6[" + golemName + "] Back off NOW!",
-                "§6[" + golemName + "] Final warning!",
-                "§6[" + golemName + "] You don't want to test me!",
-                "§6[" + golemName + "] This is your LAST chance!",
-                "§6[" + golemName + "] I'm losing my patience!",
-                "§6[" + golemName + "] Step away or face the consequences!",
-                "§6[" + golemName + "] You're making a BIG mistake!",
-                "§6[" + golemName + "] One more hit and you're DONE!"
+                "§6[" + golemName + "] ¡Dije que PARES!",
+                "§6[" + golemName + "] Estás tentando tu suerte...",
+                "§6[" + golemName + "] ¡Retrocede AHORA!",
+                "§6[" + golemName + "] ¡Última advertencia!",
+                "§6[" + golemName + "] ¡No quieres ponerme a prueba!",
+                "§6[" + golemName + "] ¡Esta es tu ÚLTIMA oportunidad!",
+                "§6[" + golemName + "] ¡Estoy perdiendo la paciencia!",
+                "§6[" + golemName + "] ¡Aléjate o enfrenta las consecuencias!",
+                "§6[" + golemName + "] ¡Estás cometiendo un GRAN error!",
+                "§6[" + golemName + "] ¡Un golpe más y estarás ACABADO!"
             };
             player.sendSystemMessage(Component.literal(
                     messages[level.getRandom().nextInt(messages.length)]));
         } else if (strikeCount >= STRIKES_REQUIRED) {
             String[] messages = {
-                "§c[" + golemName + "] THAT'S IT!",
-                "§c[" + golemName + "] You've crossed the line!",
-                "§c[" + golemName + "] NOW YOU'VE DONE IT!",
-                "§c[" + golemName + "] PREPARE YOURSELF!",
-                "§c[" + golemName + "] I'VE HAD ENOUGH!",
-                "§c[" + golemName + "] TIME TO PAY!",
-                "§c[" + golemName + "] YOU'RE FINISHED!",
-                "§c[" + golemName + "] NO MORE MERCY!",
-                "§c[" + golemName + "] FACE MY WRATH!",
-                "§c[" + golemName + "] YOU'VE SEALED YOUR FATE!"
+                "§c[" + golemName + "] ¡ESO ES TODO!",
+                "§c[" + golemName + "] ¡Cruzaste la línea!",
+                "§c[" + golemName + "] ¡AHORA SÍ LO HICISTE!",
+                "§c[" + golemName + "] ¡PREPÁRATE!",
+                "§c[" + golemName + "] ¡YA TUVE SUFICIENTE!",
+                "§c[" + golemName + "] ¡HORA DE PAGAR!",
+                "§c[" + golemName + "] ¡ESTÁS ACABADO!",
+                "§c[" + golemName + "] ¡NO MÁS PIEDAD!",
+                "§c[" + golemName + "] ¡ENFRENTA MI IRA!",
+                "§c[" + golemName + "] ¡HAS SELLADO TU DESTINO!"
             };
             player.sendSystemMessage(Component.literal(
                     messages[level.getRandom().nextInt(messages.length)]));
@@ -2917,14 +2917,14 @@ public class VillagerEventHandler {
             if (calmadosCount > 0) {
                 if (calmadosCount == 1) {
                     player.sendSystemMessage(Component.literal(
-                            "§a✓ The village guard has forgiven you."));
+                            "§a✓ El guardián de la aldea te ha perdonado."));
                 } else {
                     player.sendSystemMessage(Component.literal(
-                            "§a✓ The village guards have forgiven you. (§7" + calmadosCount + " guards§a)"));
+                            "§a✓ Los guardianes de la aldea te han perdonado. (§7" + calmadosCount + " guardianes§a)"));
                 }
             } else {
                 player.sendSystemMessage(Component.literal(
-                        "§e⚠ No angry guards found nearby."));
+                        "§e⚠ No se encontraron guardianes enojados cerca."));
             }
             return;
         }
@@ -3051,14 +3051,14 @@ public class VillagerEventHandler {
                     gift = reputation >= 1000 ? new ItemStack(Items.GOLDEN_CARROT, 3)
                             : reputation >= 800 ? new ItemStack(Items.BREAD, 6)
                             : new ItemStack(Items.CARROT, 8);
-                    message = "§a[Farmer] Fresh from my harvest, hero!";
+                    message = "§a[Farmer] ¡Fresco de mi cosecha, héroe!";
                     break;
                     
                 case "librarian":
                     gift = reputation >= 1000 ? new ItemStack(Items.ENCHANTED_BOOK)
                             : reputation >= 800 ? new ItemStack(Items.BOOK, 3)
                             : new ItemStack(Items.PAPER, 6);
-                    message = "§6[Librarian] Knowledge is power, friend!";
+                    message = "§6[Librarian] ¡El conocimiento es poder, amigo!";
                     break;
                     
                 case "armorer":
@@ -3067,63 +3067,63 @@ public class VillagerEventHandler {
                     gift = reputation >= 1000 ? new ItemStack(Items.DIAMOND, 1)
                             : reputation >= 800 ? new ItemStack(Items.IRON_INGOT, 4)
                             : new ItemStack(Items.IRON_INGOT, 2);
-                    message = "§7[Smith] From my forge to you!";
+                    message = "§7[Smith] ¡De mi forja para ti!";
                     break;
                     
                 case "cleric":
                     gift = reputation >= 1000 ? new ItemStack(Items.GOLDEN_APPLE, 1)
                             : reputation >= 800 ? new ItemStack(Items.GLISTERING_MELON_SLICE, 3)
                             : new ItemStack(Items.REDSTONE, 4);
-                    message = "§d[Cleric] May this bless you!";
+                    message = "§d[Cleric] ¡Que esto te bendiga!";
                     break;
                     
                 case "butcher":
                     gift = reputation >= 1000 ? new ItemStack(Items.COOKED_BEEF, 6)
                             : reputation >= 800 ? new ItemStack(Items.COOKED_PORKCHOP, 4)
                             : new ItemStack(Items.COOKED_CHICKEN, 3);
-                    message = "§c[Butcher] The finest cuts for you!";
+                    message = "§c[Butcher] ¡Los mejores cortes para ti!";
                     break;
                     
                 case "cartographer":
                     gift = reputation >= 1000 ? new ItemStack(Items.MAP, 1)
                             : reputation >= 800 ? new ItemStack(Items.COMPASS, 1)
                             : new ItemStack(Items.PAPER, 8);
-                    message = "§b[Cartographer] May you never get lost!";
+                    message = "§b[Cartographer] ¡Que nunca te pierdas!";
                     break;
                     
                 case "fisherman":
                     gift = reputation >= 1000 ? new ItemStack(Items.COOKED_SALMON, 5)
                             : reputation >= 800 ? new ItemStack(Items.COOKED_COD, 4)
                             : new ItemStack(Items.COD, 6);
-                    message = "§3[Fisherman] Fresh catch of the day!";
+                    message = "§3[Fisherman] ¡Pesca fresca del día!";
                     break;
                     
                 case "fletcher":
                     gift = reputation >= 1000 ? new ItemStack(Items.ARROW, 16)
                             : reputation >= 800 ? new ItemStack(Items.ARROW, 10)
                             : new ItemStack(Items.STICK, 8);
-                    message = "§e[Fletcher] Straight and true!";
+                    message = "§e[Fletcher] ¡Rectas y precisas!";
                     break;
                     
                 case "leatherworker":
                     gift = reputation >= 1000 ? new ItemStack(Items.LEATHER, 8)
                             : reputation >= 800 ? new ItemStack(Items.LEATHER, 5)
                             : new ItemStack(Items.RABBIT_HIDE, 6);
-                    message = "§6[Leatherworker] Quality materials!";
+                    message = "§6[Leatherworker] ¡Materiales de calidad!";
                     break;
                     
                 case "mason":
                     gift = reputation >= 1000 ? new ItemStack(Items.QUARTZ, 8)
                             : reputation >= 800 ? new ItemStack(Items.BRICK, 16)
                             : new ItemStack(Items.COBBLESTONE, 32);
-                    message = "§8[Mason] Building materials for you!";
+                    message = "§8[Mason] ¡Materiales de construcción para ti!";
                     break;
                     
                 case "shepherd":
                     gift = reputation >= 1000 ? new ItemStack(Items.WHITE_WOOL, 8)
                             : reputation >= 800 ? new ItemStack(Items.WHITE_WOOL, 5)
                             : new ItemStack(Items.STRING, 8);
-                    message = "§f[Shepherd] Softest wool in the land!";
+                    message = "§f[Shepherd] ¡La lana más suave de la región!";
                     break;
                     
                 default:

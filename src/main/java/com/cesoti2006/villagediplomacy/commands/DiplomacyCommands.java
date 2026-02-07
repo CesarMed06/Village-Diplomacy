@@ -21,11 +21,6 @@ import java.util.Optional;
 public class DiplomacyCommands {
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
-        // Comando /pardon me - Perdón personal (sin permisos de admin)
-        dispatcher.register(Commands.literal("pardon")
-                .then(Commands.literal("me")
-                        .executes(DiplomacyCommands::pardonMe)));
-        
         // Comandos de diplomacy (sin permisos)
         dispatcher.register(Commands.literal("diplomacy")
                 .then(Commands.literal("name")
@@ -239,49 +234,6 @@ public class DiplomacyCommands {
     }
     
     /**
-     * Comando /pardon me - Perdón personal que cuesta reputación
-     */
-    private static int pardonMe(CommandContext<CommandSourceStack> context) {
-        if (!(context.getSource().getEntity() instanceof ServerPlayer player)) {
-            context.getSource().sendFailure(Component.literal("§cSolo los jugadores pueden usar este comando."));
-            return 0;
-        }
-        
-        ServerLevel level = player.serverLevel();
-        
-        // Verificar si está en una aldea
-        Optional<BlockPos> nearestVillage = VillageDetector.findNearestVillage(level, player.blockPosition(), 100);
-        if (nearestVillage.isEmpty()) {
-            player.sendSystemMessage(Component.literal("§c¡Debes estar dentro de una aldea para pedir perdón!"));
-            return 0;
-        }
-        
-        // Verificar reputación
-        VillageReputationData reputationData = VillageReputationData.get(level);
-        BlockPos villagePos = nearestVillage.get();
-        int currentReputation = reputationData.getReputation(player.getUUID(), villagePos);
-        
-        VillageRelationshipData relationData = VillageRelationshipData.get(level);
-        relationData.registerVillage(villagePos);
-        String villageId = relationData.getVillageId(villagePos);
-        String villageName = relationData.getVillageName(villageId);
-        
-        // Limpiar crímenes usando el handler (GRATIS - solo para testing)
-        int golemsCalmed = com.cesoti2006.villagediplomacy.VillageDiplomacyMod.eventHandler.clearCrimes(player, level);
-        
-        // Mensajes de éxito
-        player.sendSystemMessage(Component.literal("§8▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬"));
-        player.sendSystemMessage(Component.literal("§a[" + villageName + "] Crímenes perdonados (Modo de Prueba - GRATIS)"));
-        player.sendSystemMessage(Component.literal("§7Reputación actual: §e" + currentReputation));
-        if (golemsCalmed > 0) {
-            player.sendSystemMessage(Component.literal("§7" + golemsCalmed + " Golem(s) de Hierro calmado(s)."));
-        }
-        player.sendSystemMessage(Component.literal("§8▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬"));
-        
-        return 1;
-    }
-    
-    /**
      * Comando para mostrar información de reputación actual
      */
     private static int showInfo(CommandContext<CommandSourceStack> context) {
@@ -352,7 +304,7 @@ public class DiplomacyCommands {
     private static String getReputationStatus(int reputation) {
         if (reputation >= 1000) return "§6HÉROE LEGENDARIO";
         if (reputation >= 800) return "§6HÉROE";
-        if (reputation >= 500) return "§aCAPEÓN";
+        if (reputation >= 500) return "§aCAMPEÓN";
         if (reputation >= 300) return "§aAMIGO DE CONFIANZA";
         if (reputation >= 100) return "§aAMISTOSO";
         if (reputation >= 0) return "§7NEUTRAL";
@@ -369,7 +321,7 @@ public class DiplomacyCommands {
      * TEST COMMAND: Force spawn trade caravan (DISABLED)
      */
     private static int testCaravan(CommandContext<CommandSourceStack> context) {
-        context.getSource().sendFailure(Component.literal("§c[System] Caravan system disabled - focusing on custom items"));
+        context.getSource().sendFailure(Component.literal("§c[Sistema] Sistema de caravanas deshabilitado - enfocándonos en objetos personalizados"));
         return 0;
     }
     
@@ -377,7 +329,7 @@ public class DiplomacyCommands {
      * TEST COMMAND: Force spawn war raid (DISABLED)
      */
     private static int testRaid(CommandContext<CommandSourceStack> context) {
-        context.getSource().sendFailure(Component.literal("§c[System] War raid system disabled - focusing on custom items"));
+        context.getSource().sendFailure(Component.literal("§c[Sistema] Sistema de incursiones deshabilitado - enfocándonos en objetos personalizados"));
         return 0;
     }
 }

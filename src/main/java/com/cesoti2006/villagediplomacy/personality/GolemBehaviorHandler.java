@@ -39,7 +39,7 @@ public class GolemBehaviorHandler {
         Optional<BlockPos> village = VillageDetector.findNearestVillage(level, golem.blockPosition(), 100);
         String villageName = village.isPresent() ? 
             VillageDetector.getVillageId(village.get()) : 
-            "Unknown Village";
+            "Aldea Desconocida";
         
         // Obtener o crear personalidad
         GolemPersonality personality = data.getOrCreatePersonality(

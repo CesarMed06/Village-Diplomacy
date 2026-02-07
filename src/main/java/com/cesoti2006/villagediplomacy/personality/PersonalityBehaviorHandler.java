@@ -310,16 +310,16 @@ public class PersonalityBehaviorHandler {
         
         return switch (activity) {
             case "working" -> switch (profession) {
-                case "farmer" -> "§e[" + name + "] *starts tending the crops*";
-                case "armorer", "weaponsmith", "toolsmith" -> "§e[" + name + "] *begins smithing work*";
-                case "butcher" -> "§e[" + name + "] *prepares meat for the day*";
-                case "librarian" -> "§e[" + name + "] *opens a book to study*";
-                case "cleric" -> "§e[" + name + "] *prepares morning potions*";
-                case "fisherman" -> "§e[" + name + "] *heads to fish*";
-                default -> "§e[" + name + "] *starts working*";
+                case "farmer" -> "§e[" + name + "] *comienza a cultivar*";
+                case "armorer", "weaponsmith", "toolsmith" -> "§e[" + name + "] *comienza trabajo de herrería*";
+                case "butcher" -> "§e[" + name + "] *prepara carne para el día*";
+                case "librarian" -> "§e[" + name + "] *abre un libro para estudiar*";
+                case "cleric" -> "§e[" + name + "] *prepara pociones matutinas*";
+                case "fisherman" -> "§e[" + name + "] *va a pescar*";
+                default -> "§e[" + name + "] *comienza a trabajar*";
             };
-            case "eating" -> "§e[" + name + "] *takes a lunch break*";
-            case "lighting" -> "§e[" + name + "] *lights a torch as evening falls*";
+            case "eating" -> "§e[" + name + "] *toma descanso para almorzar*";
+            case "lighting" -> "§e[" + name + "] *enciende antorcha al caer la tarde*";
             default -> "";
         };
     }

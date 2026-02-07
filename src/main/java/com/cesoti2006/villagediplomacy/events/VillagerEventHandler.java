@@ -210,16 +210,16 @@ public class VillagerEventHandler {
         checkAndNotifyReputationChange(player, oldRep, newRep);
 
         String[] deathMessages = villager.isBaby() ? new String[] {
-                "§4[Village Diplomacy] You killed a CHILD! The village will NEVER forgive you!",
-                "§4[Village Diplomacy] MONSTER! You murdered an innocent child!",
-                "§4[Village Diplomacy] A baby...you killed a baby. You are pure EVIL!",
-                "§4[Village Diplomacy] The village mourns...you've killed one of their children."
+                "§4[Diplomacia de Aldeas] ¡Mataste a un NIÑO! ¡La aldea NUNCA te perdonará!",
+                "§4[Diplomacia de Aldeas] ¡MONSTRUO! ¡Asesinaste a un niño inocente!",
+                "§4[Diplomacia de Aldeas] Un bebé...mataste a un bebé. ¡Eres PURA MALDAD!",
+                "§4[Diplomacia de Aldeas] La aldea llora...has matado a uno de sus niños."
         }
                 : new String[] {
-                        "§c[Village Diplomacy] You killed a villager!",
-                        "§c[Village Diplomacy] MURDER! The village witnessed your crime!",
-                        "§c[Village Diplomacy] A villager is dead by your hand!",
-                        "§c[Village Diplomacy] You've taken an innocent life!"
+                        "§c[Diplomacia de Aldeas] ¡Mataste a un aldeano!",
+                        "§c[Diplomacia de Aldeas] ¡ASESINATO! ¡La aldea fue testigo de tu crimen!",
+                        "§c[Diplomacia de Aldeas] ¡Un aldeano murió por tu mano!",
+                        "§c[Diplomacia de Aldeas] ¡Has quitado una vida inocente!"
                 };
 
         player.sendSystemMessage(Component.literal(
@@ -608,7 +608,7 @@ public class VillagerEventHandler {
 
         player.sendSystemMessage(Component.literal(message));
         player.sendSystemMessage(Component.literal(
-                "§c[Village Diplomacy] Attacked a villager! Reputation -10 (Total: " +
+                "§c[Diplomacia de Aldeas] ¡Atacaste a un aldeano! Reputación -10 (Total: " +
                         newRep + " - " + status + ")"));
 
         checkReputationLevelChange(player, level, newRep);
@@ -811,7 +811,7 @@ public class VillagerEventHandler {
                         player.sendSystemMessage(Component.literal(
                                 messages[level.getRandom().nextInt(messages.length)]));
                         player.sendSystemMessage(Component.literal(
-                                "§c[Village Diplomacy] Attacked " + animalType + "! Reputation -5 (Total: " +
+                                "§c[Diplomacia de Aldeas] ¡Atacaste " + animalType + "! Reputación -5 (Total: " +
                                         newRep + " - " + getReputationStatus(newRep) + ")"));
 
                         tradeCooldowns.put(playerId, currentTime);
@@ -1016,7 +1016,7 @@ public class VillagerEventHandler {
                     player.sendSystemMessage(Component.literal(
                             messages[level.getRandom().nextInt(messages.length)]));
                     player.sendSystemMessage(Component.literal(
-                            "§c[Village Diplomacy] Killed " + animalType + "! Reputation -25 (Total: " +
+                            "§c[Diplomacia de Aldeas] ¡Mataste " + animalType + "! Reputación -25 (Total: " +
                                     newRep + " - " + getReputationStatus(newRep) + ")"));
 
                     VillageRelationshipData relationData = VillageRelationshipData.get(level);
@@ -1943,28 +1943,28 @@ public class VillagerEventHandler {
                     // CUALQUIER otro bloque: mensaje genérico según reputación
                     if (isWelcome) {
                         messages = new String[]{
-                            "§a[Villager] Building something? Nice!",
-                            "§a[Villager] Feel free to expand the village!",
-                            "§7[Villager] *nods approvingly*",
-                            "§a[Villager] Making improvements!",
-                            "§a[Villager] You're really part of the village now!"
+                            "§a[Aldeano] ¿Construyendo algo? ¡Bien!",
+                            "§a[Aldeano] ¡Siéntete libre de expandir la aldea!",
+                            "§7[Aldeano] *asiente con aprobación*",
+                            "§a[Aldeano] ¡Haciendo mejoras!",
+                            "§a[Aldeano] ¡Ya eres parte de la aldea!"
                         };
                     } else if (isNeutral) {
                         messages = new String[]{
-                            "§e[Villager] Building here?",
-                            "§e[Villager] What are you making?",
-                            "§7[Villager] *watches curiously*",
-                            "§e[Villager] Adding to the village...",
-                            "§e[Villager] Hmm, interesting..."
+                            "§e[Aldeano] ¿Construyendo aquí?",
+                            "§e[Aldeano] ¿Qué estás haciendo?",
+                            "§7[Aldeano] *observa con curiosidad*",
+                            "§e[Aldeano] Añadiendo a la aldea...",
+                            "§e[Aldeano] Hmm, interesante..."
                         };
                     } else {
                         messages = new String[]{
-                            "§c[Villager] Hey! What are you doing?!",
-                            "§c[Villager] You're not welcome to build here!",
-                            "§c[Villager] Stop placing blocks in OUR village!",
-                            "§7[Villager] *glares angrily*",
-                            "§c[Villager] Get out with your constructions!",
-                            "§c[Villager] This isn't YOUR land!"
+                            "§c[Aldeano] ¡Oye! ¿¡Qué haces!?",
+                            "§c[Aldeano] ¡No eres bienvenido a construir aquí!",
+                            "§c[Aldeano] ¡Deja de poner bloques en NUESTRA aldea!",
+                            "§7[Aldeano] *mira con furia*",
+                            "§c[Aldeano] ¡Vete con tus construcciones!",
+                            "§c[Aldeano] ¡Esta NO es TU tierra!"
                         };
                     }
                 }
@@ -1983,7 +1983,7 @@ public class VillagerEventHandler {
                     checkAndNotifyReputationChange(player, oldRep, newRep);
                     
                     player.sendSystemMessage(Component.literal(
-                        "§c[Village Diplomacy] Building in village with bad reputation! -5 (Total: " +
+                        "§c[Diplomacia de Aldeas] ¡Construyendo en la aldea con mala reputación! -5 (Total: " +
                                 newRep + " - " + getReputationStatus(newRep) + ")"));
                 }
             }
@@ -2156,35 +2156,35 @@ public class VillagerEventHandler {
             if (reputation >= 100) {
                 // FRIENDLY - menos agresivos
                 messages = new String[]{
-                    "§e[Villager] Hey, careful with that!",
-                    "§e[Villager] That's part of our village...",
-                    "§7[Villager] *looks concerned*",
-                    "§e[Villager] Are you sure you need to break that?"
+                    "§e[Aldeano] ¡Oye, cuidado con eso!",
+                    "§e[Aldeano] Eso es parte de nuestra aldea...",
+                    "§7[Aldeano] *parece preocupado*",
+                    "§e[Aldeano] ¿Seguro que necesitas romper eso?"
                 };
             } else if (reputation >= 0) {
                 // NEUTRAL
                 messages = new String[]{
-                    "§e[Villager] What are you doing?",
-                    "§e[Villager] That's village property!",
-                    "§7[Villager] *frowns*",
-                    "§e[Villager] Hey! We built that!"
+                    "§e[Aldeano] ¿Qué estás haciendo?",
+                    "§e[Aldeano] ¡Eso es propiedad de la aldea!",
+                    "§7[Aldeano] *frunce el ceño*",
+                    "§e[Aldeano] ¡Oye! ¡Nosotros construimos eso!"
                 };
             } else {
                 // UNFRIENDLY/ENEMY - muy agresivos
                 messages = new String[]{
-                    "§c[Villager] STOP! That's OURS!",
-                    "§c[Villager] You're destroying our home!",
-                    "§c[Villager] VANDAL! THIEF!",
-                    "§7[Villager] *yells angrily*",
-                    "§c[Villager] How DARE you!",
-                    "§c[Villager] Guards! Stop this criminal!"
+                    "§c[Aldeano] ¡DETENTE! ¡Eso es NUESTRO!",
+                    "§c[Aldeano] ¡Estás destruyendo nuestro hogar!",
+                    "§c[Aldeano] ¡VÁNDALO! ¡LADRÓN!",
+                    "§7[Aldeano] *grita furioso*",
+                    "§c[Aldeano] ¡Cómo TE ATREVES!",
+                    "§c[Aldeano] ¡Guardias! ¡Detengan a este criminal!"
                 };
             }
             
             player.sendSystemMessage(Component.literal(
                 messages[level.getRandom().nextInt(messages.length)]));
             player.sendSystemMessage(Component.literal(
-                "§c[Village Diplomacy] Broke village structure! Reputation -10 (Total: " +
+                "§c[Diplomacia de Aldeas] ¡Rompiste estructura de la aldea! Reputación -10 (Total: " +
                         newRep + " - " + getReputationStatus(newRep) + ")"));
         }
     }
@@ -3972,7 +3972,7 @@ public class VillagerEventHandler {
             int newRep = data.getReputation(curerUUID, nearestVillage.get());
             
             curer.sendSystemMessage(Component.literal(
-                "§a[Village Diplomacy] Cured a zombie villager! +100 Reputation (Total: " +
+                "§a[Diplomacia de Aldeas] ¡Curaste a un aldeano zombie! +100 Reputación (Total: " +
                 newRep + " - " + getReputationStatus(newRep) + ")"));
                 
             checkReputationLevelChange(curer, level, newRep);

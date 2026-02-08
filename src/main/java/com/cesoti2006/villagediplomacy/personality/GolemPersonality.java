@@ -61,18 +61,14 @@ public class GolemPersonality {
     }
     
     private static String generateGolemName(Random random) {
-        String[] prefixes = {
-            "Hierro", "Acero", "Bronce", "Piedra", "Guardián",
-            "Centinela", "Celador", "Protector", "Defensor", "Custodio"
+        String[] names = {
+            "Ironheart", "Steelguard", "Stonefist", "Ironwall", "Defender",
+            "Guardian", "Sentinel", "Protector", "Warden", "Keeper",
+            "Strongarm", "Ironforge", "Steelheart", "Stonewall", "Ironclad",
+            "Bulwark", "Anvil", "Hammer", "Shield", "Fortress"
         };
         
-        String[] suffixes = {
-            "puño", "corazón", "escudo", "muro", "guardia",
-            "vigía", "firme", "forja", "yunque", "martillo"
-        };
-        
-        return prefixes[random.nextInt(prefixes.length)] + 
-               suffixes[random.nextInt(suffixes.length)];
+        return names[random.nextInt(names.length)];
     }
     
     private static String generateCreationStory(String villageName, GolemTrait temperament, 

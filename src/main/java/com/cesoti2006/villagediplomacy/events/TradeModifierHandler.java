@@ -57,22 +57,22 @@ public class TradeModifierHandler {
             event.setCanceled(true);
 
             String[] rejectMessages = reputation < -800 ? new String[] {
-                "§4[Aldeano] ¡UN CRIMINAL! ¡Guardias, ayuda!",
-                "§4[Aldeano] ¡Aléjate de mí, criminal!",
-                "§4[Aldeano] ¡No ayudaré a alguien como tú!"
+                "§4[Villager] A CRIMINAL! Guards, help!",
+                "§4[Villager] Stay away from me, criminal!",
+                "§4[Villager] I won't help someone like you!"
             } : new String[] {
-                "§c[Aldeano] ¡No quiero comerciar contigo!",
-                "§c[Aldeano] ¡Déjame en paz!",
-                "§c[Aldeano] Tu reputación te precede..."
+                "§c[Villager] I don't want to trade with you!",
+                "§c[Villager] Leave me alone!",
+                "§c[Villager] Your reputation precedes you..."
             };
 
             player.sendSystemMessage(Component.literal(
                     rejectMessages[(int)(Math.random() * rejectMessages.length)]));
-            
+
             String statusMsg = reputation < -800 ?
-                    "§4[Diplomacia de Aldeas] ¡Los aldeanos se niegan a comerciar con criminales BUSCADOS!" :
-                    "§c[Diplomacia de Aldeas] ¡Este aldeano se niega a comerciar debido a tu reputación de ENEMIGO!";
-            
+                    "§4[Village Diplomacy] Villagers refuse to trade with WANTED criminals!" :
+                    "§c[Village Diplomacy] This villager refuses to trade due to your ENEMY reputation!";
+
             player.sendSystemMessage(Component.literal(statusMsg));
         } else {
             int priceModifier = calculatePriceModifier(reputation);
@@ -90,13 +90,13 @@ public class TradeModifierHandler {
                     // SOLO mostrar mensaje si hay descuento significativo (no neutral)
                     if (priceModifier < 0) {
                         player.sendSystemMessage(Component.literal(
-                                "§a[Diplomacia de Aldeas] ¡Tu reputación otorga un " + 
-                                Math.abs(priceModifier * 10) + "% de descuento en comercio!"));
+                                "§a[Village Diplomacy] Your reputation grants a " + 
+                                Math.abs(priceModifier * 10) + "% discount on trades!"));
                         tradeMessageCooldown.put(playerId, currentTime);
                     } else if (priceModifier > 0) {
                         player.sendSystemMessage(Component.literal(
-                                "§6[Diplomacia de Aldeas] Tu reputación añade un " + 
-                                (priceModifier * 10) + "% de sobreprecio en comercio."));
+                                "§6[Village Diplomacy] Your reputation adds a " + 
+                                (priceModifier * 10) + "% surcharge on trades."));
                         tradeMessageCooldown.put(playerId, currentTime);
                     }
                 }
@@ -137,18 +137,18 @@ public class TradeModifierHandler {
             personalityData.getPersonality(villager.getUUID());
         
         if (personality == null) {
-            player.sendSystemMessage(Component.literal("§c[Sistema] El aldeano aún no tiene datos de personalidad."));
+            player.sendSystemMessage(Component.literal("§c[System] This villager does not have personality data yet."));
             return;
         }
         
         // Get correct professional level
         int profLevel = villager.getVillagerData().getLevel();
         String profLevelName = switch(profLevel) {
-            case 1 -> "§7Novato";
-            case 2 -> "§fAprendiz";
-            case 3 -> "§eOficial";
-            case 4 -> "§6Experto";
-            case 5 -> "§6✦ Maestro";
+            case 1 -> "§7Novice";
+            case 2 -> "§fApprentice";
+            case 3 -> "§eJourneyman";
+            case 4 -> "§6Expert";
+            case 5 -> "§6✦ Master";
             default -> "§7Unknown";
         };
         
@@ -165,24 +165,24 @@ public class TradeModifierHandler {
                 "§7" + profession + " §8| " + profLevelName
             ));
         } else {
-            player.sendSystemMessage(Component.literal("§7Desempleado"));
+            player.sendSystemMessage(Component.literal("§7Unemployed"));
         }
         
         player.sendSystemMessage(Component.literal("§8▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬"));
         
         // PERSONALITY (Only show relevant traits)
-        player.sendSystemMessage(Component.literal("§e● §7Valentía: " + getTraitColor(personality.getCourage()) + getTraitName(personality.getCourage())));
-        player.sendSystemMessage(Component.literal("§e● §7Generosidad: " + getTraitColor(personality.getGenerosity()) + getTraitName(personality.getGenerosity())));
+        player.sendSystemMessage(Component.literal("§e● §7Courage: " + getTraitColor(personality.getCourage()) + getTraitName(personality.getCourage())));
+        player.sendSystemMessage(Component.literal("§e● §7Generosity: " + getTraitColor(personality.getGenerosity()) + getTraitName(personality.getGenerosity())));
         
         // Only show work ethic if has job
         if (hasJob) {
-            player.sendSystemMessage(Component.literal("§e● §7Ética de Trabajo: " + getTraitColor(personality.getWorkEthic()) + getTraitName(personality.getWorkEthic())));
+            player.sendSystemMessage(Component.literal("§e● §7Work Ethic: " + getTraitColor(personality.getWorkEthic()) + getTraitName(personality.getWorkEthic())));
         }
         
         player.sendSystemMessage(Component.literal("§e● §7Social: " + getTraitColor(personality.getSocialBehavior()) + getTraitName(personality.getSocialBehavior())));
-        player.sendSystemMessage(Component.literal("§e● §7Temperamento: " + getTraitColor(personality.getTemperament()) + getTraitName(personality.getTemperament())));
-        player.sendSystemMessage(Component.literal("§e● §7Honestidad: " + getTraitColor(personality.getHonesty()) + getTraitName(personality.getHonesty())));
-        player.sendSystemMessage(Component.literal("§e● §7Perspectiva: " + getTraitColor(personality.getOutlook()) + getTraitName(personality.getOutlook())));
+        player.sendSystemMessage(Component.literal("§e● §7Temperament: " + getTraitColor(personality.getTemperament()) + getTraitName(personality.getTemperament())));
+        player.sendSystemMessage(Component.literal("§e● §7Honesty: " + getTraitColor(personality.getHonesty()) + getTraitName(personality.getHonesty())));
+        player.sendSystemMessage(Component.literal("§e● §7Outlook: " + getTraitColor(personality.getOutlook()) + getTraitName(personality.getOutlook())));
         
         player.sendSystemMessage(Component.literal("§8▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬"));
     }

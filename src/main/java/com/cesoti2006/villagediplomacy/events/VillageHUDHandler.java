@@ -20,8 +20,9 @@ public class VillageHUDHandler {
     private final Map<UUID, String> currentVillage = new HashMap<>();
     private final Map<UUID, Long> lastVillageChangeTime = new HashMap<>();
     private final Map<UUID, Long> playerSpawnTime = new HashMap<>();
-
+    private final Map<UUID, Long> lastHudMessageTime = new HashMap<>();
     private static final long VILLAGE_CHECK_INTERVAL = 40;
+    private static final long HUD_DISPLAY_TIME = 4000;
 
     @SubscribeEvent
     public void onPlayerTick(TickEvent.PlayerTickEvent event) {
@@ -32,13 +33,11 @@ public class VillageHUDHandler {
 
         ServerLevel level = (ServerLevel) player.level();
         UUID playerId = player.getUUID();
-        
-        // Registrar spawn time si es la primera vez que vemos este jugador
+
         if (!playerSpawnTime.containsKey(playerId)) {
             playerSpawnTime.put(playerId, System.currentTimeMillis());
         }
-        
-        // No mostrar mensajes durante los primeros 5 segundos después de spawn
+
         long timeSinceSpawn = System.currentTimeMillis() - playerSpawnTime.get(playerId);
         if (timeSinceSpawn < 5000) {
             return;
@@ -46,56 +45,54 @@ public class VillageHUDHandler {
 
         Optional<BlockPos> nearestVillage = VillageDetector.findNearestVillage(level, player.blockPosition(), 200);
 
+        long now = System.currentTimeMillis();
         if (nearestVillage.isPresent()) {
             VillageRelationshipData relationData = VillageRelationshipData.get(level);
             relationData.registerVillage(nearestVillage.get());
-
             String villageId = relationData.getVillageId(nearestVillage.get());
             String previousVillage = currentVillage.get(playerId);
 
-            if (!villageId.equals(previousVillage)) {
-                long currentTime = System.currentTimeMillis();
-                Long lastChange = lastVillageChangeTime.get(playerId);
+            if (previousVillage != null && !villageId.equals(previousVillage)) {
+                // Show leaving message for previous village
+                String prevVillageName = relationData.getVillageName(previousVillage);
+                player.sendSystemMessage(Component.literal("§7Leaving " + prevVillageName));
+            }
 
-                if (lastChange == null || currentTime - lastChange > 3000) {
-                    String villageName = relationData.getVillageName(villageId);
+            if (!villageId.equals(previousVillage) || now - lastHudMessageTime.getOrDefault(playerId, 0L) > HUD_DISPLAY_TIME) {
+                String villageName = relationData.getVillageName(villageId);
+                VillageReputationData repData = VillageReputationData.get(level);
+                int reputation = repData.getReputation(playerId);
+                String title = "§6§lEntering " + villageName;
+                String subtitle = getReputationSubtitle(reputation);
 
-                    VillageReputationData repData = VillageReputationData.get(level);
-                    int reputation = repData.getReputation(playerId);
+                player.sendSystemMessage(Component.literal("§8━━━━━━━━━━━━━━━━━━━━━━━━━━━━"));
+                player.sendSystemMessage(Component.literal(""));
+                player.sendSystemMessage(Component.literal("         " + title));
+                player.sendSystemMessage(Component.literal("         Reputation: " + reputation + " (" + subtitle + ")"));
+                player.sendSystemMessage(Component.literal(""));
+                player.sendSystemMessage(Component.literal("§8━━━━━━━━━━━━━━━━━━━━━━━━━━━━"));
 
-                    String title = "§6§l" + villageName;
-                    String subtitle = getReputationSubtitle(reputation);
-
-                    player.sendSystemMessage(Component.literal("§8━━━━━━━━━━━━━━━━━━━━━━━━━━━━"));
-                    player.sendSystemMessage(Component.literal(""));
-                    player.sendSystemMessage(Component.literal("         " + title));
-                    player.sendSystemMessage(Component.literal("         " + subtitle));
-                    player.sendSystemMessage(Component.literal(""));
-                    player.sendSystemMessage(Component.literal("§8━━━━━━━━━━━━━━━━━━━━━━━━━━━━"));
-
-                    currentVillage.put(playerId, villageId);
-                    lastVillageChangeTime.put(playerId, currentTime);
-                }
+                currentVillage.put(playerId, villageId);
+                lastVillageChangeTime.put(playerId, now);
+                lastHudMessageTime.put(playerId, now);
             }
         } else {
-            if (currentVillage.containsKey(playerId)) {
-                long currentTime = System.currentTimeMillis();
-                Long lastChange = lastVillageChangeTime.get(playerId);
-
-                if (lastChange == null || currentTime - lastChange > 3000) {
-                    player.sendSystemMessage(Component.literal("§7Saliste de la aldea"));
-                    currentVillage.remove(playerId);
-                    lastVillageChangeTime.put(playerId, currentTime);
-                }
+            if (currentVillage.containsKey(playerId) && now - lastHudMessageTime.getOrDefault(playerId, 0L) > HUD_DISPLAY_TIME) {
+                String prevVillageName = currentVillage.get(playerId);
+                player.sendSystemMessage(Component.literal("§7Leaving " + prevVillageName));
+                currentVillage.remove(playerId);
+                lastVillageChangeTime.put(playerId, now);
+                lastHudMessageTime.put(playerId, now);
             }
         }
     }
 
     private String getReputationSubtitle(int reputation) {
-        if (reputation >= 500) return "§6✦ Héroe de la Aldea ✦";
-        if (reputation >= 200) return "§aAldea Amistosa";
-        if (reputation >= -200) return "§7Territorio Neutral";
-        if (reputation >= -500) return "§cAldea Poco Amistosa";
-        return "§4⚠ Territorio Hostil ⚠";
+        if (reputation >= 800) return "§6✦ Legendary Hero ✦";
+        if (reputation >= 500) return "§aVillage Hero";
+        if (reputation >= 200) return "§aFriendly Village";
+        if (reputation >= -200) return "§7Neutral Territory";
+        if (reputation >= -500) return "§cUnfriendly Village";
+        return "§4⚠ Hostile Territory ⚠";
     }
 }

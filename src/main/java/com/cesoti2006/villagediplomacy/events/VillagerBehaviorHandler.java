@@ -35,26 +35,26 @@ public class VillagerBehaviorHandler {
         if (processedVillagers.contains(villagerId)) return;
 
         villager.goalSelector.addGoal(1, new AvoidEntityGoal<>(
-                villager,
-                Player.class,
-                10.0F,
-                0.6D,
-                0.6D,
-                (LivingEntity livingEntity) -> {
-                    if (!(livingEntity instanceof ServerPlayer)) return false;
-                    ServerPlayer player = (ServerPlayer) livingEntity;
+            villager,
+            Player.class,
+            10.0F,
+            0.6D,
+            0.6D,
+            (LivingEntity livingEntity) -> {
+                if (!(livingEntity instanceof ServerPlayer)) return false;
+                ServerPlayer player = (ServerPlayer) livingEntity;
 
-                    if (!(villager.level() instanceof ServerLevel)) return false;
-                    ServerLevel level = (ServerLevel) villager.level();
+                if (!(villager.level() instanceof ServerLevel)) return false;
+                ServerLevel level = (ServerLevel) villager.level();
 
-                    Optional<BlockPos> nearestVillage = VillageDetector.findNearestVillage(level, villager.blockPosition(), 200);
-                    if (nearestVillage.isEmpty()) return false;
+                Optional<BlockPos> nearestVillage = VillageDetector.findNearestVillage(level, villager.blockPosition(), 200);
+                if (nearestVillage.isEmpty()) return false;
 
-                    VillageReputationData data = VillageReputationData.get(level);
-                    int reputation = data.getReputation(player.getUUID());
+                VillageReputationData data = VillageReputationData.get(level);
+                int reputation = data.getReputation(player.getUUID());
 
-                    return reputation <= -500;
-                }
+                return reputation <= -500;
+            }
         ));
 
         processedVillagers.add(villagerId);

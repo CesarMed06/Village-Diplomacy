@@ -12,18 +12,18 @@ logoFile=""
 credits="Created by cesoti2006"
 authors="cesoti2006"
 description='''
-Village Diplomacy - Un sistema completo de reputación y relaciones con los aldeanos de Minecraft.
+Village Diplomacy - A complete reputation and relationship system for Minecraft villagers.
 
-Características:
-• Sistema de reputación dinámica con 7 rangos (HÉROE a VILLANO)
-• Personalidades únicas de aldeanos con comportamientos personalizados
-• Sistema de hostilidad y perdón de Golems de Hierro
-• Nombramiento de aldeas y seguimiento de relaciones
-• Más de 250 mensajes contextuales basados en tus acciones
-• Interacciones especiales al colocar bloques
-• Notificaciones épicas de cambio de rango con efectos
+Features:
+• Dynamic reputation system with 7 ranks (HERO to VILLAIN)
+• Unique villager personalities with custom behaviors
+• Hostility and forgiveness system for Iron Golems
+• Village naming and relationship tracking
+• Over 250 contextual messages based on your actions
+• Special interactions when placing blocks
+• Epic notifications for rank changes with effects
 
-¡Construye tu reputación comerciando, ayudando a los aldeanos y respetando su propiedad - o conviértete en un temido villano!
+Build your reputation by trading, helping villagers, and respecting their property – or become a feared villain!
 '''
 
 [[dependencies.villagediplomacy]]

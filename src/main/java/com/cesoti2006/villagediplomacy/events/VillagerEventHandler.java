@@ -90,72 +90,72 @@ public class VillagerEventHandler {
     // Cooldown para resetear golems (evitar spam)
     private final Map<UUID, Long> golemResetCooldown = new HashMap<>();
 
-    private final String[] adultChestMessages = {
-            "§c[Aldeano] ¡OYE! ¡Eso es MÍO!",
-            "§c[Aldeano] *jadea* ¡Un LADRÓN!",
-            "§c[Aldeano] ¡DETENTE! ¡Devuelve eso!",
-            "§c[Aldeano] ¡Nos... nos estás robando!",
-            "§c[Aldeano] ¡No puedo creer que hagas esto!",
-            "§c[Aldeano] ¡GUARDIAS! ¡Tenemos un ladrón!",
-            "§c[Aldeano] ¡Cómo TE ATREVES a abrir eso!",
-            "§c[Aldeano] ¡Ese cofre NO es tuyo!",
-            "§c[Aldeano] ¡Aléjate de mis pertenencias!",
-            "§c[Aldeano] ¿¡Qué crees que estás haciendo!?",
-            "§c[Aldeano] ¡Trabajé AÑOS por lo que hay ahí!",
-            "§c[Aldeano] ¡Te arrepentirás de esto, ladrón!",
-            "§c[Aldeano] ¡Eso es propiedad privada!",
-            "§c[Aldeano] ¡Mis ahorros de toda la vida están ahí!",
-            "§c[Aldeano] ¡AYUDA! ¡ROBO!",
-            "§c[Aldeano] ¡Esto es una violación de confianza!",
-            "§c[Aldeano] ¡Aléjate de mi cofre!",
-            "§c[Aldeano] ¡No eres mejor que un saqueador!"
-    };
+        private final String[] adultChestMessages = {
+            "§c[Villager] HEY! That's MINE!",
+            "§c[Villager] *gasps* A THIEF!",
+            "§c[Villager] STOP! Give that back!",
+            "§c[Villager] You're... you're robbing us!",
+            "§c[Villager] I can't believe you're doing this!",
+            "§c[Villager] GUARDS! We have a thief!",
+            "§c[Villager] How DARE you open that!",
+            "§c[Villager] That chest is NOT yours!",
+            "§c[Villager] Stay away from my belongings!",
+            "§c[Villager] What do you think you're doing!?",
+            "§c[Villager] I worked YEARS for what's in there!",
+            "§c[Villager] You'll regret this, thief!",
+            "§c[Villager] That's private property!",
+            "§c[Villager] My life savings are in there!",
+            "§c[Villager] HELP! ROBBERY!",
+            "§c[Villager] This is a breach of trust!",
+            "§c[Villager] Get away from my chest!",
+            "§c[Villager] You're no better than a pillager!"
+        };
 
-    private final String[] babyChestMessages = {
-            "§c[Aldeano Bebé] *llora* ¡Mami! ¡Están robando nuestras cosas!",
-            "§c[Aldeano Bebé] ¡Noooo! ¡Ese es el cofre de nuestra familia!",
-            "§c[Aldeano Bebé] ¿Por qué eres malo? *solloza*",
-            "§c[Aldeano Bebé] ¡Se lo voy a decir a mi papá!",
-            "§c[Aldeano Bebé] *huye llorando* ¡LADRÓN!",
-            "§c[Aldeano Bebé] ¡Eso no es tuyo! *llora*",
-            "§c[Aldeano Bebé] ¡Mala persona! ¡Malo!",
-            "§c[Aldeano Bebé] ¡Mis juguetes están ahí!",
-            "§c[Aldeano Bebé] *grita* ¡PAAAAARA!",
-            "§c[Aldeano Bebé] ¡Eres un gran abusón!",
-            "§c[Aldeano Bebé] ¡Tengo miedo! *llora*",
-            "§c[Aldeano Bebé] ¡Papi dijo que los extraños son peligrosos!"
-    };
+        private final String[] babyChestMessages = {
+            "§c[Baby Villager] *cries* Mommy! They're stealing our stuff!",
+            "§c[Baby Villager] Noooo! That's our family chest!",
+            "§c[Baby Villager] Why are you mean? *sobs*",
+            "§c[Baby Villager] I'm telling my dad!",
+            "§c[Baby Villager] *runs away crying* THIEF!",
+            "§c[Baby Villager] That's not yours! *cries*",
+            "§c[Baby Villager] Bad person! Bad!",
+            "§c[Baby Villager] My toys are in there!",
+            "§c[Baby Villager] *shouts* STOOOOP!",
+            "§c[Baby Villager] You're a big bully!",
+            "§c[Baby Villager] I'm scared! *cries*",
+            "§c[Baby Villager] Daddy said strangers are dangerous!"
+        };
 
-    private final String[] adultLootMessages = {
-            "§c[Aldeano] ¡Esos son NUESTROS suministros!",
-            "§c[Aldeano] ¡Estás tomando todo lo que tenemos!",
-            "§c[Aldeano] ¡LADRÓN! ¡Alguien ayude!",
-            "§c[Aldeano] ¡Trabajé DURO por esos objetos!",
-            "§c[Aldeano] ¡Nos estás robando sin piedad!",
-            "§c[Aldeano] ¡Que seas maldito por siempre!",
-            "§c[Aldeano] ¡El Gólem de Hierro se enterará de esto!",
-            "§c[Aldeano] ¡Nos estás dejando sin NADA!",
-            "§c[Aldeano] ¿¡Cómo sobreviviremos ahora!?",
-            "§c[Aldeano] ¡Eso era para el invierno!",
-            "§c[Aldeano] ¡Eres peor que los saqueadores!",
-            "§c[Aldeano] ¡Espero que el karma te alcance!",
-            "§c[Aldeano] ¡Nos has condenado a todos!",
-            "§c[Aldeano] ¡Nuestros niños morirán de hambre por tu culpa!",
-            "§c[Aldeano] ¡Esto es imperdonable!"
-    };
+        private final String[] adultLootMessages = {
+            "§c[Villager] Those are OUR supplies!",
+            "§c[Villager] You're taking everything we have!",
+            "§c[Villager] THIEF! Someone help!",
+            "§c[Villager] I worked HARD for those items!",
+            "§c[Villager] You're robbing us mercilessly!",
+            "§c[Villager] May you be cursed forever!",
+            "§c[Villager] The Iron Golem will hear about this!",
+            "§c[Villager] You're leaving us with NOTHING!",
+            "§c[Villager] How will we survive now!?",
+            "§c[Villager] That was for the winter!",
+            "§c[Villager] You're worse than the pillagers!",
+            "§c[Villager] I hope karma gets you!",
+            "§c[Villager] You've doomed us all!",
+            "§c[Villager] Our children will starve because of you!",
+            "§c[Villager] This is unforgivable!"
+        };
 
-    private final String[] babyLootMessages = {
-            "§c[Aldeano Bebé] *solloza* ¡Ese era mi juguete favorito!",
-            "§c[Aldeano Bebé] ¡No no no! ¡Nuestra comida no!",
-            "§c[Aldeano Bebé] ¡Eres un gran malo!",
-            "§c[Aldeano Bebé] ¡Te odio! *llora fuerte*",
-            "§c[Aldeano Bebé] ¡Devuélveloooo! *grita*",
-            "§c[Aldeano Bebé] ¡Eso no es justo!",
-            "§c[Aldeano Bebé] ¡Eres malvado! *solloza*",
-            "§c[Aldeano Bebé] ¡Nunca olvidaré esto!",
-            "§c[Aldeano Bebé] ¿¡Por qué harías eso!? *llora*",
-            "§c[Aldeano Bebé] ¡Mami se va a enojar mucho!"
-    };
+        private final String[] babyLootMessages = {
+            "§c[Baby Villager] *sobs* That was my favorite toy!",
+            "§c[Baby Villager] No no no! Not our food!",
+            "§c[Baby Villager] You're so mean!",
+            "§c[Baby Villager] I hate you! *cries loudly*",
+            "§c[Baby Villager] Give it baaaack! *shouts*",
+            "§c[Baby Villager] That's not fair!",
+            "§c[Baby Villager] You're evil! *sobs*",
+            "§c[Baby Villager] I'll never forget this!",
+            "§c[Baby Villager] Why would you do that!? *cries*",
+            "§c[Baby Villager] Mommy is going to be so mad!"
+        };
 
     @SubscribeEvent
     public void onVillagerDeath(LivingDeathEvent event) {
@@ -608,8 +608,8 @@ public class VillagerEventHandler {
 
         player.sendSystemMessage(Component.literal(message));
         player.sendSystemMessage(Component.literal(
-                "§c[Diplomacia de Aldeas] ¡Atacaste a un aldeano! Reputación -10 (Total: " +
-                        newRep + " - " + status + ")"));
+            "§c[Village Diplomacy] You attacked a villager! Reputation -10 (Total: " +
+                newRep + " - " + status + ")"));
 
         checkReputationLevelChange(player, level, newRep);
 
@@ -667,152 +667,152 @@ public class VillagerEventHandler {
 
                         switch (animalType) {
                             case "cow":
-                                babyMessages = new String[] {
-                                        "§c[Aldeano Bebé] ¡No lastimes a nuestras vacas! ¡Necesitamos leche!",
-                                        "§c[Aldeano Bebé] ¡Esa vaca nos da leche! *llora*",
-                                        "§c[Aldeano Bebé] ¡Muu es mi amiga!",
-                                        "§c[Aldeano Bebé] ¡Deja la vaca en paz!",
-                                        "§c[Aldeano Bebé] ¡Amo esa vaca!"
-                                };
-                                adultMessages = new String[] {
-                                        "§c[Aldeano] ¡Detente! ¡Esa vaca proporciona leche a la aldea!",
-                                        "§c[Aldeano] ¡Nuestro suministro de lácteos! ¡Déjala en paz!",
-                                        "§c[Aldeano] ¡Esa vaca alimenta a nuestros niños!",
-                                        "§c[Aldeano] ¡Dependemos de esas vacas para leche y cuero!",
-                                        "§c[Aldeano] ¡Aléjate de nuestro ganado!",
-                                        "§c[Aldeano] ¡Esas vacas son esenciales para nuestra supervivencia!",
-                                        "§c[Aldeano] ¡Son semanas de leche lo que estás amenazando!"
-                                };
-                                break;
+                            babyMessages = new String[] {
+                                "§c[Baby Villager] Don't hurt our cows! We need milk!",
+                                "§c[Baby Villager] That cow gives us milk! *cries*",
+                                "§c[Baby Villager] Moo is my friend!",
+                                "§c[Baby Villager] Leave the cow alone!",
+                                "§c[Baby Villager] I love that cow!"
+                            };
+                            adultMessages = new String[] {
+                                "§c[Villager] Stop! That cow provides milk for the village!",
+                                "§c[Villager] Our dairy supply! Leave her alone!",
+                                "§c[Villager] That cow feeds our children!",
+                                "§c[Villager] We depend on those cows for milk and leather!",
+                                "§c[Villager] Stay away from our livestock!",
+                                "§c[Villager] Those cows are essential for our survival!",
+                                "§c[Villager] That's weeks of milk you're threatening!"
+                            };
+                            break;
 
                             case "sheep":
-                                babyMessages = new String[] {
-                                        "§c[Aldeano Bebé] ¡No lastimes a Pelusa! *llora*",
-                                        "§c[Aldeano Bebé] ¡Esa oveja hace nuestras camas!",
-                                        "§c[Aldeano Bebé] ¡Me gusta acariciar las ovejas!",
-                                        "§c[Aldeano Bebé] ¡Deja a la lanuda en paz!",
-                                        "§c[Aldeano Bebé] ¡La oveja es tan suave!"
-                                };
-                                adultMessages = new String[] {
-                                        "§c[Aldeano] ¡Esa oveja proporciona nuestra lana!",
-                                        "§c[Aldeano] ¡Detente! ¡Necesitamos esa lana para mantas!",
-                                        "§c[Aldeano] ¡Nuestro suministro textil! ¡Déjala en paz!",
-                                        "§c[Aldeano] ¡Esas ovejas nos mantienen calientes en invierno!",
-                                        "§c[Aldeano] ¡Esquilamos esas ovejas para ropa!",
-                                        "§c[Aldeano] ¡Esa es nuestra fuente de lana, bruto!",
-                                        "§c[Aldeano] ¡Sin lana, nos congelamos!"
-                                };
-                                break;
+                            babyMessages = new String[] {
+                                "§c[Baby Villager] Don't hurt Fluffy! *cries*",
+                                "§c[Baby Villager] That sheep makes our beds!",
+                                "§c[Baby Villager] I like petting the sheep!",
+                                "§c[Baby Villager] Leave the woolly one alone!",
+                                "§c[Baby Villager] The sheep is so soft!"
+                            };
+                            adultMessages = new String[] {
+                                "§c[Villager] That sheep provides our wool!",
+                                "§c[Villager] Stop! We need that wool for blankets!",
+                                "§c[Villager] Our textile supply! Leave her alone!",
+                                "§c[Villager] Those sheep keep us warm in winter!",
+                                "§c[Villager] We shear those sheep for clothes!",
+                                "§c[Villager] That's our source of wool, brute!",
+                                "§c[Villager] Without wool, we freeze!"
+                            };
+                            break;
 
                             case "pig":
-                                babyMessages = new String[] {
-                                        "§c[Aldeano Bebé] ¡No lastimes al cerdito! *solloza*",
-                                        "§c[Aldeano Bebé] ¡Ese cerdo hace sonidos graciosos!",
-                                        "§c[Aldeano Bebé] ¡Oinc-oinc es lindo!",
-                                        "§c[Aldeano Bebé] ¡Deja al cerdito en paz!",
-                                        "§c[Aldeano Bebé] ¡Alimento a ese cerdo todos los días!"
-                                };
-                                adultMessages = new String[] {
-                                        "§c[Aldeano] ¡Ese cerdo es ganado valioso!",
-                                        "§c[Aldeano] ¡Detente! ¡Esos cerdos son para cría!",
-                                        "§c[Aldeano] ¡Criamos esos cerdos con cuidado!",
-                                        "§c[Aldeano] ¡Ese cerdo alimentará familias este invierno!",
-                                        "§c[Aldeano] ¡Deja nuestro suministro de carne en paz!",
-                                        "§c[Aldeano] ¡Esos cerdos son nuestra inversión!",
-                                        "§c[Aldeano] ¡Atrás! ¡Ese cerdo está reservado!"
-                                };
-                                break;
+                            babyMessages = new String[] {
+                                "§c[Baby Villager] Don't hurt the piggy! *sobs*",
+                                "§c[Baby Villager] That pig makes funny noises!",
+                                "§c[Baby Villager] Oink-oink is cute!",
+                                "§c[Baby Villager] Leave the piggy alone!",
+                                "§c[Baby Villager] I feed that pig every day!"
+                            };
+                            adultMessages = new String[] {
+                                "§c[Villager] That pig is valuable livestock!",
+                                "§c[Villager] Stop! Those pigs are for breeding!",
+                                "§c[Villager] We raise those pigs carefully!",
+                                "§c[Villager] That pig will feed families this winter!",
+                                "§c[Villager] Leave our meat supply alone!",
+                                "§c[Villager] Those pigs are our investment!",
+                                "§c[Villager] Back off! That pig is reserved!"
+                            };
+                            break;
 
                             case "chicken":
-                                babyMessages = new String[] {
-                                        "§c[Aldeano Bebé] ¡No lastimes la gallina! *llora*",
-                                        "§c[Aldeano Bebé] ¡Esa gallina nos da huevos!",
-                                        "§c[Aldeano Bebé] ¡Colecciono huevos de ellas!",
-                                        "§c[Aldeano Bebé] ¡Las gallinas son mi trabajo!",
-                                        "§c[Aldeano Bebé] ¡Plumitas es tan linda!"
-                                };
-                                adultMessages = new String[] {
-                                        "§c[Aldeano] ¡Esas gallinas ponen nuestros huevos!",
-                                        "§c[Aldeano] ¡Detente! ¡Esa gallina es nuestro desayuno!",
-                                        "§c[Aldeano] ¡Necesitamos esos huevos diariamente!",
-                                        "§c[Aldeano] ¡Esa gallina es parte de nuestra granja!",
-                                        "§c[Aldeano] ¡Deja nuestras aves en paz!",
-                                        "§c[Aldeano] ¡Esas gallinas son productoras de huevos!",
-                                        "§c[Aldeano] ¡Sin gallinas, no hay huevos!"
-                                };
-                                break;
+                            babyMessages = new String[] {
+                                "§c[Baby Villager] Don't hurt the chicken! *cries*",
+                                "§c[Baby Villager] That chicken gives us eggs!",
+                                "§c[Baby Villager] I collect eggs from them!",
+                                "§c[Baby Villager] Chickens are my job!",
+                                "§c[Baby Villager] Feathers is so cute!"
+                            };
+                            adultMessages = new String[] {
+                                "§c[Villager] Those chickens lay our eggs!",
+                                "§c[Villager] Stop! That chicken is our breakfast!",
+                                "§c[Villager] We need those eggs daily!",
+                                "§c[Villager] That chicken is part of our farm!",
+                                "§c[Villager] Leave our birds alone!",
+                                "§c[Villager] Those chickens are egg producers!",
+                                "§c[Villager] No chickens, no eggs!"
+                            };
+                            break;
 
                             case "rabbit":
-                                babyMessages = new String[] {
-                                        "§c[Aldeano Bebé] ¡No lastimes al conejito! *llora*",
-                                        "§c[Aldeano Bebé] ¡Los conejitos son tan lindos!",
-                                        "§c[Aldeano Bebé] ¡Ese es mi conejo favorito!",
-                                        "§c[Aldeano Bebé] ¡Deja al saltador en paz!",
-                                        "§c[Aldeano Bebé] ¡Quiero acariciarlos!"
-                                };
-                                adultMessages = new String[] {
-                                        "§c[Aldeano] ¡Esos conejos son parte de nuestro ecosistema!",
-                                        "§c[Aldeano] ¡Deja los conejos en paz!",
-                                        "§c[Aldeano] ¡Son criaturas inofensivas!",
-                                        "§c[Aldeano] ¡Deja de atacar animales inocentes!",
-                                        "§c[Aldeano] ¡Esos conejos ayudan a nuestros jardines!",
-                                        "§c[Aldeano] ¿¡Qué te hizo ese conejo!?",
-                                        "§c[Aldeano] ¡Solo son conejos!"
-                                };
-                                break;
+                            babyMessages = new String[] {
+                                "§c[Baby Villager] Don't hurt the bunny! *cries*",
+                                "§c[Baby Villager] Bunnies are so cute!",
+                                "§c[Baby Villager] That's my favorite rabbit!",
+                                "§c[Baby Villager] Leave the hopper alone!",
+                                "§c[Baby Villager] I want to pet them!"
+                            };
+                            adultMessages = new String[] {
+                                "§c[Villager] Those rabbits are part of our ecosystem!",
+                                "§c[Villager] Leave the rabbits alone!",
+                                "§c[Villager] They're harmless creatures!",
+                                "§c[Villager] Stop attacking innocent animals!",
+                                "§c[Villager] Those rabbits help our gardens!",
+                                "§c[Villager] What did that rabbit ever do to you!?",
+                                "§c[Villager] They're just rabbits!"
+                            };
+                            break;
 
                             case "horse":
-                                babyMessages = new String[] {
-                                        "§c[Aldeano Bebé] ¡No lastimes al caballito! *llora*",
-                                        "§c[Aldeano Bebé] ¡Quiero montar caballos cuando sea grande!",
-                                        "§c[Aldeano Bebé] ¡Ese caballo es tan bonito!",
-                                        "§c[Aldeano Bebé] ¡Deja el caballo en paz!",
-                                        "§c[Aldeano Bebé] ¡Los caballos son nobles!"
-                                };
-                                adultMessages = new String[] {
-                                        "§c[Aldeano] ¡Ese caballo es nuestro transporte!",
-                                        "§c[Aldeano] ¡Detente! ¡Necesitamos ese caballo para viajar!",
-                                        "§c[Aldeano] ¡Esos caballos son costosos!",
-                                        "§c[Aldeano] ¡Eso son semanas de trabajo de cría!",
-                                        "§c[Aldeano] ¡Deja nuestros caballos en paz!",
-                                        "§c[Aldeano] ¡Usamos esos caballos para rutas comerciales!",
-                                        "§c[Aldeano] ¡Ese caballo lleva nuestros suministros!",
-                                        "§c[Aldeano] ¡Estás atacando nuestra movilidad!"
-                                };
-                                break;
+                            babyMessages = new String[] {
+                                "§c[Baby Villager] Don't hurt the horsie! *cries*",
+                                "§c[Baby Villager] I want to ride horses when I grow up!",
+                                "§c[Baby Villager] That horse is so pretty!",
+                                "§c[Baby Villager] Leave the horse alone!",
+                                "§c[Baby Villager] Horses are noble!"
+                            };
+                            adultMessages = new String[] {
+                                "§c[Villager] That horse is our transport!",
+                                "§c[Villager] Stop! We need that horse for travel!",
+                                "§c[Villager] Those horses are expensive!",
+                                "§c[Villager] That's weeks of breeding work!",
+                                "§c[Villager] Leave our horses alone!",
+                                "§c[Villager] We use those horses for trade routes!",
+                                "§c[Villager] That horse carries our supplies!",
+                                "§c[Villager] You're attacking our mobility!"
+                            };
+                            break;
 
                             case "camel":
-                                babyMessages = new String[] {
-                                        "§c[Aldeano Bebé] ¡No lastimes el camello! *llora*",
-                                        "§c[Aldeano Bebé] ¡Los camellos son para el desierto!",
-                                        "§c[Aldeano Bebé] ¡Ese camello es genial!",
-                                        "§c[Aldeano Bebé] ¡Deja el camello en paz!",
-                                        "§c[Aldeano Bebé] ¡Me gustan los camellos!"
-                                };
-                                adultMessages = new String[] {
-                                        "§c[Aldeano] ¡Ese camello es nuestro transporte del desierto!",
-                                        "§c[Aldeano] ¡Detente! ¡Necesitamos ese camello para viajar!",
-                                        "§c[Aldeano] ¡Esos camellos son costosos!",
-                                        "§c[Aldeano] ¡Eso son semanas de trabajo de cría!",
-                                        "§c[Aldeano] ¡Deja nuestros camellos en paz!",
-                                        "§c[Aldeano] ¡Usamos esos camellos para rutas del desierto!",
-                                        "§c[Aldeano] ¡Ese camello lleva nuestros suministros!",
-                                        "§c[Aldeano] ¡Estás atacando nuestra movilidad!"
-                                };
-                                break;
+                            babyMessages = new String[] {
+                                "§c[Baby Villager] Don't hurt the camel! *cries*",
+                                "§c[Baby Villager] Camels are for the desert!",
+                                "§c[Baby Villager] That camel is cool!",
+                                "§c[Baby Villager] Leave the camel alone!",
+                                "§c[Baby Villager] I like camels!"
+                            };
+                            adultMessages = new String[] {
+                                "§c[Villager] That camel is our desert transport!",
+                                "§c[Villager] Stop! We need that camel for travel!",
+                                "§c[Villager] Those camels are expensive!",
+                                "§c[Villager] That's weeks of breeding work!",
+                                "§c[Villager] Leave our camels alone!",
+                                "§c[Villager] We use those camels for desert routes!",
+                                "§c[Villager] That camel carries our supplies!",
+                                "§c[Villager] You're attacking our mobility!"
+                            };
+                            break;
 
                             default:
-                                babyMessages = new String[] {"§c[Aldeano Bebé] ¡No los lastimes!"};
-                                adultMessages = new String[] {"§c[Aldeano] ¡Detente!"};
+                            babyMessages = new String[] {"§c[Baby Villager] Don't hurt them!"};
+                            adultMessages = new String[] {"§c[Villager] Stop!"};
                         }
 
                         String[] messages = villager.isBaby() ? babyMessages : adultMessages;
 
                         player.sendSystemMessage(Component.literal(
-                                messages[level.getRandom().nextInt(messages.length)]));
+                            messages[level.getRandom().nextInt(messages.length)]));
                         player.sendSystemMessage(Component.literal(
-                                "§c[Diplomacia de Aldeas] ¡Atacaste " + animalType + "! Reputación -5 (Total: " +
-                                        newRep + " - " + getReputationStatus(newRep) + ")"));
+                            "§c[Village Diplomacy] You attacked a " + animalType + "! Reputation -5 (Total: " +
+                                newRep + " - " + getReputationStatus(newRep) + ")"));
 
                         tradeCooldowns.put(playerId, currentTime);
                     }
@@ -829,203 +829,166 @@ public class VillagerEventHandler {
         if (!(event.getEntity().level() instanceof ServerLevel level))
             return;
 
+        // Obtener el aldeano y la aldea más cercana
+        Villager villager = null;
+        Optional<BlockPos> nearestVillage = Optional.empty();
+        int newRep = 0;
+        if (event.getEntity() instanceof Villager v) {
+            villager = v;
+            BlockPos villagerPos = villager.blockPosition();
+            nearestVillage = VillageDetector.findNearestVillage(level, villagerPos, 200);
+            if (nearestVillage.isPresent()) {
+                VillageReputationData data = VillageReputationData.get(level);
+                UUID playerId = player.getUUID();
+                data.addReputation(playerId, -25);
+                newRep = data.getReputation(playerId);
+            }
+        }
+
+        String[] babyMessages = null;
+        String[] adultMessages = null;
+
         // Detectar tipo específico de animal (Camel ANTES de AbstractHorse porque Camel extends AbstractHorse)
         String animalType = null;
         if (event.getEntity() instanceof Cow) animalType = "cow";
         else if (event.getEntity() instanceof Sheep) animalType = "sheep";
-        else if (event.getEntity() instanceof Pig) animalType = "pig";
-        else if (event.getEntity() instanceof Chicken) animalType = "chicken";
-        else if (event.getEntity() instanceof Rabbit) animalType = "rabbit";
-        else if (event.getEntity() instanceof Camel) animalType = "camel";
-        else if (event.getEntity() instanceof AbstractHorse) animalType = "horse";
-        
-        if (animalType == null) return;
+        // ...continúa el switch...
+        switch (animalType) {
+            case "cow":
+                babyMessages = new String[] {
+                    "§c[Baby Villager] NOOO! You killed Bessie! *screams*",
+                    "§c[Baby Villager] No more milk now! *sobs*",
+                    "§c[Baby Villager] That cow had a calf! *cries*",
+                    "§c[Baby Villager] Why!? She gave us milk! *heartbroken*",
+                    "§c[Baby Villager] Moo is gone... *sobs*"
+                };
+                adultMessages = new String[] {
+                    "§c[Villager] YOU KILLED OUR COW!",
+                    "§c[Villager] MONTHS of milk production LOST!",
+                    "§c[Villager] How will we feed our children without milk!?",
+                    "§c[Villager] That cow was worth 10 emeralds!",
+                    "§c[Villager] You've destroyed our dairy farm!",
+                    "§c[Villager] ANIMAL KILLER! That cow had calves!",
+                    "§c[Villager] We raised that cow from birth!",
+                    "§c[Villager] No milk, no cheese, no leather! Thanks to YOU!"
+                };
+                break;
 
-        BlockPos animalPos = event.getEntity().blockPosition();
-        Optional<BlockPos> nearestVillage = VillageDetector.findNearestVillage(level, animalPos, 200);
+            case "sheep":
+                babyMessages = new String[] {
+                    "§c[Baby Villager] You killed Fluffy! NOOO! *cries*",
+                    "§c[Baby Villager] No more wool now! *sobs*",
+                    "§c[Baby Villager] That sheep was so soft! *screams*",
+                    "§c[Baby Villager] Why kill the woolly one!? *heartbroken*",
+                    "§c[Baby Villager] I was going to shear her tomorrow! *devastated*"
+                };
+                adultMessages = new String[] {
+                    "§c[Villager] YOU KILLED OUR SHEEP!",
+                    "§c[Villager] That sheep produced wool for YEARS!",
+                    "§c[Villager] How will we make blankets now!?",
+                    "§c[Villager] We'll FREEZE without that wool!",
+                    "§c[Villager] That sheep was our textile source!",
+                    "§c[Villager] MURDERER! We raised that sheep with care!",
+                    "§c[Villager] No wool means no warm clothes!",
+                    "§c[Villager] That sheep was white wool - RARE!"
+                };
+                break;
 
-        if (nearestVillage.isPresent()) {
-            List<Villager> nearbyVillagers = level.getEntitiesOfClass(
-                    Villager.class,
-                    AABB.ofSize(Vec3.atCenterOf(animalPos), 48, 48, 48));
+            case "pig":
+                babyMessages = new String[] {
+                    "§c[Baby Villager] You killed the piggy! MONSTER! *cries*",
+                    "§c[Baby Villager] That pig was going to have babies! *sobs*",
+                    "§c[Baby Villager] Oink-oink is gone! *screams*",
+                    "§c[Baby Villager] Why!? He was so funny! *devastated*",
+                    "§c[Baby Villager] I fed that pig carrots! *heartbroken*"
+                };
+                adultMessages = new String[] {
+                    "§c[Villager] YOU SLAUGHTERED OUR PIG!",
+                    "§c[Villager] That pig was breeding stock!",
+                    "§c[Villager] You just killed our WINTER MEAT SUPPLY!",
+                    "§c[Villager] We raised that pig for MONTHS!",
+                    "§c[Villager] THIEF! That pig was our investment!",
+                    "§c[Villager] How DARE you kill our livestock!?",
+                    "§c[Villager] That pig was going to feed families!",
+                    "§c[Villager] You've ruined our breeding program!"
+                };
+                break;
 
-            for (Villager villager : nearbyVillagers) {
-                if (hasLineOfSight(villager, player, level)) {
-                    VillageReputationData data = VillageReputationData.get(level);
-                    int oldRep = data.getReputation(player.getUUID(), nearestVillage.get());
-                    data.addReputation(player.getUUID(), nearestVillage.get(), -25);
-                    int newRep = data.getReputation(player.getUUID(), nearestVillage.get());
-                    checkAndNotifyReputationChange(player, oldRep, newRep);
+            case "rabbit":
+                babyMessages = new String[] {
+                    "§c[Baby Villager] You killed the bunny! *cries*",
+                    "§c[Baby Villager] That bunny was so cute! *sobs*",
+                    "§c[Baby Villager] Why did you do that!? *devastated*",
+                    "§c[Baby Villager] I wanted to pet the bunny! *heartbroken*"
+                };
+                adultMessages = new String[] {
+                    "§c[Villager] YOU KILLED THE RABBIT!",
+                    "§c[Villager] That rabbit helped control garden pests!",
+                    "§c[Villager] What kind of MONSTER kills rabbits!?",
+                    "§c[Villager] They're harmless creatures!",
+                    "§c[Villager] The children loved that rabbit!",
+                    "§c[Villager] You're a BRUTE and a BULLY!",
+                    "§c[Villager] Killing innocent animals! Shame!",
+                    "§c[Villager] That rabbit never hurt anyone!"
+                };
+                break;
 
-                    // MENSAJES ESPECÍFICOS POR TIPO DE ANIMAL - MUERTE
-                    String[] babyMessages;
-                    String[] adultMessages;
+            case "horse":
+                babyMessages = new String[] {
+                    "§c[Baby Villager] You killed the horsie! NOOO! *screams*",
+                    "§c[Baby Villager] That horse was so strong! *cries*",
+                    "§c[Baby Villager] I wanted to ride him! *devastated*",
+                    "§c[Baby Villager] Horses are noble! Why!? *sobs*",
+                    "§c[Baby Villager] That's the worst! *heartbroken*"
+                };
+                adultMessages = new String[] {
+                    "§c[Villager] YOU KILLED OUR HORSE!",
+                    "§c[Villager] That horse was EXPENSIVE! 20 emeralds!",
+                    "§c[Villager] We needed that horse for TRAVEL!",
+                    "§c[Villager] That took WEEKS to tame and breed!",
+                    "§c[Villager] How will we transport goods now!?",
+                    "§c[Villager] HORSE KILLER! That was our LIVELIHOOD!",
+                    "§c[Villager] We used that horse for trade routes!",
+                    "§c[Villager] You've paralyzed our trade!",
+                    "§c[Villager] That horse was part of the family!",
+                    "§c[Villager] Killing a horse!? You have NO HEART!"
+                };
+                break;
 
-                    switch (animalType) {
-                        case "cow":
-                            babyMessages = new String[] {
-                                    "§c[Aldeano Bebé] ¡NOOOO! ¡Mataste a Bessie! *grita*",
-                                    "§c[Aldeano Bebé] ¡No más leche ahora! *solloza*",
-                                    "§c[Aldeano Bebé] ¡Esa vaca tenía un ternero! *llora*",
-                                    "§c[Aldeano Bebé] ¿¡Por qué!? ¡Nos daba leche! *desconsolado*",
-                                    "§c[Aldeano Bebé] Muu se fue... *solloza*"
-                            };
-                            adultMessages = new String[] {
-                                    "§c[Aldeano] ¡ASESINASTE NUESTRA VACA!",
-                                    "§c[Aldeano] ¡Son MESES de producción de leche PERDIDOS!",
-                                    "§c[Aldeano] ¿¡Cómo alimentaremos a nuestros niños sin leche!?",
-                                    "§c[Aldeano] ¡Esa vaca valía 10 esmeraldas!",
-                                    "§c[Aldeano] ¡Has destruido nuestra granja láctea!",
-                                    "§c[Aldeano] ¡ASESINO DE ANIMALES! ¡Esa vaca tenía terneros!",
-                                    "§c[Aldeano] ¡Criamos esa vaca desde su nacimiento!",
-                                    "§c[Aldeano] ¡No hay leche, ni queso, ni cuero! ¡Gracias a TI!"
-                            };
-                            break;
+            case "camel":
+                babyMessages = new String[] {
+                    "§c[Baby Villager] You killed the camel! NOOO! *screams*",
+                    "§c[Baby Villager] That camel was so tall! *cries*",
+                    "§c[Baby Villager] I wanted to ride him! *devastated*",
+                    "§c[Baby Villager] Camels are amazing! Why!? *sobs*",
+                    "§c[Baby Villager] That's so cruel! *heartbroken*"
+                };
+                adultMessages = new String[] {
+                    "§c[Villager] YOU KILLED OUR CAMEL!",
+                    "§c[Villager] That camel was EXPENSIVE! 30 emeralds!",
+                    "§c[Villager] We needed that camel for DESERT TRAVEL!",
+                    "§c[Villager] That took WEEKS to tame and breed!",
+                    "§c[Villager] How will we cross the desert now!?"
+                };
+                break;
 
-                        case "sheep":
-                            babyMessages = new String[] {
-                                    "§c[Aldeano Bebé] ¡Mataste a Pelusa! ¡NOOO! *llora*",
-                                    "§c[Aldeano Bebé] ¡No más lana ahora! *solloza*",
-                                    "§c[Aldeano Bebé] ¡Esa oveja era tan suave! *grita*",
-                                    "§c[Aldeano Bebé] ¿¡Por qué matar a la lanuda!? *desconsolado*",
-                                    "§c[Aldeano Bebé] ¡Iba a esquilarla mañana! *devastado*"
-                            };
-                            adultMessages = new String[] {
-                                    "§c[Aldeano] ¡MATASTE NUESTRA OVEJA!",
-                                    "§c[Aldeano] ¡Esa oveja producía lana por AÑOS!",
-                                    "§c[Aldeano] ¿¡Cómo haremos mantas ahora!?",
-                                    "§c[Aldeano] ¡Nos CONGELAREMOS sin esa lana!",
-                                    "§c[Aldeano] ¡Esa oveja era nuestra fuente textil!",
-                                    "§c[Aldeano] ¡ASESINO! ¡Criamos esa oveja cuidadosamente!",
-                                    "§c[Aldeano] ¡No hay lana significa no hay ropa abrigada!",
-                                    "§c[Aldeano] ¡Esa oveja era de lana blanca - RARA!"
-                            };
-                            break;
-
-                        case "pig":
-                            babyMessages = new String[] {
-                                    "§c[Aldeano Bebé] ¡Mataste al cerdito! ¡MONSTRUO! *llora*",
-                                    "§c[Aldeano Bebé] ¡Ese cerdo iba a tener bebés! *solloza*",
-                                    "§c[Aldeano Bebé] ¡Oinc-oinc se fue! *grita*",
-                                    "§c[Aldeano Bebé] ¿¡Por qué!? ¡Era tan gracioso! *devastado*",
-                                    "§c[Aldeano Bebé] ¡Le daba zanahorias a ese cerdo! *desconsolado*"
-                            };
-                            adultMessages = new String[] {
-                                    "§c[Aldeano] ¡MASACRASTE NUESTRO CERDO!",
-                                    "§c[Aldeano] ¡Ese cerdo era ganado reproductor!",
-                                    "§c[Aldeano] ¡Acabas de matar el SUMINISTRO DE CARNE del invierno!",
-                                    "§c[Aldeano] ¡Criamos ese cerdo por MESES!",
-                                    "§c[Aldeano] ¡LADRÓN! ¡Ese cerdo era nuestra inversión!",
-                                    "§c[Aldeano] ¿¡Cómo TE ATREVES a matar nuestro ganado!?",
-                                    "§c[Aldeano] ¡Ese cerdo iba a alimentar familias!",
-                                    "§c[Aldeano] ¡Has arruinado nuestro programa de cría!"
-                            };
-                            break;
-
-                        case "chicken":
-                            babyMessages = new String[] {
-                                    "§c[Aldeano Bebé] ¡Mataste a Plumitas! ¡NOOO! *llora*",
-                                    "§c[Aldeano Bebé] ¡No más huevos ahora! *solloza*",
-                                    "§c[Aldeano Bebé] ¡Esa gallina ponía huevos todos los días! *grita*",
-                                    "§c[Aldeano Bebé] ¿¡Por qué!? ¡Era linda! *devastado*",
-                                    "§c[Aldeano Bebé] ¡Yo recogía sus huevos! *desconsolado*"
-                            };
-                            adultMessages = new String[] {
-                                    "§c[Aldeano] ¡MATASTE NUESTRA GALLINA!",
-                                    "§c[Aldeano] ¡Esa era nuestra FUENTE DE DESAYUNO!",
-                                    "§c[Aldeano] ¡Necesitábamos esos huevos diariamente!",
-                                    "§c[Aldeano] ¡Esa gallina ponía huevos confiablemente!",
-                                    "§c[Aldeano] ¿¡Cómo hornearemos sin huevos!?",
-                                    "§c[Aldeano] ¡ASESINO DE AVES! ¡Eso era seguridad alimentaria!",
-                                    "§c[Aldeano] ¡Un huevo al día - PERDIDO por tu culpa!",
-                                    "§c[Aldeano] ¡Criamos esa gallina desde pollito!"
-                            };
-                            break;
-
-                        case "rabbit":
-                            babyMessages = new String[] {
-                                    "§c[Aldeano Bebé] ¡Mataste al conejito! ¡CRUEL! *solloza*",
-                                    "§c[Aldeano Bebé] ¡Los conejitos son tan lindos! ¿¡Por qué!? *llora*",
-                                    "§c[Aldeano Bebé] ¡El saltador está muerto! *grita*",
-                                    "§c[Aldeano Bebé] ¡Eso fue tan malo! *devastado*",
-                                    "§c[Aldeano Bebé] ¡Amaba ese conejo! *desconsolado*"
-                            };
-                            adultMessages = new String[] {
-                                    "§c[Aldeano] ¡MATASTE EL CONEJO!",
-                                    "§c[Aldeano] ¡Ese conejo ayudaba a controlar plagas del jardín!",
-                                    "§c[Aldeano] ¿¡Qué clase de MONSTRUO mata conejos!?",
-                                    "§c[Aldeano] ¡Son criaturas inofensivas!",
-                                    "§c[Aldeano] ¡Los niños amaban ese conejo!",
-                                    "§c[Aldeano] ¡Eres un BRUTO y un ABUSÓN!",
-                                    "§c[Aldeano] ¡Matar animales inocentes! ¡Vergüenza!",
-                                    "§c[Aldeano] ¡Ese conejo nunca lastimó a nadie!"
-                            };
-                            break;
-
-                        case "horse":
-                            babyMessages = new String[] {
-                                    "§c[Aldeano Bebé] ¡Mataste al caballito! ¡NOOO! *grita*",
-                                    "§c[Aldeano Bebé] ¡Ese caballo era tan fuerte! *llora*",
-                                    "§c[Aldeano Bebé] ¡Quería montarlo! *devastado*",
-                                    "§c[Aldeano Bebé] ¡Los caballos son nobles! ¿¡Por qué!? *solloza*",
-                                    "§c[Aldeano Bebé] ¡Eso es lo peor! *desconsolado*"
-                            };
-                            adultMessages = new String[] {
-                                    "§c[Aldeano] ¡MATASTE NUESTRO CABALLO!",
-                                    "§c[Aldeano] ¡Ese caballo era COSTOSO! ¡20 esmeraldas!",
-                                    "§c[Aldeano] ¡Necesitábamos ese caballo para VIAJAR!",
-                                    "§c[Aldeano] ¡Eso tomó SEMANAS de domar y criar!",
-                                    "§c[Aldeano] ¿¡Cómo transportaremos bienes ahora!?",
-                                    "§c[Aldeano] ¡ASESINO DE CABALLOS! ¡Ese era nuestro SUSTENTO!",
-                                    "§c[Aldeano] ¡Usábamos ese caballo para rutas comerciales!",
-                                    "§c[Aldeano] ¡Has paralizado nuestro comercio!",
-                                    "§c[Aldeano] ¡Ese caballo era parte de la familia!",
-                                    "§c[Aldeano] ¿¡Matar un caballo!? ¡No tienes CORAZÓN!"
-                            };
-                            break;
-
-                        case "camel":
-                            babyMessages = new String[] {
-                                    "§c[Aldeano Bebé] ¡Mataste el camello! ¡NOOO! *grita*",
-                                    "§c[Aldeano Bebé] ¡Ese camello era tan alto! *llora*",
-                                    "§c[Aldeano Bebé] ¡Quería montarlo! *devastado*",
-                                    "§c[Aldeano Bebé] ¡Los camellos son increíbles! ¿¡Por qué!? *solloza*",
-                                    "§c[Aldeano Bebé] ¡Eso es tan cruel! *desconsolado*"
-                            };
-                            adultMessages = new String[] {
-                                    "§c[Aldeano] ¡MATASTE NUESTRO CAMELLO!",
-                                    "§c[Aldeano] ¡Ese camello era COSTOSO! ¡30 esmeraldas!",
-                                    "§c[Aldeano] ¡Necesitábamos ese camello para VIAJES EN EL DESIERTO!",
-                                    "§c[Aldeano] ¡Eso tomó SEMANAS de domar y criar!",
-                                    "§c[Aldeano] ¿¡Cómo cruzaremos el desierto ahora!?",
-                                    "§c[Aldeano] ¡ASESINO DE CAMELLOS! ¡Ese era nuestro SUSTENTO!",
-                                    "§c[Aldeano] ¡Usábamos ese camello para rutas del desierto!",
-                                    "§c[Aldeano] ¡Has paralizado nuestro comercio del desierto!",
-                                    "§c[Aldeano] ¡Ese camello era irremplazable!",
-                                    "§c[Aldeano] ¿¡Matar un camello!? ¡No tienes CORAZÓN!"
-                            };
-                            break;
-
-                        default:
-                            babyMessages = new String[] {"§c[Aldeano Bebé] ¡Lo mataste! *llora*"};
-                            adultMessages = new String[] {"§c[Aldeano] ¡ASESINO!"};
-                    }
-
-                    String[] messages = villager.isBaby() ? babyMessages : adultMessages;
-
-                    player.sendSystemMessage(Component.literal(
-                            messages[level.getRandom().nextInt(messages.length)]));
-                    player.sendSystemMessage(Component.literal(
-                            "§c[Diplomacia de Aldeas] ¡Mataste " + animalType + "! Reputación -25 (Total: " +
-                                    newRep + " - " + getReputationStatus(newRep) + ")"));
-
-                    VillageRelationshipData relationData = VillageRelationshipData.get(level);
-                    relationData.registerVillage(nearestVillage.get());
-
-                    break;
-                }
-            }
+            default:
+                babyMessages = new String[] {"§c[Baby Villager] You killed it! *cries*"};
+                adultMessages = new String[] {"§c[Villager] MURDERER!"};
+                break;
         }
+
+        String[] messages = villager.isBaby() ? babyMessages : adultMessages;
+
+        player.sendSystemMessage(Component.literal(
+                messages[level.getRandom().nextInt(messages.length)]));
+        player.sendSystemMessage(Component.literal(
+            "§c[Village Diplomacy] You killed a " + animalType + "! Reputation -25 (Total: " +
+                newRep + " - " + getReputationStatus(newRep) + ")"));
+
+        VillageRelationshipData relationData = VillageRelationshipData.get(level);
+        relationData.registerVillage(nearestVillage.get());
+
     }
 
     @SubscribeEvent

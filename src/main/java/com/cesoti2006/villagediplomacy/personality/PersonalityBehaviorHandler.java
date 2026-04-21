@@ -1,9 +1,12 @@
 package com.cesoti2006.villagediplomacy.personality;
 
 import com.cesoti2006.villagediplomacy.data.VillagerPersonalityData;
+import com.cesoti2006.villagediplomacy.util.ModLang;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.ai.goal.AvoidEntityGoal;
 import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
 import net.minecraft.world.entity.monster.Zombie;
@@ -165,33 +168,19 @@ public class PersonalityBehaviorHandler {
         
         // Mostrar mensaje a jugadores cercanos
         String name = personality.getCustomName();
-        String[] messages = personality.getCourage() == PersonalityTrait.COWARD ? new String[] {
-            "§e[" + name + "] ¡AAAH! ¡Aléjate de mí!",
-            "§e[" + name + "] *grita* ¡Me largo de aquí!",
-            "§e[" + name + "] ¡No no no! *huye corriendo*",
-            "§e[" + name + "] ¡Ayuda! ¡Que alguien ayude!",
-            "§e[" + name + "] *llora* ¡No quiero morir!",
-            "§e[" + name + "] *huye aterrorizado*",
-            "§e[" + name + "] ¡Déjame en paz! *entrando en pánico*"
-        } : new String[] {
-            "§e[" + name + "] *retrocede cautelosamente*",
-            "§e[" + name + "] Debería salir de aquí...",
-            "§e[" + name + "] Esto no parece seguro.",
-            "§e[" + name + "] *se retira nerviosamente*",
-            "§e[" + name + "] Mejor prevenir que lamentar...",
-            "§e[" + name + "] Encontraré un lugar más seguro."
-        };
-        
-        String message = messages[level.getRandom().nextInt(messages.length)];
-        
-        // Enviar mensaje a jugadores en rango de 30 bloques
+        boolean coward = personality.getCourage() == PersonalityTrait.COWARD;
+        String prefix = coward ? "villagediplomacy.personality.flee.coward"
+                : "villagediplomacy.personality.flee.cautious";
+        int count = coward ? 7 : 6;
+
         List<net.minecraft.world.entity.player.Player> nearbyPlayers = level.getEntitiesOfClass(
             net.minecraft.world.entity.player.Player.class,
-            villager.getBoundingBox().inflate(30.0D)
-        );
-        
+            villager.getBoundingBox().inflate(30.0D));
+
         for (net.minecraft.world.entity.player.Player player : nearbyPlayers) {
-            player.sendSystemMessage(net.minecraft.network.chat.Component.literal(message));
+            if (player instanceof ServerPlayer sp) {
+                ModLang.sendRandomWithArgs(sp, level.getRandom(), prefix, count, name);
+            }
         }
         
         lastFleeMessage.put(villagerId, currentTime);
@@ -276,17 +265,17 @@ public class PersonalityBehaviorHandler {
                 
                 if (personality != null) {
                     String name = personality.getCustomName();
-                    String message = getActivityMessage(name, activity, villager);
-                    
-                    // Solo enviar mensaje si no está vacío (para evitar saltos de línea de nitwits)
-                    if (message != null && !message.isEmpty()) {
-                        // Enviar mensaje a jugadores cercanos
+                    Component message = getActivityMessageComponent(name, activity, villager);
+
+                    if (message != null) {
                         List<? extends Player> nearbyPlayers = level.players().stream()
-                            .filter(p -> p.distanceToSqr(villager) < 400) // 20 bloques
+                            .filter(p -> p.distanceToSqr(villager) < 400)
                             .toList();
-                        
+
                         for (Player player : nearbyPlayers) {
-                            player.sendSystemMessage(net.minecraft.network.chat.Component.literal(message));
+                            if (player instanceof ServerPlayer sp) {
+                                sp.sendSystemMessage(message);
+                            }
                         }
                     }
                 }
@@ -297,30 +286,30 @@ public class PersonalityBehaviorHandler {
         }
     }
     
-    /**
-     * Mensajes contextuales según actividad
-     */
-    private static String getActivityMessage(String name, String activity, Villager villager) {
+    /** Mensaje según actividad; null si no hay que mostrar nada (nitwit / dormir). */
+    private static Component getActivityMessageComponent(String name, String activity, Villager villager) {
         String profession = villager.getVillagerData().getProfession().toString();
-        
-        // No mostrar mensajes de trabajo para nitwits
+
         if (profession.equals("none") || profession.equals("nitwit")) {
-            return ""; // Sin mensaje
+            return null;
         }
-        
+
         return switch (activity) {
-            case "working" -> switch (profession) {
-                case "farmer" -> "§e[" + name + "] *comienza a cultivar*";
-                case "armorer", "weaponsmith", "toolsmith" -> "§e[" + name + "] *comienza trabajo de herrería*";
-                case "butcher" -> "§e[" + name + "] *prepara carne para el día*";
-                case "librarian" -> "§e[" + name + "] *abre un libro para estudiar*";
-                case "cleric" -> "§e[" + name + "] *prepara pociones matutinas*";
-                case "fisherman" -> "§e[" + name + "] *va a pescar*";
-                default -> "§e[" + name + "] *comienza a trabajar*";
-            };
-            case "eating" -> "§e[" + name + "] *toma descanso para almorzar*";
-            case "lighting" -> "§e[" + name + "] *enciende antorcha al caer la tarde*";
-            default -> "";
+            case "working" -> {
+                String key = switch (profession) {
+                    case "farmer" -> "villagediplomacy.villager.activity.work.farmer";
+                    case "armorer", "weaponsmith", "toolsmith" -> "villagediplomacy.villager.activity.work.smith";
+                    case "butcher" -> "villagediplomacy.villager.activity.work.butcher";
+                    case "librarian" -> "villagediplomacy.villager.activity.work.librarian";
+                    case "cleric" -> "villagediplomacy.villager.activity.work.cleric";
+                    case "fisherman" -> "villagediplomacy.villager.activity.work.fisherman";
+                    default -> "villagediplomacy.villager.activity.work.default";
+                };
+                yield Component.translatable(key, name);
+            }
+            case "eating" -> Component.translatable("villagediplomacy.villager.activity.eating", name);
+            case "lighting" -> Component.translatable("villagediplomacy.villager.activity.lighting", name);
+            default -> null;
         };
     }
     
@@ -447,8 +436,7 @@ public class PersonalityBehaviorHandler {
                     VillagerPersonality personality = data.getPersonality(villagerId);
                     String name = personality != null ? personality.getCustomName() : "Villager";
                     
-                    player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
-                        "§a[" + name + "] ¡Toma, toma este pan! Te ves herido."));
+                    player.sendSystemMessage(Component.translatable("villagediplomacy.personality.gift_bread", name));
                     
                     lastGiftTime.put(villagerId, currentTime);
                 }
@@ -543,74 +531,27 @@ public class PersonalityBehaviorHandler {
      */
     private static void dropTestament(Villager villager, VillagerPersonality personality, ServerLevel level) {
         ItemStack testament = new ItemStack(Items.PAPER);
-        
-        // NOMBRE PERSONALIZADO con color dorado
-        net.minecraft.network.chat.Component customName = net.minecraft.network.chat.Component.literal(
-            "§6§lTestamento de " + personality.getCustomName()
-        );
-        
-        // LORE detallado
+
+        Component customName = Component.translatable("villagediplomacy.testament.item_name", personality.getCustomName());
+
         net.minecraft.nbt.ListTag loreList = new net.minecraft.nbt.ListTag();
-        loreList.add(net.minecraft.nbt.StringTag.valueOf(
-            net.minecraft.network.chat.Component.Serializer.toJson(
-                net.minecraft.network.chat.Component.literal("§7━━━━━━━━━━━━━━━━━━━")
-            )
-        ));
-        loreList.add(net.minecraft.nbt.StringTag.valueOf(
-            net.minecraft.network.chat.Component.Serializer.toJson(
-                net.minecraft.network.chat.Component.literal("§7Última Voluntad y Testamento")
-            )
-        ));
-        loreList.add(net.minecraft.nbt.StringTag.valueOf(
-            net.minecraft.network.chat.Component.Serializer.toJson(
-                net.minecraft.network.chat.Component.literal("§7de " + personality.getFullName())
-            )
-        ));
-        loreList.add(net.minecraft.nbt.StringTag.valueOf(
-            net.minecraft.network.chat.Component.Serializer.toJson(
-                net.minecraft.network.chat.Component.literal("§7━━━━━━━━━━━━━━━━━━━")
-            )
-        ));
-        loreList.add(net.minecraft.nbt.StringTag.valueOf(
-            net.minecraft.network.chat.Component.Serializer.toJson(
-                net.minecraft.network.chat.Component.literal("§7")
-            )
-        ));
-        loreList.add(net.minecraft.nbt.StringTag.valueOf(
-            net.minecraft.network.chat.Component.Serializer.toJson(
-                net.minecraft.network.chat.Component.literal("§e'A mi querido amigo,'")
-            )
-        ));
-        loreList.add(net.minecraft.nbt.StringTag.valueOf(
-            net.minecraft.network.chat.Component.Serializer.toJson(
-                net.minecraft.network.chat.Component.literal("§e'Gracias por tu'")
-            )
-        ));
-        loreList.add(net.minecraft.nbt.StringTag.valueOf(
-            net.minecraft.network.chat.Component.Serializer.toJson(
-                net.minecraft.network.chat.Component.literal("§e'bondad y confianza.'")
-            )
-        ));
-        loreList.add(net.minecraft.nbt.StringTag.valueOf(
-            net.minecraft.network.chat.Component.Serializer.toJson(
-                net.minecraft.network.chat.Component.literal("§7")
-            )
-        ));
-        loreList.add(net.minecraft.nbt.StringTag.valueOf(
-            net.minecraft.network.chat.Component.Serializer.toJson(
-                net.minecraft.network.chat.Component.literal("§8Murió en: " + villager.blockPosition().toShortString())
-            )
-        ));
-        loreList.add(net.minecraft.nbt.StringTag.valueOf(
-            net.minecraft.network.chat.Component.Serializer.toJson(
-                net.minecraft.network.chat.Component.literal("§8Profesión: " + personality.getProfession())
-            )
-        ));
+        addTestamentLoreLine(loreList, Component.translatable("villagediplomacy.testament.lore.bar"));
+        addTestamentLoreLine(loreList, Component.translatable("villagediplomacy.testament.lore.title"));
+        addTestamentLoreLine(loreList, Component.translatable("villagediplomacy.testament.lore.of", personality.getFullName()));
+        addTestamentLoreLine(loreList, Component.translatable("villagediplomacy.testament.lore.bar"));
+        addTestamentLoreLine(loreList, Component.literal("§7"));
+        addTestamentLoreLine(loreList, Component.translatable("villagediplomacy.testament.lore.quote1"));
+        addTestamentLoreLine(loreList, Component.translatable("villagediplomacy.testament.lore.quote2"));
+        addTestamentLoreLine(loreList, Component.translatable("villagediplomacy.testament.lore.quote3"));
+        addTestamentLoreLine(loreList, Component.literal("§7"));
+        addTestamentLoreLine(loreList, Component.translatable("villagediplomacy.testament.lore.died",
+                villager.blockPosition().toShortString()));
+        addTestamentLoreLine(loreList, Component.translatable("villagediplomacy.testament.lore.job", personality.getProfession()));
         
         // Aplicar nombre y lore
         testament.getOrCreateTag().put("display", new net.minecraft.nbt.CompoundTag());
-        testament.getTag().getCompound("display").put("Name", 
-            net.minecraft.nbt.StringTag.valueOf(net.minecraft.network.chat.Component.Serializer.toJson(customName)));
+        testament.getTag().getCompound("display").put("Name",
+            net.minecraft.nbt.StringTag.valueOf(Component.Serializer.toJson(customName)));
         testament.getTag().getCompound("display").put("Lore", loreList);
         
         // ENCANTAMIENTO para brillo (sin efecto real)
@@ -662,5 +603,9 @@ public class PersonalityBehaviorHandler {
             net.minecraft.sounds.SoundEvents.PLAYER_LEVELUP,
             net.minecraft.sounds.SoundSource.NEUTRAL,
             0.8f, 1.2f);
+    }
+
+    private static void addTestamentLoreLine(net.minecraft.nbt.ListTag loreList, Component line) {
+        loreList.add(net.minecraft.nbt.StringTag.valueOf(Component.Serializer.toJson(line)));
     }
 }

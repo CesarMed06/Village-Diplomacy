@@ -3,6 +3,7 @@ package com.cesoti2006.villagediplomacy.personality;
 import com.cesoti2006.villagediplomacy.data.VillagerPersonalityData;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -82,8 +83,7 @@ public class BraveBellRinger {
                 villager.getBoundingBox().inflate(40.0D)
             );
             for (net.minecraft.world.entity.player.Player player : nearbyPlayers) {
-                player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
-                    "§6[" + name + "] *rings the bell furiously* DANGER! EVERYONE TO THE SQUARE!"));
+                player.sendSystemMessage(Component.translatable("villagediplomacy.bell.brave_ring", name));
             }
             
             // HACER QUE TODOS LOS ALDEANOS CORRAN A LA CAMPANA

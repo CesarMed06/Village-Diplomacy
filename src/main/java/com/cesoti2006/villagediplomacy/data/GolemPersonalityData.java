@@ -37,9 +37,18 @@ public class GolemPersonalityData extends SavedData {
             String name = golemTag.getString("Name");
             GolemPersonality.GolemTrait temperament = GolemPersonality.GolemTrait.valueOf(golemTag.getString("Temperament"));
             GolemPersonality.GolemTrait loyalty = GolemPersonality.GolemTrait.valueOf(golemTag.getString("Loyalty"));
-            String story = golemTag.getString("Story");
-            
-            GolemPersonality personality = new GolemPersonality(name, temperament, loyalty, story);
+
+            GolemPersonality personality;
+            if (golemTag.contains("StoryIdx")) {
+                int idx = golemTag.getInt("StoryIdx");
+                if (idx >= 0 && idx < 7) {
+                    personality = new GolemPersonality(name, temperament, loyalty, "", idx);
+                } else {
+                    personality = new GolemPersonality(name, temperament, loyalty, golemTag.getString("Story"), -1);
+                }
+            } else {
+                personality = new GolemPersonality(name, temperament, loyalty, golemTag.getString("Story"), -1);
+            }
             data.golemPersonalities.put(golemId, personality);
         }
         
@@ -58,7 +67,12 @@ public class GolemPersonalityData extends SavedData {
             golemTag.putString("Name", personality.getName());
             golemTag.putString("Temperament", personality.getTemperament().name());
             golemTag.putString("Loyalty", personality.getLoyalty().name());
-            golemTag.putString("Story", personality.getCreationStory());
+            if (personality.getStoryTemplateIndex() >= 0) {
+                golemTag.putInt("StoryIdx", personality.getStoryTemplateIndex());
+                golemTag.putString("Story", "");
+            } else {
+                golemTag.putString("Story", personality.getLegacyStory());
+            }
             
             golemsList.add(golemTag);
         }

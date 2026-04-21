@@ -172,18 +172,24 @@ public class VillageRelationshipData extends SavedData {
     }
 
     public enum RelationshipStatus {
-        ALLIED("§aALIADO"),
-        NEUTRAL("§7NEUTRAL"),
-        HOSTILE("§cHOSTIL");
+        ALLIED("villagediplomacy.rel.allied"),
+        NEUTRAL("villagediplomacy.rel.neutral_village"),
+        HOSTILE("villagediplomacy.rel.hostile_village");
 
-        private final String display;
+        private final String translationKey;
 
-        RelationshipStatus(String display) {
-            this.display = display;
+        RelationshipStatus(String translationKey) {
+            this.translationKey = translationKey;
         }
 
+        public String getTranslationKey() {
+            return translationKey;
+        }
+
+        /** @deprecated Prefer {@link #getTranslationKey()} with {@code Component.translatable(...)} on the client. */
+        @Deprecated
         public String getDisplay() {
-            return display;
+            return translationKey;
         }
     }
 }

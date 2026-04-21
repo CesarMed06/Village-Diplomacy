@@ -5,6 +5,11 @@ import com.cesoti2006.villagediplomacy.data.VillageReputationData;
 import com.cesoti2006.villagediplomacy.data.VillageRelationshipData;
 import com.cesoti2006.villagediplomacy.data.GolemPersonalityData;
 import com.cesoti2006.villagediplomacy.data.VillagerPersonalityData;
+import com.cesoti2006.villagediplomacy.network.VillageDiplomacyNetwork;
+import com.cesoti2006.villagediplomacy.util.ModLang;
+import com.cesoti2006.villagediplomacy.util.VillageDisplayName;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.MutableComponent;
 import com.cesoti2006.villagediplomacy.personality.GolemPersonality;
 import com.cesoti2006.villagediplomacy.personality.VillagerPersonality;
 import net.minecraft.core.BlockPos;
@@ -15,7 +20,11 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.animal.IronGolem;
-import net.minecraft.world.entity.animal.*;
+import net.minecraft.world.entity.animal.Cow;
+import net.minecraft.world.entity.animal.Sheep;
+import net.minecraft.world.entity.animal.Pig;
+import net.minecraft.world.entity.animal.Chicken;
+import net.minecraft.world.entity.animal.Rabbit;
 import net.minecraft.world.entity.animal.camel.Camel;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.entity.LivingEntity;
@@ -24,7 +33,36 @@ import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.inventory.ChestMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.level.block.*;
+import net.minecraft.world.level.block.DoorBlock;
+import net.minecraft.world.level.block.TrapDoorBlock;
+import net.minecraft.world.level.block.ChestBlock;
+import net.minecraft.world.level.block.BarrelBlock;
+import net.minecraft.world.level.block.BedBlock;
+import net.minecraft.world.level.block.BellBlock;
+import net.minecraft.world.level.block.FenceGateBlock;
+import net.minecraft.world.level.block.FurnaceBlock;
+import net.minecraft.world.level.block.BlastFurnaceBlock;
+import net.minecraft.world.level.block.SmokerBlock;
+import net.minecraft.world.level.block.CraftingTableBlock;
+import net.minecraft.world.level.block.CropBlock;
+import net.minecraft.world.level.block.CarrotBlock;
+import net.minecraft.world.level.block.PotatoBlock;
+import net.minecraft.world.level.block.BeetrootBlock;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.FlowerPotBlock;
+import net.minecraft.world.level.block.TorchBlock;
+import net.minecraft.world.level.block.LanternBlock;
+import net.minecraft.world.level.block.BrewingStandBlock;
+import net.minecraft.world.level.block.AnvilBlock;
+import net.minecraft.world.level.block.GrindstoneBlock;
+import net.minecraft.world.level.block.LoomBlock;
+import net.minecraft.world.level.block.StonecutterBlock;
+import net.minecraft.world.level.block.SmithingTableBlock;
+import net.minecraft.world.level.block.CartographyTableBlock;
+import net.minecraft.world.level.block.FletchingTableBlock;
+import net.minecraft.world.level.block.ComposterBlock;
+import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -90,72 +128,10 @@ public class VillagerEventHandler {
     // Cooldown para resetear golems (evitar spam)
     private final Map<UUID, Long> golemResetCooldown = new HashMap<>();
 
-        private final String[] adultChestMessages = {
-            "§c[Villager] HEY! That's MINE!",
-            "§c[Villager] *gasps* A THIEF!",
-            "§c[Villager] STOP! Give that back!",
-            "§c[Villager] You're... you're robbing us!",
-            "§c[Villager] I can't believe you're doing this!",
-            "§c[Villager] GUARDS! We have a thief!",
-            "§c[Villager] How DARE you open that!",
-            "§c[Villager] That chest is NOT yours!",
-            "§c[Villager] Stay away from my belongings!",
-            "§c[Villager] What do you think you're doing!?",
-            "§c[Villager] I worked YEARS for what's in there!",
-            "§c[Villager] You'll regret this, thief!",
-            "§c[Villager] That's private property!",
-            "§c[Villager] My life savings are in there!",
-            "§c[Villager] HELP! ROBBERY!",
-            "§c[Villager] This is a breach of trust!",
-            "§c[Villager] Get away from my chest!",
-            "§c[Villager] You're no better than a pillager!"
-        };
-
-        private final String[] babyChestMessages = {
-            "§c[Baby Villager] *cries* Mommy! They're stealing our stuff!",
-            "§c[Baby Villager] Noooo! That's our family chest!",
-            "§c[Baby Villager] Why are you mean? *sobs*",
-            "§c[Baby Villager] I'm telling my dad!",
-            "§c[Baby Villager] *runs away crying* THIEF!",
-            "§c[Baby Villager] That's not yours! *cries*",
-            "§c[Baby Villager] Bad person! Bad!",
-            "§c[Baby Villager] My toys are in there!",
-            "§c[Baby Villager] *shouts* STOOOOP!",
-            "§c[Baby Villager] You're a big bully!",
-            "§c[Baby Villager] I'm scared! *cries*",
-            "§c[Baby Villager] Daddy said strangers are dangerous!"
-        };
-
-        private final String[] adultLootMessages = {
-            "§c[Villager] Those are OUR supplies!",
-            "§c[Villager] You're taking everything we have!",
-            "§c[Villager] THIEF! Someone help!",
-            "§c[Villager] I worked HARD for those items!",
-            "§c[Villager] You're robbing us mercilessly!",
-            "§c[Villager] May you be cursed forever!",
-            "§c[Villager] The Iron Golem will hear about this!",
-            "§c[Villager] You're leaving us with NOTHING!",
-            "§c[Villager] How will we survive now!?",
-            "§c[Villager] That was for the winter!",
-            "§c[Villager] You're worse than the pillagers!",
-            "§c[Villager] I hope karma gets you!",
-            "§c[Villager] You've doomed us all!",
-            "§c[Villager] Our children will starve because of you!",
-            "§c[Villager] This is unforgivable!"
-        };
-
-        private final String[] babyLootMessages = {
-            "§c[Baby Villager] *sobs* That was my favorite toy!",
-            "§c[Baby Villager] No no no! Not our food!",
-            "§c[Baby Villager] You're so mean!",
-            "§c[Baby Villager] I hate you! *cries loudly*",
-            "§c[Baby Villager] Give it baaaack! *shouts*",
-            "§c[Baby Villager] That's not fair!",
-            "§c[Baby Villager] You're evil! *sobs*",
-            "§c[Baby Villager] I'll never forget this!",
-            "§c[Baby Villager] Why would you do that!? *cries*",
-            "§c[Baby Villager] Mommy is going to be so mad!"
-        };
+    private static final int THEFT_CHEST_ADULT = 18;
+    private static final int THEFT_CHEST_BABY = 13;
+    private static final int THEFT_LOOT_ADULT = 15;
+    private static final int THEFT_LOOT_BABY = 10;
 
     @SubscribeEvent
     public void onVillagerDeath(LivingDeathEvent event) {
@@ -206,25 +182,14 @@ public class VillagerEventHandler {
         data.addReputation(player.getUUID(), villagePos, reputationLoss);
 
         int newRep = data.getReputation(player.getUUID(), villagePos);
-        String status = getReputationStatus(newRep);
         checkAndNotifyReputationChange(player, oldRep, newRep);
 
-        String[] deathMessages = villager.isBaby() ? new String[] {
-                "§4[Diplomacia de Aldeas] ¡Mataste a un NIÑO! ¡La aldea NUNCA te perdonará!",
-                "§4[Diplomacia de Aldeas] ¡MONSTRUO! ¡Asesinaste a un niño inocente!",
-                "§4[Diplomacia de Aldeas] Un bebé...mataste a un bebé. ¡Eres PURA MALDAD!",
-                "§4[Diplomacia de Aldeas] La aldea llora...has matado a uno de sus niños."
+        if (villager.isBaby()) {
+            ModLang.sendRandom(player, level.getRandom(), "villagediplomacy.react.villagerdeath.baby", 4);
+        } else {
+            ModLang.sendRandom(player, level.getRandom(), "villagediplomacy.react.villagerdeath.adult", 4);
         }
-                : new String[] {
-                        "§c[Diplomacia de Aldeas] ¡Mataste a un aldeano!",
-                        "§c[Diplomacia de Aldeas] ¡ASESINATO! ¡La aldea fue testigo de tu crimen!",
-                        "§c[Diplomacia de Aldeas] ¡Un aldeano murió por tu mano!",
-                        "§c[Diplomacia de Aldeas] ¡Has quitado una vida inocente!"
-                };
-
-        player.sendSystemMessage(Component.literal(
-                deathMessages[level.getRandom().nextInt(deathMessages.length)] +
-                        " Reputation " + reputationLoss + " (Total: " + newRep + " - " + status + ")"));
+        ModLang.sendReputationSummary(player, reputationLoss, newRep);
 
         checkReputationLevelChange(player, level, newRep);
 
@@ -241,11 +206,9 @@ public class VillagerEventHandler {
             if (existingCrimeEnd > currentTime) {
                 newCrimeEnd = existingCrimeEnd + MAJOR_CRIME_DURATION_MS;
                 int totalSeconds = (int) ((newCrimeEnd - currentTime) / 1000);
-                player.sendSystemMessage(Component.literal(
-                        "§4[Diplomacia de Aldeas] ¡ASESINATO! ¡Tiempo de crimen extendido! Total: " + totalSeconds + " segundos"));
+                player.sendSystemMessage(Component.translatable("villagediplomacy.sys.crime_extended", totalSeconds));
             } else {
-                player.sendSystemMessage(Component.literal(
-                        "§4[Diplomacia de Aldeas] ¡ASESINATO PRESENCIADO! ¡Los Golems de Hierro te cazarán por 2 minutos!"));
+                player.sendSystemMessage(Component.translatable("villagediplomacy.sys.crime_golems"));
             }
 
             crimeCommittedTime.put(playerId, newCrimeEnd);
@@ -280,11 +243,10 @@ public class VillagerEventHandler {
         data.addReputation(player.getUUID(), villagePos, -150);
 
         int newRep = data.getReputation(player.getUUID(), villagePos);
-        String status = getReputationStatus(newRep);
 
-        player.sendSystemMessage(Component.literal(
-                "§4[Diplomacia de Aldeas] ¡Mataste a un Golem de Hierro! Reputación -150 (Total: " +
-                        newRep + " - " + status + ")"));
+        player.sendSystemMessage(Component.translatable("villagediplomacy.sys.golem_killed",
+                newRep,
+                ModLang.repStatus(newRep)));
 
         checkReputationLevelChange(player, level, newRep);
 
@@ -332,21 +294,18 @@ public class VillagerEventHandler {
             GolemPersonalityData personalityData = GolemPersonalityData.get(level);
             GolemPersonality personality = personalityData.getPersonality(golemId);
             
-            // Mensaje según personalidad
             if (personality != null) {
-                String message = switch (personality.getTemperament()) {
-                    case GENTLE -> "§e[" + personality.getName() + "] ¿Por qué...? ¡Debo defenderme!";
-                    case STERN -> "§c[" + personality.getName() + "] Tú elegiste esto.";
-                    case FIERCE -> "§4[" + personality.getName() + "] *RUGE* ¡AHORA MUERES!";
-                    default -> "§c[" + personality.getName() + "] ¡Que así sea!";
+                String key = switch (personality.getTemperament()) {
+                    case GENTLE -> "villagediplomacy.golem.player_hit.gentle";
+                    case STERN -> "villagediplomacy.golem.player_hit.stern";
+                    case FIERCE -> "villagediplomacy.golem.player_hit.fierce";
+                    case DEVOTED, DUTIFUL, INDEPENDENT -> "villagediplomacy.golem.player_hit.default";
                 };
-                player.sendSystemMessage(Component.literal(message));
+                player.sendSystemMessage(Component.translatable(key, personality.getName()));
             } else {
-                // Si no tiene personalidad, mensaje genérico
-                String golemName = golem.hasCustomName() ? 
-                    golem.getCustomName().getString() : "Iron Golem";
-                player.sendSystemMessage(Component.literal(
-                    "§c[" + golemName + "] ¡Tú te lo buscaste!"));
+                Component nameComp = golem.hasCustomName() ? golem.getCustomName()
+                        : Component.translatable("villagediplomacy.golem.generic_name");
+                player.sendSystemMessage(Component.translatable("villagediplomacy.golem.generic_warn", nameComp));
             }
         }
         
@@ -379,237 +338,11 @@ public class VillagerEventHandler {
         spawnNegativeFeedback(level, villager);
 
         int newRep = data.getReputation(player.getUUID(), villagePos);
-        String status = getReputationStatus(newRep);
         checkAndNotifyReputationChange(player, oldRep, newRep);
 
-        // Mensajes básicos para bebés (no tienen profesión)
-        String[] babyMessages = {
-                "§c[Aldeano Bebé] *grita* ¡AYUDA! ¡Alguien me está pegando!",
-                "§c[Aldeano Bebé] ¡AY AY AY! ¡DETENTE!",
-                "§c[Aldeano Bebé] *llora* ¡Eso duele!",
-                "§c[Aldeano Bebé] ¡MAMI! ¡PAPI! ¡AYUDA!",
-                "§c[Aldeano Bebé] ¿¡Por qué me estás lastimando!? *solloza*",
-                "§c[Aldeano Bebé] ¡No hice nada! *gime*",
-                "§c[Aldeano Bebé] *llora* ¡Déjame en paz!",
-                "§c[Aldeano Bebé] ¡Eres una persona mala!",
-                "§c[Aldeano Bebé] *gritando y llorando* ¡PARA!",
-                "§c[Aldeano Bebé] ¡Se lo diré al Gólem de Hierro!",
-                "§c[Aldeano Bebé] *aterrado* ¡Por favor no me lastimes!"
-        };
-
-        String message;
-
-        if (villager.isBaby()) {
-            message = babyMessages[level.getRandom().nextInt(babyMessages.length)];
-        } else {
-            // MENSAJES ESPECÍFICOS POR PROFESIÓN
-            String profession = villager.getVillagerData().getProfession().toString().toLowerCase();
-            String[] professionMessages;
-
-            switch (profession) {
-                case "farmer":
-                    professionMessages = new String[] {
-                            "§c[Granjero] ¡Detente! ¡Solo intento alimentar a la aldea!",
-                            "§c[Granjero] ¡No me lastimes! ¿¡Quién cuidará los cultivos!?",
-                            "§c[Granjero] ¡Trabajo los campos día y noche, y ASÍ es mi agradecimiento!?",
-                            "§c[Granjero] ¡Déjame en paz! ¡La cosecha no se recogerá sola!",
-                            "§c[Granjero] ¡Estás atacando al que cultiva tu comida!",
-                            "§c[Granjero] ¡Tengo zanahorias que plantar! ¡Guardias!",
-                            "§c[Granjero] ¡Mi espalda ya duele de tanto cultivar!",
-                            "§c[Granjero] ¡Sin mí, morirías de hambre!"
-                    };
-                    break;
-
-                case "librarian":
-                    professionMessages = new String[] {
-                            "§c[Bibliotecario] ¡La violencia no es la respuesta! ¡Lee un libro!",
-                            "§c[Bibliotecario] ¡Cesa este barbarismo de inmediato!",
-                            "§c[Bibliotecario] ¡Soy un hombre de CONOCIMIENTO, no de combate!",
-                            "§c[Bibliotecario] ¡Este comportamiento no es nada académico!",
-                            "§c[Bibliotecario] ¡Detente! ¡Piensa en los libros!",
-                            "§c[Bibliotecario] ¡Preferiría resolver esto intelectualmente!",
-                            "§c[Bibliotecario] ¡Mis encantamientos no me salvarán de ESTO!",
-                            "§c[Bibliotecario] ¡Bárbaro! ¡Simplemente bárbaro!"
-                    };
-                    break;
-
-                case "armorer":
-                    professionMessages = new String[] {
-                            "§c[Armero] ¿¡Te atreves a atacar a un MAESTRO de armaduras!?",
-                            "§c[Armero] ¿¡Forjo protección, y tú me golpeas!?",
-                            "§c[Armero] ¡Irónico! ¡Atacar a quien hace armaduras!",
-                            "§c[Armero] ¡Debería haber dejado una espada cerca!",
-                            "§c[Armero] ¿¡Quién reparará tu equipo AHORA, tonto!?",
-                            "§c[Armero] ¡Mi martillo de herrería está AHÍ MISMO!",
-                            "§c[Armero] ¡Tipo rudo, atacando a un armero!",
-                            "§c[Armero] ¡Trabajo con METAL todo el día! ¡Mala idea!"
-                    };
-                    break;
-
-                case "weaponsmith":
-                    professionMessages = new String[] {
-                            "§c[Armero] ¿¡Atacar a un ARMERO!? ¿¡Estás LOCO!?",
-                            "§c[Armero] ¡Forjo ESPADAS, tonto!",
-                            "§c[Armero] ¡Movimiento audaz atacar a quien hace armas!",
-                            "§c[Armero] ¡Espera a que tome mi mejor hoja!",
-                            "§c[Armero] ¡Conozco 50 formas de lastimarte con ESTE martillo!",
-                            "§c[Armero] ¡Aldeano equivocado para meterse, amigo!",
-                            "§c[Armero] ¡Estoy rodeado de armas! ¡Piensa!",
-                            "§c[Armero] ¡Cada hoja aquí es mía!"
-                    };
-                    break;
-
-                case "toolsmith":
-                    professionMessages = new String[] {
-                            "§c[Herrero] ¡Detente! ¡Soy quien hace tus herramientas!",
-                            "§c[Herrero] ¡No más picos para TI!",
-                            "§c[Herrero] ¡Sin mí, buena suerte minando!",
-                            "§c[Herrero] ¡Tengo martillos por todas partes, mala idea!",
-                            "§c[Herrero] ¿¡Quién forjará tus herramientas ahora!?",
-                            "§c[Herrero] ¿¡Crees que puedes minar con tus PUÑOS!?",
-                            "§c[Herrero] ¡Soy la razón por la que TIENES herramientas!",
-                            "§c[Herrero] ¡Buena suerte fabricando sin mí!"
-                    };
-                    break;
-
-                case "cleric":
-                    professionMessages = new String[] {
-                            "§c[Clérigo] ¿¡Atacas a un sanador!? ¡BLASFEMIA!",
-                            "§c[Clérigo] ¡Que los dioses te perdonen, porque yo no lo haré!",
-                            "§c[Clérigo] ¡Esto es sacrilegio!",
-                            "§c[Clérigo] ¡Curo a los enfermos, y ASÍ es mi recompensa!?",
-                            "§c[Clérigo] ¡Necesitarás mis pociones de curación después!",
-                            "§c[Clérigo] ¡Los dioses están observando, pecador!",
-                            "§c[Clérigo] ¡Rezaré para que veas el error de tus caminos!",
-                            "§c[Clérigo] ¡La retribución divina te espera!"
-                    };
-                    break;
-
-                case "butcher":
-                    professionMessages = new String[] {
-                            "§c[Carnicero] ¡Persona equivocada! ¡Tengo CUCHILLAS!",
-                            "§c[Carnicero] ¡Trabajo con CARNE y CUCHILLOS diariamente!",
-                            "§c[Carnicero] ¡Mala idea atacar a alguien con cuchillos!",
-                            "§c[Carnicero] ¡Descuartizo ANIMALES, no personas!",
-                            "§c[Carnicero] ¡Mi cuchilla está AFILADA, amigo!",
-                            "§c[Carnicero] ¡No más chuletas de cerdo cocidas para TI!",
-                            "§c[Carnicero] ¡Trabajo con carne cruda, puedo manejarte!",
-                            "§c[Carnicero] ¡Estás cometiendo un ERROR GRAVE!"
-                    };
-                    break;
-
-                case "cartographer":
-                    professionMessages = new String[] {
-                            "§c[Cartógrafo] ¡Detente! ¡Hago tus MAPAS!",
-                            "§c[Cartógrafo] ¡Sin mí, te PERDERÁS!",
-                            "§c[Cartógrafo] ¡Trazo el mundo, y así es mi agradecimiento!?",
-                            "§c[Cartógrafo] ¡Buena suerte navegando sin mis mapas!",
-                            "§c[Cartógrafo] ¡Guardias! ¡Alguien está atacando al cartografiador!",
-                            "§c[Cartógrafo] ¡Exploro para que tú no tengas que hacerlo!",
-                            "§c[Cartógrafo] ¿¡Perdido!? ¡No vengas a MÍ nunca más!",
-                            "§c[Cartógrafo] ¡Mis mapas no te mostrarán ningún tesoro ahora!"
-                    };
-                    break;
-
-                case "fisherman":
-                    professionMessages = new String[] {
-                            "§c[Pescador] ¡Detente! ¿¡Qué te hice!?",
-                            "§c[Pescador] ¡Solo pesco todo el día!",
-                            "§c[Pescador] ¡Deja en paz a un simple pescador!",
-                            "§c[Pescador] ¡Tengo una caña de pescar, mantente atrás!",
-                            "§c[Pescador] ¡No más comercio de pescado para ti!",
-                            "§c[Pescador] ¡Todo lo que hago es PESCAR! ¿¡Por qué atacarme!?",
-                            "§c[Pescador] ¡Proporciono COMIDA para todos!",
-                            "§c[Pescador] ¡Atrapa tu propio pescado de ahora en adelante!"
-                    };
-                    break;
-
-                case "fletcher":
-                    professionMessages = new String[] {
-                            "§c[Flechero] ¡Hago FLECHAS! ¡Tengo muchas aquí mismo!",
-                            "§c[Flechero] ¡Artesano equivocado para atacar, amigo!",
-                            "§c[Flechero] ¡Detente! ¡Estoy rodeado de proyectiles!",
-                            "§c[Flechero] ¡No más flechas para TU arco!",
-                            "§c[Flechero] ¡Puedo disparar desde AQUÍ, lo sabes!",
-                            "§c[Flechero] ¿¡Atacar al fabricante de flechas!? ¡Audaz!",
-                            "§c[Flechero] ¿¡Quién proveerá tus flechas AHORA!?",
-                            "§c[Flechero] ¡Tengo un arco justo detrás de mí!"
-                    };
-                    break;
-
-                case "leatherworker":
-                    professionMessages = new String[] {
-                            "§c[Peletero] ¡Detente! ¡Hago tu armadura de cuero!",
-                            "§c[Peletero] ¿¡Quién fabricará tu equipo!?",
-                            "§c[Peletero] ¡Trabajo duro en cada pieza!",
-                            "§c[Peletero] ¡No más productos de cuero para ti!",
-                            "§c[Peletero] ¡Guardias! ¡Ayuda!",
-                            "§c[Peletero] ¿¡Así es como tratas a un artesano!?",
-                            "§c[Peletero] ¡Mi taller es mi sustento!",
-                            "§c[Peletero] ¡Ingrato! ¡Hago productos de calidad!"
-                    };
-                    break;
-
-                case "mason":
-                    professionMessages = new String[] {
-                            "§c[Albañil] ¡Construyo con PIEDRA! ¡Soy fuerte!",
-                            "§c[Albañil] ¡Mala idea! ¡Manejo bloques pesados diariamente!",
-                            "§c[Albañil] ¡Detente! ¿¡Quién construirá tus estructuras!?",
-                            "§c[Albañil] ¡Estas manos dan forma a la PIEDRA, pueden manejarte!",
-                            "§c[Albañil] ¡Soy un ALBAÑIL! ¡Somos gente resistente!",
-                            "§c[Albañil] ¡Guardias! ¡Alguien está atacando al constructor!",
-                            "§c[Albañil] ¡Mi trabajo es permanente, igual que mi memoria!",
-                            "§c[Albañil] ¡Te metes con la piedra, recibes la roca!"
-                    };
-                    break;
-
-                case "shepherd":
-                    professionMessages = new String[] {
-                            "§c[Pastor] ¡Déjame en paz! ¡Solo cuido ovejas!",
-                            "§c[Pastor] ¡Todo lo que hago es esquilar lana!",
-                            "§c[Pastor] ¿¡Por qué atacar a un pastor pacífico!?",
-                            "§c[Pastor] ¡Mis ovejas me necesitan!",
-                            "§c[Pastor] ¡Guardias! ¡Ayuden al pastor!",
-                            "§c[Pastor] ¡Proporciono lana para todos!",
-                            "§c[Pastor] ¿¡Así es como tratas a un pastor!?",
-                            "§c[Pastor] ¡No más lana para tus camas!"
-                    };
-                    break;
-
-                case "nitwit":
-                    professionMessages = new String[] {
-                            "§c[Tonto] *confundido* ¿¡Por qué!? ¡Ni siquiera tengo trabajo!",
-                            "§c[Tonto] ¡Solo estoy... existiendo! ¡Déjame en paz!",
-                            "§c[Tonto] *entra en pánico* ¡AYUDA! ¡Alguien!",
-                            "§c[Tonto] ¡No entiendo! ¿¡Qué hice!?",
-                            "§c[Tonto] *gime* ¡Por favor detente!",
-                            "§c[Tonto] ¡Soy inofensivo! ¿¡Por qué yo!?",
-                            "§c[Tonto] ¡Esto no tiene sentido!"
-                    };
-                    break;
-
-                default:
-                    // Profesión desconocida o sin profesión
-                    professionMessages = new String[] {
-                            "§c[Aldeano] ¡AY! ¿¡Por qué me atacas!?",
-                            "§c[Aldeano] ¡Detente de inmediato!",
-                            "§c[Aldeano] ¿¡Qué te hice!?",
-                            "§c[Aldeano] ¡Guardias! ¡GUARDIAS!",
-                            "§c[Aldeano] ¡Te arrepentirás de esto!",
-                            "§c[Aldeano] ¿¡Has perdido la cabeza!?",
-                            "§c[Aldeano] ¡Déjame en paz, bruto!",
-                            "§c[Aldeano] ¡Esto es violencia!",
-                            "§c[Aldeano] ¡El Gólem de Hierro se enterará de esto!"
-                    };
-            }
-
-            message = professionMessages[level.getRandom().nextInt(professionMessages.length)];
-        }
-
-        player.sendSystemMessage(Component.literal(message));
-        player.sendSystemMessage(Component.literal(
-            "§c[Village Diplomacy] You attacked a villager! Reputation -10 (Total: " +
-                newRep + " - " + status + ")"));
+        player.sendSystemMessage(getDialogComponent(newRep));
+        player.sendSystemMessage(Component.translatable("villagediplomacy.sys.villager_attacked",
+                -10, newRep, ModLang.repStatus(newRep)));
 
         checkReputationLevelChange(player, level, newRep);
 
@@ -617,6 +350,50 @@ public class VillagerEventHandler {
         relationData.registerVillage(nearestVillage.get());
 
         processStrikeSystem(player, level, villagerPos);
+    }
+
+    /**
+     * Obtiene un diálogo aleatorio según la categoría y la reputación actual.
+     * Usa el sistema de traducción de Minecraft para EN/ES automático.
+     */
+    private static Component getDialogComponent(int reputation) {
+        java.util.Random random = new java.util.Random();
+        if (reputation >= 75) {
+            return Component.translatable("villagediplomacy.dialog.friendly." + random.nextInt(7));
+        } else if (reputation >= 25) {
+            return Component.translatable("villagediplomacy.dialog.neutral." + random.nextInt(6));
+        } else if (reputation < 0) {
+            return Component.translatable("villagediplomacy.dialog.hostile." + random.nextInt(6));
+        } else {
+            return Component.translatable("villagediplomacy.dialog.greeting." + random.nextInt(7));
+        }
+    }
+
+    /**
+     * Diálogo de comercio aleatorio.
+     */
+    private static String getTradeDialog() {
+        java.util.Random random = new java.util.Random();
+        int index = random.nextInt(6);
+        return Component.translatable("villagediplomacy.dialog.trade." + index).getString();
+    }
+
+    /**
+     * Diálogo de advertencia aleatorio (nuevo en v1.1.0).
+     */
+    private static String getWarningDialog() {
+        java.util.Random random = new java.util.Random();
+        int index = random.nextInt(6);
+        return Component.translatable("villagediplomacy.dialog.warning." + index).getString();
+    }
+
+    /**
+     * Diálogo de quest aleatorio (nuevo en v1.1.0).
+     */
+    private static String getQuestDialog() {
+        java.util.Random random = new java.util.Random();
+        int index = random.nextInt(5);
+        return Component.translatable("villagediplomacy.dialog.quest." + index).getString();
     }
 
     @SubscribeEvent
@@ -661,158 +438,14 @@ public class VillagerEventHandler {
                         int newRep = data.getReputation(player.getUUID(), nearestVillage.get());
                         checkAndNotifyReputationChange(player, oldRep, newRep);
 
-                        // MENSAJES ESPECÍFICOS POR TIPO DE ANIMAL
-                        String[] babyMessages;
-                        String[] adultMessages;
-
-                        switch (animalType) {
-                            case "cow":
-                            babyMessages = new String[] {
-                                "§c[Baby Villager] Don't hurt our cows! We need milk!",
-                                "§c[Baby Villager] That cow gives us milk! *cries*",
-                                "§c[Baby Villager] Moo is my friend!",
-                                "§c[Baby Villager] Leave the cow alone!",
-                                "§c[Baby Villager] I love that cow!"
-                            };
-                            adultMessages = new String[] {
-                                "§c[Villager] Stop! That cow provides milk for the village!",
-                                "§c[Villager] Our dairy supply! Leave her alone!",
-                                "§c[Villager] That cow feeds our children!",
-                                "§c[Villager] We depend on those cows for milk and leather!",
-                                "§c[Villager] Stay away from our livestock!",
-                                "§c[Villager] Those cows are essential for our survival!",
-                                "§c[Villager] That's weeks of milk you're threatening!"
-                            };
-                            break;
-
-                            case "sheep":
-                            babyMessages = new String[] {
-                                "§c[Baby Villager] Don't hurt Fluffy! *cries*",
-                                "§c[Baby Villager] That sheep makes our beds!",
-                                "§c[Baby Villager] I like petting the sheep!",
-                                "§c[Baby Villager] Leave the woolly one alone!",
-                                "§c[Baby Villager] The sheep is so soft!"
-                            };
-                            adultMessages = new String[] {
-                                "§c[Villager] That sheep provides our wool!",
-                                "§c[Villager] Stop! We need that wool for blankets!",
-                                "§c[Villager] Our textile supply! Leave her alone!",
-                                "§c[Villager] Those sheep keep us warm in winter!",
-                                "§c[Villager] We shear those sheep for clothes!",
-                                "§c[Villager] That's our source of wool, brute!",
-                                "§c[Villager] Without wool, we freeze!"
-                            };
-                            break;
-
-                            case "pig":
-                            babyMessages = new String[] {
-                                "§c[Baby Villager] Don't hurt the piggy! *sobs*",
-                                "§c[Baby Villager] That pig makes funny noises!",
-                                "§c[Baby Villager] Oink-oink is cute!",
-                                "§c[Baby Villager] Leave the piggy alone!",
-                                "§c[Baby Villager] I feed that pig every day!"
-                            };
-                            adultMessages = new String[] {
-                                "§c[Villager] That pig is valuable livestock!",
-                                "§c[Villager] Stop! Those pigs are for breeding!",
-                                "§c[Villager] We raise those pigs carefully!",
-                                "§c[Villager] That pig will feed families this winter!",
-                                "§c[Villager] Leave our meat supply alone!",
-                                "§c[Villager] Those pigs are our investment!",
-                                "§c[Villager] Back off! That pig is reserved!"
-                            };
-                            break;
-
-                            case "chicken":
-                            babyMessages = new String[] {
-                                "§c[Baby Villager] Don't hurt the chicken! *cries*",
-                                "§c[Baby Villager] That chicken gives us eggs!",
-                                "§c[Baby Villager] I collect eggs from them!",
-                                "§c[Baby Villager] Chickens are my job!",
-                                "§c[Baby Villager] Feathers is so cute!"
-                            };
-                            adultMessages = new String[] {
-                                "§c[Villager] Those chickens lay our eggs!",
-                                "§c[Villager] Stop! That chicken is our breakfast!",
-                                "§c[Villager] We need those eggs daily!",
-                                "§c[Villager] That chicken is part of our farm!",
-                                "§c[Villager] Leave our birds alone!",
-                                "§c[Villager] Those chickens are egg producers!",
-                                "§c[Villager] No chickens, no eggs!"
-                            };
-                            break;
-
-                            case "rabbit":
-                            babyMessages = new String[] {
-                                "§c[Baby Villager] Don't hurt the bunny! *cries*",
-                                "§c[Baby Villager] Bunnies are so cute!",
-                                "§c[Baby Villager] That's my favorite rabbit!",
-                                "§c[Baby Villager] Leave the hopper alone!",
-                                "§c[Baby Villager] I want to pet them!"
-                            };
-                            adultMessages = new String[] {
-                                "§c[Villager] Those rabbits are part of our ecosystem!",
-                                "§c[Villager] Leave the rabbits alone!",
-                                "§c[Villager] They're harmless creatures!",
-                                "§c[Villager] Stop attacking innocent animals!",
-                                "§c[Villager] Those rabbits help our gardens!",
-                                "§c[Villager] What did that rabbit ever do to you!?",
-                                "§c[Villager] They're just rabbits!"
-                            };
-                            break;
-
-                            case "horse":
-                            babyMessages = new String[] {
-                                "§c[Baby Villager] Don't hurt the horsie! *cries*",
-                                "§c[Baby Villager] I want to ride horses when I grow up!",
-                                "§c[Baby Villager] That horse is so pretty!",
-                                "§c[Baby Villager] Leave the horse alone!",
-                                "§c[Baby Villager] Horses are noble!"
-                            };
-                            adultMessages = new String[] {
-                                "§c[Villager] That horse is our transport!",
-                                "§c[Villager] Stop! We need that horse for travel!",
-                                "§c[Villager] Those horses are expensive!",
-                                "§c[Villager] That's weeks of breeding work!",
-                                "§c[Villager] Leave our horses alone!",
-                                "§c[Villager] We use those horses for trade routes!",
-                                "§c[Villager] That horse carries our supplies!",
-                                "§c[Villager] You're attacking our mobility!"
-                            };
-                            break;
-
-                            case "camel":
-                            babyMessages = new String[] {
-                                "§c[Baby Villager] Don't hurt the camel! *cries*",
-                                "§c[Baby Villager] Camels are for the desert!",
-                                "§c[Baby Villager] That camel is cool!",
-                                "§c[Baby Villager] Leave the camel alone!",
-                                "§c[Baby Villager] I like camels!"
-                            };
-                            adultMessages = new String[] {
-                                "§c[Villager] That camel is our desert transport!",
-                                "§c[Villager] Stop! We need that camel for travel!",
-                                "§c[Villager] Those camels are expensive!",
-                                "§c[Villager] That's weeks of breeding work!",
-                                "§c[Villager] Leave our camels alone!",
-                                "§c[Villager] We use those camels for desert routes!",
-                                "§c[Villager] That camel carries our supplies!",
-                                "§c[Villager] You're attacking our mobility!"
-                            };
-                            break;
-
-                            default:
-                            babyMessages = new String[] {"§c[Baby Villager] Don't hurt them!"};
-                            adultMessages = new String[] {"§c[Villager] Stop!"};
-                        }
-
-                        String[] messages = villager.isBaby() ? babyMessages : adultMessages;
-
-                        player.sendSystemMessage(Component.literal(
-                            messages[level.getRandom().nextInt(messages.length)]));
-                        player.sendSystemMessage(Component.literal(
-                            "§c[Village Diplomacy] You attacked a " + animalType + "! Reputation -5 (Total: " +
-                                newRep + " - " + getReputationStatus(newRep) + ")"));
+                        AnimalAttackKind attackKind = animalAttackKindFor(animalType);
+                        String suffix = villager.isBaby() ? ".baby" : ".adult";
+                        int lineCount = villager.isBaby() ? attackKind.babyCount() : attackKind.adultCount();
+                        ModLang.sendRandom(player, level.getRandom(),
+                                "villagediplomacy.react.animalattack." + attackKind.key() + suffix, lineCount);
+                        player.sendSystemMessage(Component.translatable("villagediplomacy.sys.animal_attack_warn",
+                                Component.translatable(event.getEntity().getType().getDescriptionId())));
+                        ModLang.sendReputationSummary(player, -5, newRep);
 
                         tradeCooldowns.put(playerId, currentTime);
                     }
@@ -824,171 +457,46 @@ public class VillagerEventHandler {
 
     @SubscribeEvent
     public void onAnimalDeath(LivingDeathEvent event) {
-        if (!(event.getSource().getEntity() instanceof ServerPlayer player))
+        if (event.getEntity() instanceof Villager) {
             return;
-        if (!(event.getEntity().level() instanceof ServerLevel level))
+        }
+        if (!(event.getSource().getEntity() instanceof ServerPlayer player)) {
             return;
-
-        // Obtener el aldeano y la aldea más cercana
-        Villager villager = null;
-        Optional<BlockPos> nearestVillage = Optional.empty();
-        int newRep = 0;
-        if (event.getEntity() instanceof Villager v) {
-            villager = v;
-            BlockPos villagerPos = villager.blockPosition();
-            nearestVillage = VillageDetector.findNearestVillage(level, villagerPos, 200);
-            if (nearestVillage.isPresent()) {
-                VillageReputationData data = VillageReputationData.get(level);
-                UUID playerId = player.getUUID();
-                data.addReputation(playerId, -25);
-                newRep = data.getReputation(playerId);
-            }
+        }
+        if (!(event.getEntity().level() instanceof ServerLevel level)) {
+            return;
         }
 
-        String[] babyMessages = null;
-        String[] adultMessages = null;
-
-        // Detectar tipo específico de animal (Camel ANTES de AbstractHorse porque Camel extends AbstractHorse)
-        String animalType = null;
-        if (event.getEntity() instanceof Cow) animalType = "cow";
-        else if (event.getEntity() instanceof Sheep) animalType = "sheep";
-        // ...continúa el switch...
-        switch (animalType) {
-            case "cow":
-                babyMessages = new String[] {
-                    "§c[Baby Villager] NOOO! You killed Bessie! *screams*",
-                    "§c[Baby Villager] No more milk now! *sobs*",
-                    "§c[Baby Villager] That cow had a calf! *cries*",
-                    "§c[Baby Villager] Why!? She gave us milk! *heartbroken*",
-                    "§c[Baby Villager] Moo is gone... *sobs*"
-                };
-                adultMessages = new String[] {
-                    "§c[Villager] YOU KILLED OUR COW!",
-                    "§c[Villager] MONTHS of milk production LOST!",
-                    "§c[Villager] How will we feed our children without milk!?",
-                    "§c[Villager] That cow was worth 10 emeralds!",
-                    "§c[Villager] You've destroyed our dairy farm!",
-                    "§c[Villager] ANIMAL KILLER! That cow had calves!",
-                    "§c[Villager] We raised that cow from birth!",
-                    "§c[Villager] No milk, no cheese, no leather! Thanks to YOU!"
-                };
-                break;
-
-            case "sheep":
-                babyMessages = new String[] {
-                    "§c[Baby Villager] You killed Fluffy! NOOO! *cries*",
-                    "§c[Baby Villager] No more wool now! *sobs*",
-                    "§c[Baby Villager] That sheep was so soft! *screams*",
-                    "§c[Baby Villager] Why kill the woolly one!? *heartbroken*",
-                    "§c[Baby Villager] I was going to shear her tomorrow! *devastated*"
-                };
-                adultMessages = new String[] {
-                    "§c[Villager] YOU KILLED OUR SHEEP!",
-                    "§c[Villager] That sheep produced wool for YEARS!",
-                    "§c[Villager] How will we make blankets now!?",
-                    "§c[Villager] We'll FREEZE without that wool!",
-                    "§c[Villager] That sheep was our textile source!",
-                    "§c[Villager] MURDERER! We raised that sheep with care!",
-                    "§c[Villager] No wool means no warm clothes!",
-                    "§c[Villager] That sheep was white wool - RARE!"
-                };
-                break;
-
-            case "pig":
-                babyMessages = new String[] {
-                    "§c[Baby Villager] You killed the piggy! MONSTER! *cries*",
-                    "§c[Baby Villager] That pig was going to have babies! *sobs*",
-                    "§c[Baby Villager] Oink-oink is gone! *screams*",
-                    "§c[Baby Villager] Why!? He was so funny! *devastated*",
-                    "§c[Baby Villager] I fed that pig carrots! *heartbroken*"
-                };
-                adultMessages = new String[] {
-                    "§c[Villager] YOU SLAUGHTERED OUR PIG!",
-                    "§c[Villager] That pig was breeding stock!",
-                    "§c[Villager] You just killed our WINTER MEAT SUPPLY!",
-                    "§c[Villager] We raised that pig for MONTHS!",
-                    "§c[Villager] THIEF! That pig was our investment!",
-                    "§c[Villager] How DARE you kill our livestock!?",
-                    "§c[Villager] That pig was going to feed families!",
-                    "§c[Villager] You've ruined our breeding program!"
-                };
-                break;
-
-            case "rabbit":
-                babyMessages = new String[] {
-                    "§c[Baby Villager] You killed the bunny! *cries*",
-                    "§c[Baby Villager] That bunny was so cute! *sobs*",
-                    "§c[Baby Villager] Why did you do that!? *devastated*",
-                    "§c[Baby Villager] I wanted to pet the bunny! *heartbroken*"
-                };
-                adultMessages = new String[] {
-                    "§c[Villager] YOU KILLED THE RABBIT!",
-                    "§c[Villager] That rabbit helped control garden pests!",
-                    "§c[Villager] What kind of MONSTER kills rabbits!?",
-                    "§c[Villager] They're harmless creatures!",
-                    "§c[Villager] The children loved that rabbit!",
-                    "§c[Villager] You're a BRUTE and a BULLY!",
-                    "§c[Villager] Killing innocent animals! Shame!",
-                    "§c[Villager] That rabbit never hurt anyone!"
-                };
-                break;
-
-            case "horse":
-                babyMessages = new String[] {
-                    "§c[Baby Villager] You killed the horsie! NOOO! *screams*",
-                    "§c[Baby Villager] That horse was so strong! *cries*",
-                    "§c[Baby Villager] I wanted to ride him! *devastated*",
-                    "§c[Baby Villager] Horses are noble! Why!? *sobs*",
-                    "§c[Baby Villager] That's the worst! *heartbroken*"
-                };
-                adultMessages = new String[] {
-                    "§c[Villager] YOU KILLED OUR HORSE!",
-                    "§c[Villager] That horse was EXPENSIVE! 20 emeralds!",
-                    "§c[Villager] We needed that horse for TRAVEL!",
-                    "§c[Villager] That took WEEKS to tame and breed!",
-                    "§c[Villager] How will we transport goods now!?",
-                    "§c[Villager] HORSE KILLER! That was our LIVELIHOOD!",
-                    "§c[Villager] We used that horse for trade routes!",
-                    "§c[Villager] You've paralyzed our trade!",
-                    "§c[Villager] That horse was part of the family!",
-                    "§c[Villager] Killing a horse!? You have NO HEART!"
-                };
-                break;
-
-            case "camel":
-                babyMessages = new String[] {
-                    "§c[Baby Villager] You killed the camel! NOOO! *screams*",
-                    "§c[Baby Villager] That camel was so tall! *cries*",
-                    "§c[Baby Villager] I wanted to ride him! *devastated*",
-                    "§c[Baby Villager] Camels are amazing! Why!? *sobs*",
-                    "§c[Baby Villager] That's so cruel! *heartbroken*"
-                };
-                adultMessages = new String[] {
-                    "§c[Villager] YOU KILLED OUR CAMEL!",
-                    "§c[Villager] That camel was EXPENSIVE! 30 emeralds!",
-                    "§c[Villager] We needed that camel for DESERT TRAVEL!",
-                    "§c[Villager] That took WEEKS to tame and breed!",
-                    "§c[Villager] How will we cross the desert now!?"
-                };
-                break;
-
-            default:
-                babyMessages = new String[] {"§c[Baby Villager] You killed it! *cries*"};
-                adultMessages = new String[] {"§c[Villager] MURDERER!"};
-                break;
+        LivingEntity killed = event.getEntity();
+        BlockPos deathPos = killed.blockPosition();
+        Optional<BlockPos> nearestVillage = VillageDetector.findNearestVillage(level, deathPos, 200);
+        if (nearestVillage.isEmpty()) {
+            return;
         }
 
-        String[] messages = villager.isBaby() ? babyMessages : adultMessages;
+        BlockPos villagePos = nearestVillage.get();
+        VillageReputationData data = VillageReputationData.get(level);
+        UUID playerId = player.getUUID();
+        int oldRep = data.getReputation(playerId, villagePos);
+        data.addReputation(playerId, villagePos, -25);
+        int newRep = data.getReputation(playerId, villagePos);
+        checkAndNotifyReputationChange(player, oldRep, newRep);
 
-        player.sendSystemMessage(Component.literal(
-                messages[level.getRandom().nextInt(messages.length)]));
-        player.sendSystemMessage(Component.literal(
-            "§c[Village Diplomacy] You killed a " + animalType + "! Reputation -25 (Total: " +
-                newRep + " - " + getReputationStatus(newRep) + ")"));
+        Villager witness = findNearestWitnessVillager(level, killed, 16.0);
+        boolean useBaby = witness != null && witness.isBaby();
+        AnimalDeathKind react = animalDeathKindFor(killed);
+        String suffix = useBaby ? ".baby" : ".adult";
+        int lineCount = useBaby ? react.babyCount : react.adultCount;
+        ModLang.sendRandom(player, level.getRandom(),
+                "villagediplomacy.react.animaldeath." + react.key + suffix, lineCount);
+
+        player.sendSystemMessage(Component.translatable("villagediplomacy.sys.animal_killed",
+                Component.translatable(killed.getType().getDescriptionId()),
+                newRep,
+                ModLang.repStatus(newRep)));
 
         VillageRelationshipData relationData = VillageRelationshipData.get(level);
-        relationData.registerVillage(nearestVillage.get());
-
+        relationData.registerVillage(villagePos);
     }
 
     @SubscribeEvent
@@ -1035,8 +543,8 @@ public class VillagerEventHandler {
             // Debug message para testear
             int currentBonus = personality.getPlayerReputationBonus();
             if (currentBonus >= 30 && currentBonus % 10 == 0) {
-                player.sendSystemMessage(Component.literal(
-                    "§7[Debug] " + personality.getCustomName() + " vínculo: " + currentBonus + "/30 para testamento"));
+                ModLang.send(player, "villagediplomacy.debug.trade_bond", personality.getCustomName(),
+                        String.valueOf(currentBonus));
             }
         }
     }
@@ -1067,20 +575,9 @@ public class VillagerEventHandler {
                 // Feedback visual positivo (partículas + sonido)
                 spawnPositiveFeedback(level, player);
 
-                String[] tradeMessages = {
-                        "§a[Diplomacia de Aldeas] ¡Completaste " + trades
-                                + " intercambio(s)! La aldea aprecia tu negocio.",
-                        "§a[Diplomacia de Aldeas] ¡" + trades + " intercambio(s) exitoso(s)! Tu reputación crece.",
-                        "§a[Diplomacia de Aldeas] ¡Excelente comercio! Los aldeanos están complacidos.",
-                        "§a[Diplomacia de Aldeas] " + trades + " intercambio(s) completado(s). La aldea confía más en ti.",
-                        "§a[Diplomacia de Aldeas] ¡Buen comercio! La aldea valora tu negocio.",
-                        "§a[Diplomacia de Aldeas] " + trades + " intercambio(s) hecho(s). Te estás convirtiendo en un cliente valioso."
-                };
-
-                player.sendSystemMessage(Component.literal(
-                        tradeMessages[level.getRandom().nextInt(tradeMessages.length)] +
-                                " Reputation +" + (trades * 5) + " (Total: " + newRep + " - "
-                                + getReputationStatus(newRep) + ")"));
+                int ti = level.getRandom().nextInt(6);
+                player.sendSystemMessage(Component.translatable("villagediplomacy.react.trade." + ti, trades));
+                ModLang.sendReputationSummary(player, trades * 5, newRep);
 
                 pendingTrades.remove(playerId);
                 tradeWindowStart.remove(playerId);
@@ -1163,138 +660,53 @@ public class VillagerEventHandler {
             doorOpenCooldown.put(playerId, currentTime);
 
             if (reputation >= 500) {
-                // MENSAJES EXPANDIDOS: Héroe/Amigo de confianza
-                String[] positiveOpenMessages = caughtByBaby ? new String[] {
-                        "§a[Aldeano Bebé] ¡Hola héroe! *saluda*",
-                        "§a[Aldeano Bebé] ¡Entra, eres el mejor!",
-                        "§a[Aldeano Bebé] ¡Bienvenido! *se ríe*",
-                        "§a[Aldeano Bebé] ¡Nuestro héroe está aquí!",
-                        "§a[Aldeano Bebé] ¡Mamá dice que eres muy bueno!"
+                if (isClosing) {
+                    if (caughtByBaby) {
+                        ModLang.sendRandom(player, level.getRandom(), "villagediplomacy.react.door.high.close.baby", 4);
+                    } else {
+                        ModLang.sendRandom(player, level.getRandom(), "villagediplomacy.react.door.high.close.adult", 6);
+                    }
+                } else if (caughtByBaby) {
+                    ModLang.sendRandom(player, level.getRandom(), "villagediplomacy.react.door.high.open.baby", 5);
+                } else if (isNight) {
+                    ModLang.sendRandom(player, level.getRandom(), "villagediplomacy.react.door.high.open.night", 4);
+                } else if (isMorning) {
+                    ModLang.sendRandom(player, level.getRandom(), "villagediplomacy.react.door.high.open.morning", 4);
+                } else {
+                    ModLang.sendRandom(player, level.getRandom(), "villagediplomacy.react.door.high.open.day", 8);
                 }
-                        : isNight ? new String[] {
-                                "§a[Aldeano] Bienvenido, amigo. ¡Viaja seguro en la noche!",
-                                "§a[Aldeano] Entra de la oscuridad, ¡campeón!",
-                                "§a[Aldeano] ¡Nuestra casa es tu casa, incluso de noche!",
-                                "§a[Aldeano] ¡Por favor, quédate seguro adentro!"
-                        }
-                        : isMorning ? new String[] {
-                                "§a[Aldeano] ¡Buenos días, héroe! ¡Entra!",
-                                "§a[Aldeano] ¡Madrugador! ¡Por favor, entra!",
-                                "§a[Aldeano] ¡Día fresco, bienvenido amigo!",
-                                "§a[Aldeano] ¡Buenos días! ¡Nuestras puertas siempre están abiertas para ti!"
-                        }
-                        : new String[] {
-                                "§a[Aldeano] ¡Bienvenido, campeón!",
-                                "§a[Aldeano] ¡Por favor, pasa!",
-                                "§a[Aldeano] ¡Nuestras puertas están abiertas para ti!",
-                                "§a[Aldeano] ¡Siéntete libre de entrar, amigo!",
-                                "§a[Aldeano] ¡Entra, ponte cómodo!",
-                                "§a[Aldeano] ¡Siempre eres bienvenido aquí!",
-                                "§a[Aldeano] ¡Ah, nuestro protector llega!",
-                                "§a[Aldeano] ¡Entra libremente, valiente!"
-                        };
-
-                String[] positiveCloseMessages = caughtByBaby ? new String[] {
-                        "§a[Aldeano Bebé] ¡Gracias! *sonríe*",
-                        "§a[Aldeano Bebé] ¡Buenos modales!",
-                        "§a[Aldeano Bebé] ¡Eres tan amable!",
-                        "§a[Aldeano Bebé] ¡Mamá también me enseñó eso!"
-                }
-                        : new String[] {
-                                "§a[Aldeano] ¡Gracias por cerrarla!",
-                                "§a[Aldeano] ¡Aprecio la cortesía, amigo!",
-                                "§a[Aldeano] ¡Qué buenos modales!",
-                                "§a[Aldeano] ¡Eres tan considerado!",
-                                "§a[Aldeano] ¡Gracias, mantiene el frío afuera!",
-                                "§a[Aldeano] ¡Muy apreciado, héroe!"
-                        };
-
-                String[] messages = isClosing ? positiveCloseMessages : positiveOpenMessages;
-                player.sendSystemMessage(Component.literal(
-                        messages[level.getRandom().nextInt(messages.length)]));
 
             } else if (reputation >= 100) {
-                // MENSAJES EXPANDIDOS: Reputación neutral/buena
-                String[] neutralOpenMessages = isNight ? new String[] {
-                        "§e[Aldeano] Entra. Cuidado, está oscuro afuera.",
-                        "§e[Aldeano] Adelante. Cuidado con los mobs.",
-                        "§e[Aldeano] Seguro. No te quedes afuera mucho tiempo."
-                }
-                        : new String[] {
-                                "§e[Aldeano] Adelante.",
-                                "§e[Aldeano] Seguro, entra.",
-                                "§e[Aldeano] De acuerdo.",
-                                "§e[Aldeano] Siéntete libre.",
-                                "§e[Aldeano] Sí, está bien.",
-                                "§e[Aldeano] Entra si lo necesitas."
-                        };
-
-                String[] neutralCloseMessages = new String[] {
-                        "§e[Aldeano] Gracias.",
-                        "§e[Aldeano] De acuerdo.",
-                        "§e[Aldeano] Apreciado.",
-                        "§e[Aldeano] Bien."
-                };
-
-                // 50% chance para mensajes neutrales (antes era 33%)
                 if (level.getRandom().nextInt(2) == 0) {
-                    String[] messages = isClosing ? neutralCloseMessages : neutralOpenMessages;
-                    player.sendSystemMessage(Component.literal(
-                            messages[level.getRandom().nextInt(messages.length)]));
+                    if (isClosing) {
+                        ModLang.sendRandom(player, level.getRandom(), "villagediplomacy.react.door.neutral.close", 4);
+                    } else if (isNight) {
+                        ModLang.sendRandom(player, level.getRandom(), "villagediplomacy.react.door.neutral.open.night", 3);
+                    } else {
+                        ModLang.sendRandom(player, level.getRandom(), "villagediplomacy.react.door.neutral.open.day", 6);
+                    }
                 }
 
             } else if (reputation >= -99) {
-                // NUEVO: Rango de reputación baja pero no criminal
-                String[] lowRepMessages = caughtByBaby ? new String[] {
-                        "§6[Aldeano Bebé] Umm... Te estoy observando...",
-                        "§6[Aldeano Bebé] Mami no confía en ti...",
-                        "§6[Aldeano Bebé] *se esconde detrás de la puerta*"
-                }
-                        : new String[] {
-                                "§6[Aldeano] *observa sospechosamente*",
-                                "§6[Aldeano] Te tengo vigilado...",
-                                "§6[Aldeano] No intentes nada gracioso.",
-                                "§6[Aldeano] Hazlo rápido.",
-                                "§6[Aldeano] No estoy feliz con esto.",
-                                "§6[Aldeano] Mejor que no robes nada..."
-                        };
-
-                if (level.getRandom().nextInt(2) == 0) { // 50% chance
-                    player.sendSystemMessage(Component.literal(
-                            lowRepMessages[level.getRandom().nextInt(lowRepMessages.length)]));
+                if (level.getRandom().nextInt(2) == 0) {
+                    if (caughtByBaby) {
+                        ModLang.sendRandom(player, level.getRandom(), "villagediplomacy.react.door.low.baby", 3);
+                    } else {
+                        ModLang.sendRandom(player, level.getRandom(), "villagediplomacy.react.door.low.adult", 6);
+                    }
                 }
 
             } else {
-                // MENSAJES EXPANDIDOS: Criminal/No bienvenido
                 data.addReputation(playerId, nearestVillage.get(), -5);
                 int newRep = data.getReputation(playerId, nearestVillage.get());
 
-                String[] negativeMessages = caughtByBaby ? new String[] {
-                        "§c[Aldeano Bebé] ¡Deja de tocar nuestras puertas!",
-                        "§c[Aldeano Bebé] ¡Eso no es tuyo!",
-                        "§c[Aldeano Bebé] ¡Mami! ¡Hay una mala persona! *llora*",
-                        "§c[Aldeano Bebé] ¡Vete! *asustado*",
-                        "§c[Aldeano Bebé] ¡Das miedo!",
-                        "§c[Aldeano Bebé] ¡AYUDA! *corre*"
+                if (caughtByBaby) {
+                    ModLang.sendRandom(player, level.getRandom(), "villagediplomacy.react.door.neg.baby", 6);
+                } else {
+                    ModLang.sendRandom(player, level.getRandom(), "villagediplomacy.react.door.neg.adult", 10);
                 }
-                        : new String[] {
-                                "§c[Aldeano] ¡Quita tus manos de nuestras puertas!",
-                                "§c[Aldeano] ¡Eso es propiedad privada!",
-                                "§c[Aldeano] ¡No eres bienvenido aquí!",
-                                "§c[Aldeano] ¡Deja de entrar a nuestros hogares!",
-                                "§c[Aldeano] ¡SAL de aquí!",
-                                "§c[Aldeano] ¿¡Cómo TE ATREVES!?",
-                                "§c[Aldeano] ¡GUARDIAS! ¡Intruso!",
-                                "§c[Aldeano] ¡Esta es NUESTRA casa, ladrón!",
-                                "§c[Aldeano] ¡NO tienes derecho a estar aquí!",
-                                "§c[Aldeano] ¡Debería llamar a los Gólems de Hierro!"
-                        };
-
-                player.sendSystemMessage(Component.literal(
-                        negativeMessages[level.getRandom().nextInt(negativeMessages.length)]));
-                player.sendSystemMessage(Component.literal(
-                        "§c[Diplomacia de Aldeas] ¡Entraste sin invitación! Reputación -5 (Total: " +
-                                newRep + " - " + getReputationStatus(newRep) + ")"));
+                player.sendSystemMessage(Component.translatable("villagediplomacy.sys.trespass_door"));
+                ModLang.sendReputationSummary(player, -5, newRep);
             }
         }
     }
@@ -1316,7 +728,7 @@ public class VillagerEventHandler {
             if (nearestVillage.isPresent()) {
                 VillageReputationData data = VillageReputationData.get(level);
                 UUID playerId = player.getUUID();
-                int reputation = data.getReputation(playerId);
+                BlockPos villagePos = nearestVillage.get();
 
                 List<Villager> nearbyVillagers = level.getEntitiesOfClass(
                         Villager.class,
@@ -1336,22 +748,22 @@ public class VillagerEventHandler {
                 }
 
                 if (caughtByVillager) {
-                    int oldRep = data.getReputation(player.getUUID());
-                    data.addReputation(player.getUUID(), -10);
-                    int newRep = data.getReputation(player.getUUID());
+                    int oldRep = data.getReputation(player.getUUID(), villagePos);
+                    data.addReputation(player.getUUID(), villagePos, -10);
+                    int newRep = data.getReputation(player.getUUID(), villagePos);
                     checkAndNotifyReputationChange(player, oldRep, newRep);
 
-                    String message = caughtByBaby
-                            ? babyChestMessages[level.getRandom().nextInt(babyChestMessages.length)]
-                            : adultChestMessages[level.getRandom().nextInt(adultChestMessages.length)];
+                    if (caughtByBaby) {
+                        ModLang.sendRandom(player, level.getRandom(), "villagediplomacy.react.theft.chest.baby", THEFT_CHEST_BABY);
+                    } else {
+                        ModLang.sendRandom(player, level.getRandom(), "villagediplomacy.react.theft.chest.adult", THEFT_CHEST_ADULT);
+                    }
 
-                    player.sendSystemMessage(Component.literal(message));
-                    player.sendSystemMessage(Component.literal(
-                            "§c[Diplomacia de Aldeas] ¡Abriste cofre de la aldea! Reputación -10 (Total: " +
-                                    newRep + " - " + getReputationStatus(newRep) + ")"));
+                    player.sendSystemMessage(Component.translatable("villagediplomacy.sys.chest_open",
+                            -10, newRep, ModLang.repStatus(newRep)));
 
                     VillageRelationshipData relationData = VillageRelationshipData.get(level);
-                    relationData.registerVillage(nearestVillage.get());
+                    relationData.registerVillage(villagePos);
                 }
             }
         }
@@ -1372,6 +784,7 @@ public class VillagerEventHandler {
 
         if (nearestVillage.isPresent()) {
             VillageReputationData data = VillageReputationData.get(level);
+            BlockPos villagePos = nearestVillage.get();
 
             long currentTime = System.currentTimeMillis();
             UUID playerId = player.getUUID();
@@ -1399,23 +812,24 @@ public class VillagerEventHandler {
             }
 
             if (caughtByVillager) {
-                int oldRep = data.getReputation(player.getUUID());
-                data.addReputation(player.getUUID(), -15);
-                int newRep = data.getReputation(player.getUUID());
+                int oldRep = data.getReputation(player.getUUID(), villagePos);
+                data.addReputation(player.getUUID(), villagePos, -15);
+                int newRep = data.getReputation(player.getUUID(), villagePos);
                 checkAndNotifyReputationChange(player, oldRep, newRep);
 
-                String message = caughtByBaby ? babyLootMessages[level.getRandom().nextInt(babyLootMessages.length)]
-                        : adultLootMessages[level.getRandom().nextInt(adultLootMessages.length)];
+                if (caughtByBaby) {
+                    ModLang.sendRandom(player, level.getRandom(), "villagediplomacy.react.theft.loot.baby", THEFT_LOOT_BABY);
+                } else {
+                    ModLang.sendRandom(player, level.getRandom(), "villagediplomacy.react.theft.loot.adult", THEFT_LOOT_ADULT);
+                }
 
-                player.sendSystemMessage(Component.literal(message));
-                player.sendSystemMessage(Component.literal(
-                        "§c[Diplomacia de Aldeas] ¡Robaste de la aldea! Reputación -15 (Total: " +
-                                newRep + " - " + getReputationStatus(newRep) + ")"));
+                player.sendSystemMessage(Component.translatable("villagediplomacy.sys.loot_village",
+                        -15, newRep, ModLang.repStatus(newRep)));
 
                 chestLootCooldown.put(playerId, currentTime);
 
                 VillageRelationshipData relationData = VillageRelationshipData.get(level);
-                relationData.registerVillage(nearestVillage.get());
+                relationData.registerVillage(villagePos);
             }
         }
     }
@@ -1434,6 +848,7 @@ public class VillagerEventHandler {
 
         if (nearestVillage.isPresent()) {
             VillageReputationData data = VillageReputationData.get(level);
+            BlockPos villagePosBreak = nearestVillage.get();
 
             Block brokenBlock = event.getState().getBlock();
 
@@ -1459,20 +874,18 @@ public class VillagerEventHandler {
 
                 if (caughtByVillager) {
                     int penalty = blockType.penalty;
-                    int oldRep = data.getReputation(player.getUUID());
-                    data.addReputation(player.getUUID(), penalty);
-                    int newRep = data.getReputation(player.getUUID());
+                    int oldRep = data.getReputation(player.getUUID(), villagePosBreak);
+                    data.addReputation(player.getUUID(), villagePosBreak, penalty);
+                    int newRep = data.getReputation(player.getUUID(), villagePosBreak);
                     checkAndNotifyReputationChange(player, oldRep, newRep);
 
-                    String villagerMessage = getBlockBreakMessage(blockType, caughtByBaby, level);
+                    sendBlockBreakVillagerLine(blockType, caughtByBaby, level, player);
 
-                    player.sendSystemMessage(Component.literal(villagerMessage));
-                    player.sendSystemMessage(Component.literal(
-                            "§c[Diplomacia de Aldeas] " + blockType.systemMessage + " Reputación " + penalty +
-                                    " (Total: " + newRep + " - " + getReputationStatus(newRep) + ")"));
+                    player.sendSystemMessage(Component.translatable(blockType.systemMessageKey,
+                            penalty, newRep, ModLang.repStatus(newRep)));
 
                     VillageRelationshipData relationData = VillageRelationshipData.get(level);
-                    relationData.registerVillage(nearestVillage.get());
+                    relationData.registerVillage(villagePosBreak);
                 }
             }
         }
@@ -1505,449 +918,57 @@ public class VillagerEventHandler {
             }
 
             if (caughtByVillager) {
-                String[] messages = null;
-                
-                // Obtener reputación del jugador para mensajes contextuales
                 VillageReputationData data = VillageReputationData.get(level);
-                int reputation = data.getReputation(player.getUUID(), nearestVillage.get());
-                boolean isWelcome = reputation >= 100; // FRIENDLY o mejor
+                BlockPos villagePos = nearestVillage.get();
+                int reputation = data.getReputation(player.getUUID(), villagePos);
+                boolean isWelcome = reputation >= 100;
                 boolean isNeutral = reputation >= 0 && reputation < 100;
                 boolean isUnwelcome = reputation < 0;
-                
+
+                String placeKey;
                 if (placedBlock instanceof BedBlock) {
-                    if (isWelcome) {
-                        messages = new String[]{
-                            "§a[Aldeano] ¡Ponte cómodo, amigo!",
-                            "§a[Aldeano] Siéntete libre de descansar aquí cuando quieras.",
-                            "§a[Aldeano] ¡Tu propia cama! Ya eres parte de la aldea.",
-                            "§a[Aldeano] ¡Bienvenido a casa!",
-                            "§7[Aldeano] *sonríe cálidamente* Es un buen lugar.",
-                            "§a[Aldeano] ¡Es bueno tenerte viviendo con nosotros!"
-                        };
-                    } else if (isNeutral) {
-                        messages = new String[]{
-                            "§e[Aldeano] ¿¡Poniéndote cómodo!?",
-                            "§e[Aldeano] Ah, reclamando una cama ya veo...",
-                            "§e[Aldeano] ¿¡Planeas quedarte un tiempo!?",
-                            "§7[Aldeano] *asiente* Es un buen lugar para una cama.",
-                            "§e[Aldeano] ¿¡Instalándote!?",
-                            "§e[Aldeano] ¿¡Ahora construyes aquí!?"
-                        };
-                    } else {
-                        messages = new String[]{
-                            "§c[Aldeano] ¿¡Qué estás haciendo!?",
-                            "§c[Aldeano] ¡Oye! ¡No eres bienvenido a construir aquí!",
-                            "§7[Aldeano] *mira con furia sospechosamente*",
-                            "§c[Aldeano] ¡No queremos que vivas aquí!",
-                            "§c[Aldeano] ¿¡Crees que puedes mudarte así sin más!?",
-                            "§c[Aldeano] ¡Saca eso de nuestra aldea!"
-                        };
-                    }
+                    placeKey = "bed";
                 } else if (placedBlock instanceof ChestBlock || placedBlock instanceof BarrelBlock) {
-                    if (isWelcome) {
-                        messages = new String[]{
-                            "§a[Aldeano] ¿¡Preparando almacenamiento!? ¡Inteligente!",
-                            "§a[Aldeano] Mantén tus objetos valiosos seguros, amigo.",
-                            "§7[Aldeano] Ese es un lugar perfecto para un cofre.",
-                            "§a[Aldeano] ¡Realmente estás haciendo de esto tu hogar!",
-                            "§a[Aldeano] ¿¡Necesitas ayuda organizando tus cosas!?",
-                            "§a[Aldeano] ¿¡Un cofre! ¿¡Te quedas a largo plazo entonces!?"
-                        };
-                    } else if (isNeutral) {
-                        messages = new String[]{
-                            "§e[Aldeano] ¿¡Almacenando tus pertenencias aquí!?",
-                            "§e[Aldeano] Ah, preparando almacenamiento...",
-                            "§7[Aldeano] Ese es un buen lugar para un cofre.",
-                            "§e[Aldeano] ¿¡Haciendo de esto tu hogar!?",
-                            "§e[Aldeano] Realmente te estás instalando...",
-                            "§e[Aldeano] ¿¡Planeas quedarte!?"
-                        };
-                    } else {
-                        messages = new String[]{
-                            "§c[Aldeano] ¿¡Qué hay en ese cofre!?",
-                            "§c[Aldeano] ¡No queremos TUS cosas aquí!",
-                            "§c[Aldeano] ¿¡Te apoderas de nuestra aldea, verdad!?",
-                            "§7[Aldeano] *observa sospechosamente*",
-                            "§c[Aldeano] ¡No creas que no revisaremos eso!",
-                            "§c[Aldeano] Estás tramando algo..."
-                        };
-                    }
-                } else if (placedBlock instanceof FurnaceBlock || placedBlock instanceof BlastFurnaceBlock || placedBlock instanceof SmokerBlock) {
-                    if (isWelcome) {
-                        messages = new String[]{
-                            "§a[Aldeano] ¿¡Un horno! ¡Podríamos usar más industria!",
-                            "§a[Aldeano] ¡Excelente! ¡Un nuevo taller!",
-                            "§a[Aldeano] ¡Estás contribuyendo a la economía de la aldea!",
-                            "§7[Aldeano] Eso será útil para todos.",
-                            "§a[Aldeano] ¡Buen pensamiento! Necesitamos más artesanos.",
-                            "§a[Aldeano] ¡Realmente estás ayudando a crecer la aldea!"
-                        };
-                    } else if (isNeutral) {
-                        messages = new String[]{
-                            "§e[Aldeano] ¿¡Preparando un horno!?",
-                            "§e[Aldeano] ¡Oh, vas a fundir!",
-                            "§e[Aldeano] ¿¡Planeas fabricar aquí!?",
-                            "§7[Aldeano] Eso será útil.",
-                            "§e[Aldeano] ¿¡Construyendo tu propio taller!?",
-                            "§e[Aldeano] ¿¡Vas a hacer algo!?"
-                        };
-                    } else {
-                        messages = new String[]{
-                            "§c[Aldeano] ¿¡Qué estás construyendo!?",
-                            "§c[Aldeano] ¡No necesitamos TUS hornos!",
-                            "§c[Aldeano] ¡Deja de saturar nuestra aldea!",
-                            "§7[Aldeano] *frunce el ceño profundamente*",
-                            "§c[Aldeano] ¡No eres herrero aquí!",
-                            "§c[Aldeano] ¡Lleva eso a otro lugar!"
-                        };
-                    }
+                    placeKey = "chest";
+                } else if (placedBlock instanceof FurnaceBlock || placedBlock instanceof BlastFurnaceBlock
+                        || placedBlock instanceof SmokerBlock) {
+                    placeKey = "furnace";
                 } else if (placedBlock instanceof CraftingTableBlock) {
-                    if (isWelcome) {
-                        messages = new String[]{
-                            "§a[Aldeano] ¿¡Una mesa de crafteo! ¡Perfecto!",
-                            "§a[Aldeano] ¡Oh, preparando un taller! ¡Buena idea!",
-                            "§a[Aldeano] ¡Eres un verdadero artesano!",
-                            "§7[Aldeano] Apreciamos a los artesanos hábiles.",
-                            "§a[Aldeano] ¡La aldea se beneficia de tus habilidades!",
-                            "§a[Aldeano] ¡Te estás convirtiendo en todo un artesano!"
-                        };
-                    } else if (isNeutral) {
-                        messages = new String[]{
-                            "§e[Aldeano] ¿¡Una mesa de crafteo! Muy útil.",
-                            "§e[Aldeano] ¡Oh, preparando un taller!",
-                            "§e[Aldeano] Realmente te estás poniendo cómodo.",
-                            "§7[Aldeano] Pensamiento inteligente.",
-                            "§e[Aldeano] ¿¡Planeas hacer algo!?",
-                            "§e[Aldeano] ¿¡Vas a fabricar aquí!?"
-                        };
-                    } else {
-                        messages = new String[]{
-                            "§c[Aldeano] ¡Tenemos nuestras PROPIAS mesas de crafteo!",
-                            "§c[Aldeano] ¡No eres parte de esta aldea!",
-                            "§c[Aldeano] ¡Deja de construir en nuestro territorio!",
-                            "§7[Aldeano] *cruza los brazos*",
-                            "§c[Aldeano] ¡No eres bienvenido a fabricar aquí!",
-                            "§c[Aldeano] ¡Lleva esa mesa a otro lugar!"
-                        };
-                    }
+                    placeKey = "crafting";
                 } else if (placedBlock instanceof BellBlock) {
-                    if (isWelcome) {
-                        messages = new String[]{
-                            "§a[Aldeano] ¡Una campana! ¡Eso ayudará a coordinar a todos!",
-                            "§a[Aldeano] ¡Excelente! ¡Ahora podemos señalarnos entre nosotros!",
-                            "§a[Aldeano] ¡Estás pensando como un verdadero aldeano!",
-                            "§7[Aldeano] *impresionado* Eso es muy considerado.",
-                            "§a[Aldeano] ¡Una campana para la comunidad! ¡Gracias!"
-                        };
-                    } else if (isNeutral) {
-                        messages = new String[]{
-                            "§e[Aldeano] ¿¡Una campana! Interesante...",
-                            "§7[Aldeano] Eso es... inusual.",
-                            "§e[Aldeano] ¿¡Planeas llamar reuniones!?",
-                            "§e[Aldeano] ¡Una campana! Eso podría ser útil.",
-                            "§7[Aldeano] *mira con curiosidad*"
-                        };
-                    } else {
-                        messages = new String[]{
-                            "§c[Aldeano] ¡No te ATREVAS a tocarla!",
-                            "§c[Aldeano] ¡Ya TENEMOS una campana!",
-                            "§c[Aldeano] ¡Tú no estás a cargo aquí!",
-                            "§7[Aldeano] *mira con furia*",
-                            "§c[Aldeano] ¡Ese es NUESTRO símbolo de reunión!"
-                        };
-                    }
+                    placeKey = "bell";
                 } else if (placedBlock instanceof net.minecraft.world.level.block.BrewingStandBlock) {
-                    if (isWelcome) {
-                        messages = new String[]{
-                            "§a[Aldeano] ¡Un soporte de pociones! ¡Eres alquimista!",
-                            "§a[Aldeano] ¡Oh! ¿¡Sabes hacer pociones!",
-                            "§a[Aldeano] ¡Podríamos usar alguien con tus habilidades!",
-                            "§7[Aldeano] *muy impresionado*",
-                            "§a[Aldeano] ¡Un alquimista en nuestra aldea! ¡Maravilloso!",
-                            "§a[Aldeano] ¡Tus pociones beneficiarán a todos!"
-                        };
-                    } else if (isNeutral) {
-                        messages = new String[]{
-                            "§e[Aldeano] ¿¡Un soporte de pociones! ¡Elegante!",
-                            "§e[Aldeano] ¡Oh! ¿¡Vas a hacer pociones!",
-                            "§e[Aldeano] ¿¡Conoces alquimia!?",
-                            "§7[Aldeano] *impresionado*",
-                            "§e[Aldeano] ¡Eso es bastante avanzado!",
-                            "§e[Aldeano] ¿¡Un alquimista, eh!?"
-                        };
-                    } else {
-                        messages = new String[]{
-                            "§c[Aldeano] ¿¡Qué pociones estás preparando!",
-                            "§c[Aldeano] ¡No confiamos en tu alquimia!",
-                            "§c[Aldeano] ¡Probablemente estás haciendo VENENO!",
-                            "§7[Aldeano] *retrocede nerviosamente*",
-                            "§c[Aldeano] ¡Mantén tus pociones sospechosas lejos de nosotros!",
-                            "§c[Aldeano] ¡Estás tramando algo malo!"
-                        };
-                    }
+                    placeKey = "brewing";
                 } else if (placedBlock instanceof net.minecraft.world.level.block.EnchantmentTableBlock) {
-                    if (isWelcome) {
-                        messages = new String[]{
-                            "§d[Aldeano] ¡Una mesa de encantamientos! ¡Increíble!",
-                            "§d[Aldeano] ¡Practicas magia! ¡Asombroso!",
-                            "§a[Aldeano] ¡Esto hará la aldea mucho más fuerte!",
-                            "§7[Aldeano] *mira con asombro las runas mágicas*",
-                            "§d[Aldeano] ¡Un verdadero mago entre nosotros! ¡Es un honor!",
-                            "§a[Aldeano] ¡Tu experiencia mágica nos protegerá a todos!"
-                        };
-                    } else if (isNeutral) {
-                        messages = new String[]{
-                            "§d[Aldeano] ¡Una mesa de encantamientos! ¡Wow!",
-                            "§e[Aldeano] ¿¡Conoces magia!?",
-                            "§7[Aldeano] *mira el libro flotante con asombro*",
-                            "§e[Aldeano] ¡Eso es... eso es magia real!",
-                            "§d[Aldeano] ¡Nunca había visto una de cerca!",
-                            "§e[Aldeano] ¿¡Eres un mago!?"
-                        };
-                    } else {
-                        messages = new String[]{
-                            "§c[Aldeano] ¡Magia oscura! ¡Sabía que eras problemático!",
-                            "§c[Aldeano] ¡No queremos brujería en nuestra aldea!",
-                            "§c[Aldeano] Esa mesa me da mala espina...",
-                            "§7[Aldeano] *hace un gesto de protección*",
-                            "§c[Aldeano] ¡Estás maldiciendo nuestra tierra!",
-                            "§c[Aldeano] ¡Lleva tus artes oscuras a otro lugar!"
-                        };
-                    }
+                    placeKey = "enchanting";
                 } else if (placedBlock == Blocks.BOOKSHELF) {
-                    if (isWelcome) {
-                        messages = new String[]{
-                            "§6[Aldeano] ¡Libros! ¡Estás construyendo una biblioteca!",
-                            "§a[Aldeano] ¡El conocimiento es precioso! ¡Gracias!",
-                            "§7[Aldeano] A los niños les encantará tener libros para leer.",
-                            "§6[Aldeano] ¡Un erudito! Tenemos suerte de tenerte.",
-                            "§a[Aldeano] ¡Estás enriqueciendo nuestra cultura!",
-                            "§6[Aldeano] ¡Una librería! Realmente eres civilizado."
-                        };
-                    } else if (isNeutral) {
-                        messages = new String[]{
-                            "§e[Aldeano] ¡Una librería! ¿¡Te gusta leer!?",
-                            "§7[Aldeano] Los libros son valiosos por aquí.",
-                            "§e[Aldeano] ¿¡Construyendo una biblioteca personal!?",
-                            "§6[Aldeano] *examina los libros con curiosidad*",
-                            "§e[Aldeano] ¿¡Coleccionas conocimiento!?",
-                            "§7[Aldeano] Eso es bastante erudito."
-                        };
-                    } else {
-                        messages = new String[]{
-                            "§c[Aldeano] ¡Robando nuestras tradiciones de conocimiento!",
-                            "§c[Aldeano] ¡Esos libros deberían estar en NUESTRA biblioteca!",
-                            "§c[Aldeano] ¡No mereces nuestra sabiduría!",
-                            "§7[Aldeano] *frunce el ceño ante la librería*",
-                            "§c[Aldeano] Intentas parecer inteligente, ¿¡verdad!",
-                            "§c[Aldeano] ¡Sabemos que ni siquiera puedes leer!"
-                        };
-                    }
+                    placeKey = "bookshelf";
                 } else if (placedBlock instanceof net.minecraft.world.level.block.LecternBlock) {
-                    if (isWelcome) {
-                        messages = new String[]{
-                            "§6[Aldeano] ¡Un atril! ¡Para leer y estudiar!",
-                            "§a[Aldeano] ¡Estás preparando un estudio apropiado!",
-                            "§7[Aldeano] La marca de un verdadero erudito.",
-                            "§6[Aldeano] ¿¡Compartirás tu conocimiento con nosotros!",
-                            "§a[Aldeano] ¡Un atril muestra dedicación al aprendizaje!"
-                        };
-                    } else if (isNeutral) {
-                        messages = new String[]{
-                            "§e[Aldeano] ¡Un atril! ¿¡Planeas leer!",
-                            "§7[Aldeano] Eso es para exhibir libros, ¿¡verdad!",
-                            "§e[Aldeano] ¿¡Preparando un área de estudio!",
-                            "§6[Aldeano] *asiente con aprobación*",
-                            "§e[Aldeano] Valoras el conocimiento, veo."
-                        };
-                    } else {
-                        messages = new String[]{
-                            "§c[Aldeano] ¿¡Quién te crees que eres, un maestro!",
-                            "§c[Aldeano] ¡No necesitamos TUS lecciones!",
-                            "§c[Aldeano] Fingiendo estar educado...",
-                            "§7[Aldeano] *se burla*",
-                            "§c[Aldeano] ¡No puedes enseñarnos nada!"
-                        };
-                    }
+                    placeKey = "lectern";
                 } else if (placedBlock instanceof net.minecraft.world.level.block.AnvilBlock) {
-                    if (isWelcome) {
-                        messages = new String[]{
-                            "§8[Aldeano] ¡Un yunque! ¡Una forja apropiada!",
-                            "§a[Aldeano] ¡Eres herrero! ¡Excelente!",
-                            "§7[Aldeano] Siempre necesitamos trabajadores del metal hábiles.",
-                            "§8[Aldeano] *asiente con respeto*",
-                            "§a[Aldeano] ¡Tu trabajo de herrería servirá bien a la aldea!",
-                            "§8[Aldeano] ¡Un maestro artesano entre nosotros!"
-                        };
-                    } else if (isNeutral) {
-                        messages = new String[]{
-                            "§e[Aldeano] ¡Un yunque! ¿¡Eres herrero!",
-                            "§7[Aldeano] Ese es equipo pesado.",
-                            "§e[Aldeano] ¿¡Preparando una forja!",
-                            "§8[Aldeano] ¿¡Trabajas el metal!",
-                            "§e[Aldeano] ¿¡Planeas reparar herramientas!",
-                            "§7[Aldeano] Eso será útil."
-                        };
-                    } else {
-                        messages = new String[]{
-                            "§c[Aldeano] ¿¡Haciendo armas contra nosotros!",
-                            "§c[Aldeano] ¡No confiamos en ti con un yunque!",
-                            "§c[Aldeano] ¡Forjarás armas para atacarnos!",
-                            "§7[Aldeano] *mira el yunque sospechosamente*",
-                            "§c[Aldeano] ¡Lleva tu forja a otro lugar!",
-                            "§c[Aldeano] ¡No queremos armas en NUESTRA aldea!"
-                        };
-                    }
+                    placeKey = "anvil";
                 } else if (placedBlock instanceof net.minecraft.world.level.block.GrindstoneBlock) {
-                    if (isWelcome) {
-                        messages = new String[]{
-                            "§7[Aldeano] ¡Una piedra de afilar! ¡Muy práctico!",
-                            "§a[Aldeano] ¡Piensas en todo!",
-                            "§7[Aldeano] Todos podemos usar eso para reparaciones.",
-                            "§a[Aldeano] ¡Las herramientas comunitarias siempre son bienvenidas!",
-                            "§7[Aldeano] *aprecia la utilidad*"
-                        };
-                    } else if (isNeutral) {
-                        messages = new String[]{
-                            "§e[Aldeano] ¡Una piedra de afilar! Útil.",
-                            "§7[Aldeano] ¿¡Para afilar y reparar!",
-                            "§e[Aldeano] Eso es práctico.",
-                            "§7[Aldeano] Bueno para mantener herramientas.",
-                            "§e[Aldeano] ¿¡Preparando una estación de reparación!"
-                        };
-                    } else {
-                        messages = new String[]{
-                            "§c[Aldeano] ¡Afilando armas, apuesto!",
-                            "§c[Aldeano] ¡Sabemos lo que estás planeando!",
-                            "§c[Aldeano] ¡Eso es para hacer espadas más afiladas!",
-                            "§7[Aldeano] *observa con cautela*",
-                            "§c[Aldeano] Preparándote para la violencia..."
-                        };
-                    }
+                    placeKey = "grindstone";
                 } else if (placedBlock instanceof net.minecraft.world.level.block.LoomBlock) {
-                    if (isWelcome) {
-                        messages = new String[]{
-                            "§d[Aldeano] ¡Un telar! ¡Eres tejedor!",
-                            "§a[Aldeano] ¡La aldea necesita más artesanos!",
-                            "§7[Aldeano] ¡Hermosos tapices nos esperan!",
-                            "§d[Aldeano] ¡Harás estandartes maravillosos!",
-                            "§a[Aldeano] ¡Un verdadero artista entre nosotros!"
-                        };
-                    } else if (isNeutral) {
-                        messages = new String[]{
-                            "§e[Aldeano] ¡Un telar! ¿¡Haces estandartes!",
-                            "§7[Aldeano] ¿¡Para tejer patrones!",
-                            "§e[Aldeano] Eso es creativo.",
-                            "§d[Aldeano] ¿¡Eres artístico!",
-                            "§e[Aldeano] ¿¡Planeas hacer decoraciones!"
-                        };
-                    } else {
-                        messages = new String[]{
-                            "§c[Aldeano] ¿¡Haciendo TUS estandartes en NUESTRA aldea!",
-                            "§c[Aldeano] ¡No queremos tus símbolos aquí!",
-                            "§c[Aldeano] ¡Intentas marcar esto como TU territorio!",
-                            "§7[Aldeano] *desaprueba fuertemente*",
-                            "§c[Aldeano] ¡Quita ese telar!"
-                        };
-                    }
+                    placeKey = "loom";
                 } else if (placedBlock instanceof net.minecraft.world.level.block.ComposterBlock) {
-                    if (isWelcome) {
-                        messages = new String[]{
-                            "§2[Aldeano] ¡Una compostera! ¡Estás cultivando!",
-                            "§a[Aldeano] ¡Excelente! ¡Necesitamos más granjeros!",
-                            "§7[Aldeano] ¡Ayudarás a crecer nuestros cultivos!",
-                            "§2[Aldeano] ¡Contribuyendo a nuestra agricultura!",
-                            "§a[Aldeano] ¡Los campos prosperarán!"
-                        };
-                    } else if (isNeutral) {
-                        messages = new String[]{
-                            "§e[Aldeano] ¡Una compostera! ¿¡Planeas cultivar!",
-                            "§7[Aldeano] ¿¡Para hacer harina de huesos!",
-                            "§2[Aldeano] ¿¡Estás cultivando!",
-                            "§e[Aldeano] Eso es útil para cultivar.",
-                            "§7[Aldeano] Bueno para los jardines."
-                        };
-                    } else {
-                        messages = new String[]{
-                            "§c[Aldeano] ¡Robando nuestros métodos de cultivo!",
-                            "§c[Aldeano] ¡Eso es para NUESTROS cultivos, no los tuyos!",
-                            "§c[Aldeano] ¡Arruinarás el suelo!",
-                            "§7[Aldeano] *protector de las tierras de cultivo*",
-                            "§c[Aldeano] ¡Deja nuestra agricultura en paz!"
-                        };
-                    }
+                    placeKey = "composter";
                 } else if (placedBlock instanceof net.minecraft.world.level.block.CauldronBlock) {
-                    if (isWelcome) {
-                        messages = new String[]{
-                            "§b[Aldeano] ¡Un caldero! ¡Muy útil!",
-                            "§a[Aldeano] ¡Todos podemos usar eso!",
-                            "§7[Aldeano] Para almacenar agua y lavar.",
-                            "§b[Aldeano] ¡Pensamiento práctico!",
-                            "§a[Aldeano] ¡La aldea se beneficia de esto!"
-                        };
-                    } else if (isNeutral) {
-                        messages = new String[]{
-                            "§e[Aldeano] ¡Un caldero! ¿¡Para agua!",
-                            "§7[Aldeano] Eso es práctico tener a mano.",
-                            "§b[Aldeano] Herramienta multifunción.",
-                            "§e[Aldeano] ¿¡Para pociones o lavar!",
-                            "§7[Aldeano] Práctico."
-                        };
-                    } else {
-                        messages = new String[]{
-                            "§c[Aldeano] ¿¡Qué estás preparando ahí!",
-                            "§c[Aldeano] ¡Probablemente estás haciendo veneno!",
-                            "§c[Aldeano] ¡Bruja! ¡Bruja!",
-                            "§7[Aldeano] *retrocede del caldero*",
-                            "§c[Aldeano] ¡No queremos magia oscura aquí!"
-                        };
-                    }
+                    placeKey = "cauldron";
                 } else {
-                    // CUALQUIER otro bloque: mensaje genérico según reputación
-                    if (isWelcome) {
-                        messages = new String[]{
-                            "§a[Aldeano] ¿Construyendo algo? ¡Bien!",
-                            "§a[Aldeano] ¡Siéntete libre de expandir la aldea!",
-                            "§7[Aldeano] *asiente con aprobación*",
-                            "§a[Aldeano] ¡Haciendo mejoras!",
-                            "§a[Aldeano] ¡Ya eres parte de la aldea!"
-                        };
-                    } else if (isNeutral) {
-                        messages = new String[]{
-                            "§e[Aldeano] ¿Construyendo aquí?",
-                            "§e[Aldeano] ¿Qué estás haciendo?",
-                            "§7[Aldeano] *observa con curiosidad*",
-                            "§e[Aldeano] Añadiendo a la aldea...",
-                            "§e[Aldeano] Hmm, interesante..."
-                        };
-                    } else {
-                        messages = new String[]{
-                            "§c[Aldeano] ¡Oye! ¿¡Qué haces!?",
-                            "§c[Aldeano] ¡No eres bienvenido a construir aquí!",
-                            "§c[Aldeano] ¡Deja de poner bloques en NUESTRA aldea!",
-                            "§7[Aldeano] *mira con furia*",
-                            "§c[Aldeano] ¡Vete con tus construcciones!",
-                            "§c[Aldeano] ¡Esta NO es TU tierra!"
-                        };
-                    }
+                    placeKey = "generic";
                 }
-                
-                // SIEMPRE mostrar mensaje si hay aldeanos mirando
-                if (messages != null) {
-                    player.sendSystemMessage(Component.literal(
-                        messages[level.getRandom().nextInt(messages.length)]));
-                }
-                
-                // PENALIZACIÓN solo si tienes mala reputación
+
+                sendPlaceReaction(player, level, placeKey, isWelcome, isNeutral);
+
                 if (isUnwelcome) {
-                    int oldRep = data.getReputation(player.getUUID(), nearestVillage.get());
-                    data.addReputation(player.getUUID(), nearestVillage.get(), -5);
-                    int newRep = data.getReputation(player.getUUID(), nearestVillage.get());
+                    int oldRep = data.getReputation(player.getUUID(), villagePos);
+                    data.addReputation(player.getUUID(), villagePos, -5);
+                    int newRep = data.getReputation(player.getUUID(), villagePos);
                     checkAndNotifyReputationChange(player, oldRep, newRep);
-                    
-                    player.sendSystemMessage(Component.literal(
-                        "§c[Diplomacia de Aldeas] ¡Construyendo en la aldea con mala reputación! -5 (Total: " +
-                                newRep + " - " + getReputationStatus(newRep) + ")"));
+
+                    player.sendSystemMessage(Component.translatable("villagediplomacy.sys.build_low_rep"));
+                    ModLang.sendReputationSummary(player, -5, newRep);
                 }
             }
         }
@@ -2146,9 +1167,8 @@ public class VillagerEventHandler {
             
             player.sendSystemMessage(Component.literal(
                 messages[level.getRandom().nextInt(messages.length)]));
-            player.sendSystemMessage(Component.literal(
-                "§c[Diplomacia de Aldeas] ¡Rompiste estructura de la aldea! Reputación -10 (Total: " +
-                        newRep + " - " + getReputationStatus(newRep) + ")"));
+            player.sendSystemMessage(Component.translatable("villagediplomacy.sys.structure_break"));
+            ModLang.sendReputationSummary(player, -10, newRep);
         }
     }
 
@@ -2248,9 +1268,8 @@ public class VillagerEventHandler {
                         : adultMessages[level.getRandom().nextInt(adultMessages.length)];
 
                 player.sendSystemMessage(Component.literal(message));
-                player.sendSystemMessage(Component.literal(
-                        "§c[Diplomacia de Aldeas] ¡Usaste la cama de un aldeano! Reputación -20 (Total: " +
-                                newRep + " - " + getReputationStatus(newRep) + ")"));
+                player.sendSystemMessage(Component.translatable("villagediplomacy.sys.bed_use"));
+                ModLang.sendReputationSummary(player, -20, newRep);
 
                 bedUsageCooldown.put(playerId, currentTime);
 
@@ -2353,9 +1372,8 @@ public class VillagerEventHandler {
 
                         player.sendSystemMessage(Component.literal(
                                 messages[level.getRandom().nextInt(messages.length)]));
-                        player.sendSystemMessage(Component.literal(
-                                "§c[Diplomacia de Aldeas] ¡Tocaste la campana de la aldea! Reputación -15 (Total: " +
-                                        newRep + " - " + getReputationStatus(newRep) + ")"));
+                        player.sendSystemMessage(Component.translatable("villagediplomacy.sys.bell_ring"));
+                        ModLang.sendReputationSummary(player, -15, newRep);
                     }
 
                     bellRingCooldown.put(playerId, currentTime);
@@ -2452,9 +1470,8 @@ public class VillagerEventHandler {
 
                         player.sendSystemMessage(Component.literal(
                                 messages[level.getRandom().nextInt(messages.length)]));
-                        player.sendSystemMessage(Component.literal(
-                                "§c[Diplomacia de Aldeas] ¡Abriste trampilla de granja! Reputación -10 (Total: " +
-                                        newRep + " - " + getReputationStatus(newRep) + ")"));
+                        player.sendSystemMessage(Component.translatable("villagediplomacy.sys.trapdoor_farm"));
+                        ModLang.sendReputationSummary(player, -10, newRep);
 
                         trapdoorCooldown.put(playerId, currentTime);
 
@@ -2524,9 +1541,9 @@ public class VillagerEventHandler {
 
                     player.sendSystemMessage(Component.literal(
                             messages[level.getRandom().nextInt(messages.length)]));
-                    player.sendSystemMessage(Component.literal(
-                            "§c[Diplomacia de Aldeas] ¡Usaste " + blockName + " de la aldea! Reputación -8 (Total: " +
-                                    newRep + " - " + getReputationStatus(newRep) + ")"));
+                    player.sendSystemMessage(Component.translatable("villagediplomacy.sys.village_block_use",
+                            clickedBlock.getName()));
+                    ModLang.sendReputationSummary(player, -8, newRep);
 
                     VillageRelationshipData relationData = VillageRelationshipData.get(level);
                     relationData.registerVillage(nearestVillage.get());
@@ -2589,9 +1606,8 @@ public class VillagerEventHandler {
 
                         player.sendSystemMessage(Component.literal(
                                 messages[level.getRandom().nextInt(messages.length)]));
-                        player.sendSystemMessage(Component.literal(
-                                "§c[Diplomacia de Aldeas] ¡Usaste mesa de crafteo del aldeano! Reputación -8 (Total: " +
-                                        newRep + " - " + getReputationStatus(newRep) + ")"));
+                        player.sendSystemMessage(Component.translatable("villagediplomacy.sys.crafting_use"));
+                        ModLang.sendReputationSummary(player, -8, newRep);
 
                         craftingTableCooldown.put(playerId, currentTime);
                     }
@@ -2681,9 +1697,8 @@ public class VillagerEventHandler {
                                 : adultMessages[level.getRandom().nextInt(adultMessages.length)];
 
                         player.sendSystemMessage(Component.literal(message));
-                        player.sendSystemMessage(Component.literal(
-                                "§c[Diplomacia de Aldeas] ¡Liberaste animales de la aldea! Reputación -12 (Total: " +
-                                        newRep + " - " + getReputationStatus(newRep) + ")"));
+                        player.sendSystemMessage(Component.translatable("villagediplomacy.sys.animal_release"));
+                        ModLang.sendReputationSummary(player, -12, newRep);
 
                         fenceGateCooldown.put(playerId, currentTime);
 
@@ -2724,29 +1739,12 @@ public class VillagerEventHandler {
         
         // Si el golem ya está atacando, mostrar mensajes VIOLENTOS en vez de strikes
         if (golemAlreadyAngry) {
-            String golemName = "Iron Golem";
             GolemPersonalityData personalityData = GolemPersonalityData.get(level);
             GolemPersonality personality = personalityData.getPersonality(angryGolem.getUUID());
-            if (personality != null) {
-                golemName = personality.getName();
-            } else if (angryGolem.hasCustomName()) {
-                golemName = angryGolem.getCustomName().getString();
-            }
-            
-            String[] violentMessages = {
-                "§c[" + golemName + "] ¿¡TE ATREVES A ATACAR MÁS ALDEANOS!?",
-                "§4[" + golemName + "] *PISOTONES FURIOSOS* ¡DETENTE AHORA!",
-                "§c[" + golemName + "] ¡ESTÁS EMPEORANDO TU SITUACIÓN!",
-                "§4[" + golemName + "] ¡TE APLASTARÉ POR ESTO!",
-                "§c[" + golemName + "] *RUGE* ¡BASTA DE VIOLENCIA!",
-                "§4[" + golemName + "] ¡CADA GOLPE SELLA TU DESTINO!",
-                "§c[" + golemName + "] ¡PAGARÁS POR CADA ALDEANO QUE LASTIMES!",
-                "§4[" + golemName + "] *GOLPES DE PUÑO* ¡ESTO TERMINA AHORA!"
-            };
-            
-            if (level.getRandom().nextInt(2) == 0) { // 50% chance para no spamear
-                player.sendSystemMessage(Component.literal(
-                    violentMessages[level.getRandom().nextInt(violentMessages.length)]));
+            Object nameArg = golemStrikeNameArg(angryGolem, personality);
+            if (level.getRandom().nextInt(2) == 0) {
+                ModLang.sendRandomWithArgs(player, level.getRandom(), "villagediplomacy.golem.strike.violent", 8,
+                        nameArg);
             }
             return; // No procesar sistema de strikes
         }
@@ -2758,76 +1756,62 @@ public class VillagerEventHandler {
         villagerAttackTimes.put(playerId, strikes);
 
         int strikeCount = strikes.size();
-        
-        // Obtener nombre del golem más cercano
+
         IronGolem closestGolem = nearbyGolems.get(0);
-        String golemName = "Iron Golem";
-        
-        // Intentar obtener personalidad del golem
-        GolemPersonalityData personalityData = GolemPersonalityData.get(level);
-        GolemPersonality personality = personalityData.getPersonality(closestGolem.getUUID());
-        if (personality != null) {
-            golemName = personality.getName();
-        } else if (closestGolem.hasCustomName()) {
-            golemName = closestGolem.getCustomName().getString();
-        }
+        GolemPersonalityData strikePersonalityData = GolemPersonalityData.get(level);
+        GolemPersonality strikePersonality = strikePersonalityData.getPersonality(closestGolem.getUUID());
+        Object strikeNameArg = golemStrikeNameArg(closestGolem, strikePersonality);
 
         if (strikeCount == 1) {
-            String[] messages = {
-                "§e[" + golemName + "] ¡Oye! Detén eso.",
-                "§e[" + golemName + "] No los toques.",
-                "§e[" + golemName + "] Te estoy vigilando...",
-                "§e[" + golemName + "] Déjalos en paz.",
-                "§e[" + golemName + "] Es suficiente.",
-                "§e[" + golemName + "] Aléjate de ellos.",
-                "§e[" + golemName + "] No hagas que vaya hasta allá.",
-                "§e[" + golemName + "] No quieres problemas.",
-                "§e[" + golemName + "] Estos aldeanos están bajo MI protección.",
-                "§e[" + golemName + "] Mantén tus manos quietas."
-            };
-            player.sendSystemMessage(Component.literal(
-                    messages[level.getRandom().nextInt(messages.length)]));
+            ModLang.sendRandomWithArgs(player, level.getRandom(), "villagediplomacy.golem.strike.warn1", 10,
+                    strikeNameArg);
         } else if (strikeCount == 2) {
-            String[] messages = {
-                "§6[" + golemName + "] ¡Dije que PARES!",
-                "§6[" + golemName + "] Estás tentando tu suerte...",
-                "§6[" + golemName + "] ¡Retrocede AHORA!",
-                "§6[" + golemName + "] ¡Última advertencia!",
-                "§6[" + golemName + "] ¡No quieres ponerme a prueba!",
-                "§6[" + golemName + "] ¡Esta es tu ÚLTIMA oportunidad!",
-                "§6[" + golemName + "] ¡Estoy perdiendo la paciencia!",
-                "§6[" + golemName + "] ¡Aléjate o enfrenta las consecuencias!",
-                "§6[" + golemName + "] ¡Estás cometiendo un GRAN error!",
-                "§6[" + golemName + "] ¡Un golpe más y estarás ACABADO!"
-            };
-            player.sendSystemMessage(Component.literal(
-                    messages[level.getRandom().nextInt(messages.length)]));
+            ModLang.sendRandomWithArgs(player, level.getRandom(), "villagediplomacy.golem.strike.warn2", 10,
+                    strikeNameArg);
         } else if (strikeCount >= STRIKES_REQUIRED) {
-            String[] messages = {
-                "§c[" + golemName + "] ¡ESO ES TODO!",
-                "§c[" + golemName + "] ¡Cruzaste la línea!",
-                "§c[" + golemName + "] ¡AHORA SÍ LO HICISTE!",
-                "§c[" + golemName + "] ¡PREPÁRATE!",
-                "§c[" + golemName + "] ¡YA TUVE SUFICIENTE!",
-                "§c[" + golemName + "] ¡HORA DE PAGAR!",
-                "§c[" + golemName + "] ¡ESTÁS ACABADO!",
-                "§c[" + golemName + "] ¡NO MÁS PIEDAD!",
-                "§c[" + golemName + "] ¡ENFRENTA MI IRA!",
-                "§c[" + golemName + "] ¡HAS SELLADO TU DESTINO!"
-            };
-            player.sendSystemMessage(Component.literal(
-                    messages[level.getRandom().nextInt(messages.length)]));
+            ModLang.sendRandomWithArgs(player, level.getRandom(), "villagediplomacy.golem.strike.final", 10,
+                    strikeNameArg);
 
             crimeCommittedTime.put(playerId, currentTime + MINOR_CRIME_DURATION_MS);
             villagerAttackTimes.remove(playerId);
 
-            player.sendSystemMessage(Component.literal(
-                    "§4[Diplomacia de Aldeas] ¡Los Golems de Hierro ahora son HOSTILES por 30 segundos!"));
+            ModLang.send(player, "villagediplomacy.sys.golem_hostile_timer");
 
             for (IronGolem golem : nearbyGolems) {
                 golem.setTarget(player);
             }
         }
+    }
+
+    private static Object golemStrikeNameArg(IronGolem golem, GolemPersonality personality) {
+        if (personality != null) {
+            return personality.getName();
+        }
+        if (golem.hasCustomName()) {
+            return golem.getCustomName();
+        }
+        return Component.translatable("villagediplomacy.golem.generic_name");
+    }
+
+    private static int placeReactionLineCount(String placeId, String tier) {
+        if ("generic".equals(placeId) && "unwelcome".equals(tier)) {
+            return 6;
+        }
+        if ("generic".equals(placeId)) {
+            return 5;
+        }
+        if ("bell".equals(placeId) || "lectern".equals(placeId) || "grindstone".equals(placeId)
+                || "loom".equals(placeId) || "composter".equals(placeId) || "cauldron".equals(placeId)) {
+            return 5;
+        }
+        return 6;
+    }
+
+    private static void sendPlaceReaction(ServerPlayer player, ServerLevel level, String placeId, boolean isWelcome,
+            boolean isNeutral) {
+        String tier = isWelcome ? "welcome" : isNeutral ? "neutral" : "unwelcome";
+        int n = placeReactionLineCount(placeId, tier);
+        ModLang.sendRandom(player, level.getRandom(), "villagediplomacy.react.place." + placeId + "." + tier, n);
     }
 
     private void manageCrimeStatus(ServerPlayer player, ServerLevel level) {
@@ -2879,15 +1863,12 @@ public class VillagerEventHandler {
             // Mensaje inmersivo sin información de debug
             if (calmadosCount > 0) {
                 if (calmadosCount == 1) {
-                    player.sendSystemMessage(Component.literal(
-                            "§a✓ El guardián de la aldea te ha perdonado."));
+                    ModLang.send(player, "villagediplomacy.golem.forgive.one");
                 } else {
-                    player.sendSystemMessage(Component.literal(
-                            "§a✓ Los guardianes de la aldea te han perdonado. (§7" + calmadosCount + " guardianes§a)"));
+                    player.sendSystemMessage(Component.translatable("villagediplomacy.golem.forgive.many", calmadosCount));
                 }
             } else {
-                player.sendSystemMessage(Component.literal(
-                        "§e⚠ No se encontraron guardianes enojados cerca."));
+                ModLang.send(player, "villagediplomacy.golem.forgive.none");
             }
             return;
         }
@@ -2906,6 +1887,66 @@ public class VillagerEventHandler {
         }
     }
 
+    private record AnimalDeathKind(String key, int babyCount, int adultCount) {
+    }
+
+    private static AnimalDeathKind animalDeathKindFor(LivingEntity killed) {
+        if (killed instanceof Cow) {
+            return new AnimalDeathKind("cow", 5, 8);
+        }
+        if (killed instanceof Sheep) {
+            return new AnimalDeathKind("sheep", 5, 8);
+        }
+        if (killed instanceof Pig) {
+            return new AnimalDeathKind("pig", 5, 8);
+        }
+        if (killed instanceof Rabbit) {
+            return new AnimalDeathKind("rabbit", 4, 8);
+        }
+        if (killed instanceof Camel) {
+            return new AnimalDeathKind("camel", 5, 5);
+        }
+        if (killed instanceof AbstractHorse) {
+            return new AnimalDeathKind("horse", 5, 10);
+        }
+        if (killed instanceof Chicken) {
+            return new AnimalDeathKind("chicken", 3, 5);
+        }
+        return new AnimalDeathKind("other", 1, 1);
+    }
+
+    private record AnimalAttackKind(String key, int babyCount, int adultCount) {
+    }
+
+    private static AnimalAttackKind animalAttackKindFor(String animalType) {
+        return switch (animalType) {
+            case "cow" -> new AnimalAttackKind("cow", 5, 7);
+            case "sheep" -> new AnimalAttackKind("sheep", 5, 7);
+            case "pig" -> new AnimalAttackKind("pig", 5, 7);
+            case "chicken" -> new AnimalAttackKind("chicken", 5, 7);
+            case "rabbit" -> new AnimalAttackKind("rabbit", 5, 7);
+            case "horse" -> new AnimalAttackKind("horse", 5, 8);
+            case "camel" -> new AnimalAttackKind("camel", 5, 8);
+            default -> new AnimalAttackKind("other", 1, 1);
+        };
+    }
+
+    private static Villager findNearestWitnessVillager(ServerLevel level, LivingEntity killed, double radius) {
+        AABB box = killed.getBoundingBox().inflate(radius);
+        List<Villager> list = level.getEntitiesOfClass(Villager.class, box);
+        Villager best = null;
+        double bestD = Double.MAX_VALUE;
+        Vec3 center = killed.position();
+        for (Villager v : list) {
+            double d = v.position().distanceToSqr(center);
+            if (d < bestD) {
+                bestD = d;
+                best = v;
+            }
+        }
+        return best;
+    }
+
     private void checkForVillageEntry(ServerPlayer player, ServerLevel level) {
         UUID playerId = player.getUUID();
         long currentTime = System.currentTimeMillis();
@@ -2922,14 +1963,12 @@ public class VillagerEventHandler {
                     // Solo mostrar "leaving" si pasaron más de 5 segundos desde entrar
                     if (currentTime - lastGreeting > 5000) {
                         VillageRelationshipData relationData = VillageRelationshipData.get(level);
-                        String villageName = relationData.getVillageName(lastVillage);
-                        
-                        player.sendSystemMessage(Component.literal(
-                                "§8▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬"));
-                        player.sendSystemMessage(Component.literal(
-                                "  §7◄ Saliendo de §6" + villageName));
-                        player.sendSystemMessage(Component.literal(
-                                "§8▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬"));
+                        String storedName = relationData.getVillageName(lastVillage);
+                        player.sendSystemMessage(Component.translatable("villagediplomacy.enter.bar"));
+                        player.sendSystemMessage(Component.translatable(
+                                "villagediplomacy.enter.leaving",
+                                VillageDisplayName.asComponent(storedName)));
+                        player.sendSystemMessage(Component.translatable("villagediplomacy.enter.bar"));
                     }
                 }
                 lastVisitedVillage.remove(playerId);
@@ -2942,16 +1981,13 @@ public class VillagerEventHandler {
         VillageRelationshipData relationData = VillageRelationshipData.get(level);
         relationData.registerVillage(villagePos);
         String villageId = relationData.getVillageId(villagePos);
-        String villageName = relationData.getVillageName(villageId);
+        String villageNameStored = relationData.getVillageName(villageId);
 
-        // Verificar si es una aldea diferente o primera entrada
         boolean isDifferentVillage = lastVillage == null || !lastVillage.equals(villageId);
 
         if (isDifferentVillage) {
-            // SOLO al entrar: Mostrar mensaje UNA VEZ
             VillageReputationData data = VillageReputationData.get(level);
             int reputation = data.getReputation(playerId, villagePos);
-            String status = getReputationStatus(reputation);
 
             String icon = reputation >= 1000 ? "§6✦"
                     : reputation >= 800 ? "§6✦"
@@ -2962,19 +1998,22 @@ public class VillagerEventHandler {
                                                             : reputation >= -299 ? "§c-"
                                                                     : reputation >= -500 ? "§c×" : "§4☠";
 
-            player.sendSystemMessage(Component.literal(
-                    "§8▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬"));
-            player.sendSystemMessage(Component.literal(
-                    "  " + icon + " §6Entrando a " + villageName));
-            player.sendSystemMessage(Component.literal(
-                    "  §7Reputación: §e" + reputation + " §8[§f" + status + "§8]"));
-            player.sendSystemMessage(Component.literal(
-                    "§8▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬"));
+            player.sendSystemMessage(Component.translatable("villagediplomacy.enter.bar"));
+            player.sendSystemMessage(Component.translatable(
+                    "villagediplomacy.enter.line1",
+                    Component.literal(icon),
+                    VillageDisplayName.asComponent(villageNameStored)));
+            player.sendSystemMessage(Component.translatable(
+                    "villagediplomacy.enter.line2",
+                    reputation,
+                    ModLang.repStatus(reputation)));
+            player.sendSystemMessage(Component.translatable("villagediplomacy.enter.bar"));
+            VillageDiplomacyNetwork.sendOpenHud(player, villageNameStored, reputation,
+                    ModLang.hudRelationKey(reputation));
 
             lastVisitedVillage.put(playerId, villageId);
             greetingCooldown.put(playerId, currentTime);
         }
-        // Si ya está en la misma aldea, NO hacer nada (no spam)
     }
 
     private void giveRandomGifts(ServerPlayer player, ServerLevel level) {
@@ -3007,102 +2046,100 @@ public class VillagerEventHandler {
             
             // Items según profesión
             ItemStack gift = null;
-            String message = null;
-            
+            String giftKey = "villagediplomacy.gift.generic";
+
             switch (profession) {
                 case "farmer":
                     gift = reputation >= 1000 ? new ItemStack(Items.GOLDEN_CARROT, 3)
                             : reputation >= 800 ? new ItemStack(Items.BREAD, 6)
                             : new ItemStack(Items.CARROT, 8);
-                    message = "§a[Farmer] ¡Fresco de mi cosecha, héroe!";
+                    giftKey = "villagediplomacy.gift.farmer";
                     break;
-                    
+
                 case "librarian":
                     gift = reputation >= 1000 ? new ItemStack(Items.ENCHANTED_BOOK)
                             : reputation >= 800 ? new ItemStack(Items.BOOK, 3)
                             : new ItemStack(Items.PAPER, 6);
-                    message = "§6[Librarian] ¡El conocimiento es poder, amigo!";
+                    giftKey = "villagediplomacy.gift.librarian";
                     break;
-                    
+
                 case "armorer":
                 case "weaponsmith":
                 case "toolsmith":
                     gift = reputation >= 1000 ? new ItemStack(Items.DIAMOND, 1)
                             : reputation >= 800 ? new ItemStack(Items.IRON_INGOT, 4)
                             : new ItemStack(Items.IRON_INGOT, 2);
-                    message = "§7[Smith] ¡De mi forja para ti!";
+                    giftKey = "villagediplomacy.gift.smith";
                     break;
-                    
+
                 case "cleric":
                     gift = reputation >= 1000 ? new ItemStack(Items.GOLDEN_APPLE, 1)
                             : reputation >= 800 ? new ItemStack(Items.GLISTERING_MELON_SLICE, 3)
                             : new ItemStack(Items.REDSTONE, 4);
-                    message = "§d[Cleric] ¡Que esto te bendiga!";
+                    giftKey = "villagediplomacy.gift.cleric";
                     break;
-                    
+
                 case "butcher":
                     gift = reputation >= 1000 ? new ItemStack(Items.COOKED_BEEF, 6)
                             : reputation >= 800 ? new ItemStack(Items.COOKED_PORKCHOP, 4)
                             : new ItemStack(Items.COOKED_CHICKEN, 3);
-                    message = "§c[Butcher] ¡Los mejores cortes para ti!";
+                    giftKey = "villagediplomacy.gift.butcher";
                     break;
-                    
+
                 case "cartographer":
                     gift = reputation >= 1000 ? new ItemStack(Items.MAP, 1)
                             : reputation >= 800 ? new ItemStack(Items.COMPASS, 1)
                             : new ItemStack(Items.PAPER, 8);
-                    message = "§b[Cartographer] ¡Que nunca te pierdas!";
+                    giftKey = "villagediplomacy.gift.cartographer";
                     break;
-                    
+
                 case "fisherman":
                     gift = reputation >= 1000 ? new ItemStack(Items.COOKED_SALMON, 5)
                             : reputation >= 800 ? new ItemStack(Items.COOKED_COD, 4)
                             : new ItemStack(Items.COD, 6);
-                    message = "§3[Fisherman] ¡Pesca fresca del día!";
+                    giftKey = "villagediplomacy.gift.fisherman";
                     break;
-                    
+
                 case "fletcher":
                     gift = reputation >= 1000 ? new ItemStack(Items.ARROW, 16)
                             : reputation >= 800 ? new ItemStack(Items.ARROW, 10)
                             : new ItemStack(Items.STICK, 8);
-                    message = "§e[Fletcher] ¡Rectas y precisas!";
+                    giftKey = "villagediplomacy.gift.fletcher";
                     break;
-                    
+
                 case "leatherworker":
                     gift = reputation >= 1000 ? new ItemStack(Items.LEATHER, 8)
                             : reputation >= 800 ? new ItemStack(Items.LEATHER, 5)
                             : new ItemStack(Items.RABBIT_HIDE, 6);
-                    message = "§6[Leatherworker] ¡Materiales de calidad!";
+                    giftKey = "villagediplomacy.gift.leatherworker";
                     break;
-                    
+
                 case "mason":
                     gift = reputation >= 1000 ? new ItemStack(Items.QUARTZ, 8)
                             : reputation >= 800 ? new ItemStack(Items.BRICK, 16)
                             : new ItemStack(Items.COBBLESTONE, 32);
-                    message = "§8[Mason] ¡Materiales de construcción para ti!";
+                    giftKey = "villagediplomacy.gift.mason";
                     break;
-                    
+
                 case "shepherd":
                     gift = reputation >= 1000 ? new ItemStack(Items.WHITE_WOOL, 8)
                             : reputation >= 800 ? new ItemStack(Items.WHITE_WOOL, 5)
                             : new ItemStack(Items.STRING, 8);
-                    message = "§f[Shepherd] ¡La lana más suave de la región!";
+                    giftKey = "villagediplomacy.gift.shepherd";
                     break;
-                    
+
                 default:
-                    // Fallback genérico
                     gift = reputation >= 1000 ? new ItemStack(Items.EMERALD, 2)
                             : reputation >= 800 ? new ItemStack(Items.EMERALD, 1)
                             : new ItemStack(Items.BREAD, 3);
-                    message = "§a[Aldeano] ¡Para nuestro héroe!";
             }
-            
+
             if (gift != null) {
                 if (!player.getInventory().add(gift)) {
                     player.drop(gift, false);
                 }
-                
-                player.sendSystemMessage(Component.literal(message));
+
+                player.sendSystemMessage(Component.translatable(giftKey));
                 
                 // Feedback visual positivo
                 spawnPositiveFeedback(level, villager);
@@ -3120,9 +2157,8 @@ public class VillagerEventHandler {
         int newLevel = getReputationLevel(newRep);
 
         if (lastLevel == null || lastLevel != newLevel) {
-            String message = getReputationLevelChangeMessage(newLevel, newRep);
-            if (message != null) {
-                player.sendSystemMessage(Component.literal(message));
+            if (newLevel >= 0 && newLevel <= 8) {
+                player.sendSystemMessage(Component.translatable("villagediplomacy.rep.level." + newLevel));
             }
             lastReputationLevel.put(playerId, newLevel);
         }
@@ -3146,21 +2182,6 @@ public class VillagerEventHandler {
         if (reputation >= -500)
             return 1;
         return 0;
-    }
-
-    private String getReputationLevelChangeMessage(int level, int reputation) {
-        return switch (level) {
-            case 8 -> "§6✦✦✦ [Aldeano] *se arrodilla* ¡Una LEYENDA camina entre nosotros! ¡Todos saluden!§6✦✦✦";
-            case 7 -> "§6✦ [Aldeano] *se inclina respetuosamente* ¡Nuestro héroe! ¡Bienvenido de vuelta, campeón!";
-            case 6 -> "§a[Aldeano] *vitorea* ¡El campeón de la aldea regresa!";
-            case 5 -> "§a[Aldeano] *sonríe cálidamente* ¡Bienvenido de vuelta, amigo!";
-            case 4 -> "§2[Aldeano] Es bueno verte de nuevo.";
-            case 3 -> "§7[Aldeano] *asiente*";
-            case 2 -> "§e[Aldeano] *mira con cautela* ...";
-            case 1 -> "§c[Aldeano] *frunce el ceño* Mantén tu distancia...";
-            case 0 -> "§4[Aldeano] *mira hacia otro lado con miedo* ¡Aléjate de nosotros!";
-            default -> null;
-        };
     }
 
     /**
@@ -3203,85 +2224,59 @@ public class VillagerEventHandler {
         return golemsCalmed;
     }
 
-    private String getReputationStatus(int reputation) {
-        if (reputation >= 1000)
-            return "HÉROE LEGENDARIO";
-        if (reputation >= 800)
-            return "HÉROE";
-        if (reputation >= 500)
-            return "CAMPEÓN";
-        if (reputation >= 300)
-            return "AMIGO DE CONFIANZA";
-        if (reputation >= 100)
-            return "AMISTOSO";
-        if (reputation >= 0)
-            return "NEUTRAL";
-        if (reputation >= -99)
-            return "SOSPECHOSO";
-        if (reputation >= -100)
-            return "MAL VISTO";
-        if (reputation >= -200)
-            return "NO BIENVENIDO";
-        if (reputation >= -499)
-            return "POCO AMISTOSO";
-        if (reputation >= -699)
-            return "HOSTIL";
-        if (reputation >= -899)
-            return "ENEMIGO";
-        return "CRIMINAL BUSCADO";
-    }
-    
     private void checkAndNotifyReputationChange(ServerPlayer player, int oldRep, int newRep) {
-        String oldStatus = getReputationStatus(oldRep);
-        String newStatus = getReputationStatus(newRep);
-        
-        if (!oldStatus.equals(newStatus)) {
-            boolean isPositive = newRep > oldRep;
-            String color = isPositive ? "§a" : "§c";
-            String arrow = isPositive ? "▲" : "▼";
-            String emoji = isPositive ? "✦" : "✖";
-            
-            player.sendSystemMessage(Component.literal(""));
-            player.sendSystemMessage(Component.literal("§6§l━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"));
-            player.sendSystemMessage(Component.literal("§e§l         ¡REPUTACIÓN CAMBIADA!"));
-            player.sendSystemMessage(Component.literal(""));
-            player.sendSystemMessage(Component.literal("  §7" + oldStatus + " §8" + arrow + " " + color + "§l" + newStatus));
-            player.sendSystemMessage(Component.literal(""));
-            
-            if (isPositive) {
-                if (newRep >= 1000) {
-                    player.sendSystemMessage(Component.literal("  §6§l" + emoji + " ¡Los aldeanos se inclinan ante tu presencia!"));
-                } else if (newRep >= 800) {
-                    player.sendSystemMessage(Component.literal("  §a§l" + emoji + " ¡Eres un héroe para esta aldea!"));
-                } else if (newRep >= 500) {
-                    player.sendSystemMessage(Component.literal("  §a§l" + emoji + " ¡Los aldeanos te celebran!"));
-                } else if (newRep >= 300) {
-                    player.sendSystemMessage(Component.literal("  §a§l" + emoji + " ¡La aldea confía en ti completamente!"));
-                } else if (newRep >= 100) {
-                    player.sendSystemMessage(Component.literal("  §a§l" + emoji + " ¡Los aldeanos te saludan cálidamente!"));
-                } else if (newRep >= 0) {
-                    player.sendSystemMessage(Component.literal("  §e§l" + emoji + " Las relaciones están mejorando..."));
-                }
-            } else {
-                if (newRep < -899) {
-                    player.sendSystemMessage(Component.literal("  §4§l" + emoji + " ¡Los Golems atacan a la vista!"));
-                } else if (newRep < -699) {
-                    player.sendSystemMessage(Component.literal("  §c§l" + emoji + " ¡Eres un enemigo de la aldea!"));
-                } else if (newRep < -499) {
-                    player.sendSystemMessage(Component.literal("  §c§l" + emoji + " ¡Los aldeanos se niegan a comerciar contigo!"));
-                } else if (newRep < -200) {
-                    player.sendSystemMessage(Component.literal("  §c§l" + emoji + " ¡No eres bienvenido aquí!"));
-                } else if (newRep < -100) {
-                    player.sendSystemMessage(Component.literal("  §c§l" + emoji + " ¡Los aldeanos te desagradan!"));
-                } else if (newRep < 0) {
-                    player.sendSystemMessage(Component.literal("  §e§l" + emoji + " Las relaciones se están deteriorando..."));
-                }
-            }
-            
-            player.sendSystemMessage(Component.literal(""));
-            player.sendSystemMessage(Component.literal("§6§l━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"));
-            player.sendSystemMessage(Component.literal(""));
+        if (ModLang.repStatusKey(oldRep).equals(ModLang.repStatusKey(newRep))) {
+            return;
         }
+        boolean isPositive = newRep > oldRep;
+        MutableComponent emoji = Component.literal(isPositive ? "✦" : "✖");
+
+        ModLang.send(player, "villagediplomacy.rep.notify.blank");
+        ModLang.send(player, "villagediplomacy.rep.notify.bar");
+        ModLang.send(player, "villagediplomacy.rep.notify.title");
+        ModLang.send(player, "villagediplomacy.rep.notify.blank");
+
+        MutableComponent oldLine = ModLang.repStatus(oldRep).copy().withStyle(ChatFormatting.GRAY);
+        MutableComponent arrow = Component.translatable(
+                isPositive ? "villagediplomacy.rep.notify.arrow_up" : "villagediplomacy.rep.notify.arrow_down");
+        MutableComponent newLine = ModLang.repStatus(newRep).copy().withStyle(
+                isPositive ? ChatFormatting.GREEN : ChatFormatting.RED, ChatFormatting.BOLD);
+        player.sendSystemMessage(Component.translatable("villagediplomacy.rep.notify.line", oldLine, arrow, newLine));
+        ModLang.send(player, "villagediplomacy.rep.notify.blank");
+
+        if (isPositive) {
+            if (newRep >= 1000) {
+                player.sendSystemMessage(Component.translatable("villagediplomacy.rep.notify.up.legend", emoji));
+            } else if (newRep >= 800) {
+                player.sendSystemMessage(Component.translatable("villagediplomacy.rep.notify.up.hero", emoji));
+            } else if (newRep >= 500) {
+                player.sendSystemMessage(Component.translatable("villagediplomacy.rep.notify.up.champion", emoji));
+            } else if (newRep >= 300) {
+                player.sendSystemMessage(Component.translatable("villagediplomacy.rep.notify.up.trusted", emoji));
+            } else if (newRep >= 100) {
+                player.sendSystemMessage(Component.translatable("villagediplomacy.rep.notify.up.friendly", emoji));
+            } else if (newRep >= 0) {
+                player.sendSystemMessage(Component.translatable("villagediplomacy.rep.notify.up.neutral", emoji));
+            }
+        } else {
+            if (newRep < -899) {
+                player.sendSystemMessage(Component.translatable("villagediplomacy.rep.notify.down.wanted", emoji));
+            } else if (newRep < -699) {
+                player.sendSystemMessage(Component.translatable("villagediplomacy.rep.notify.down.enemy", emoji));
+            } else if (newRep < -499) {
+                player.sendSystemMessage(Component.translatable("villagediplomacy.rep.notify.down.untrade", emoji));
+            } else if (newRep < -200) {
+                player.sendSystemMessage(Component.translatable("villagediplomacy.rep.notify.down.unwelcome", emoji));
+            } else if (newRep < -100) {
+                player.sendSystemMessage(Component.translatable("villagediplomacy.rep.notify.down.disliked", emoji));
+            } else if (newRep < 0) {
+                player.sendSystemMessage(Component.translatable("villagediplomacy.rep.notify.down.sour", emoji));
+            }
+        }
+
+        ModLang.send(player, "villagediplomacy.rep.notify.blank");
+        ModLang.send(player, "villagediplomacy.rep.notify.bar");
+        ModLang.send(player, "villagediplomacy.rep.notify.blank");
     }
 
     private BlockType categorizeBlock(Block block, ServerLevel level, BlockPos pos) {
@@ -3357,12 +2352,11 @@ public class VillagerEventHandler {
         return false;
     }
 
-    private String getBlockBreakMessage(BlockType type, boolean isBaby, ServerLevel level) {
-        String[] adultMessages = type.adultMessages;
-        String[] babyMessages = type.babyMessages;
-
-        String[] messages = isBaby && babyMessages.length > 0 ? babyMessages : adultMessages;
-        return messages[level.getRandom().nextInt(messages.length)];
+    private void sendBlockBreakVillagerLine(BlockType type, boolean isBaby, ServerLevel level, ServerPlayer player) {
+        boolean useBaby = isBaby && type.babyCount > 0;
+        String prefix = useBaby ? type.babyKeyPrefix : type.adultKeyPrefix;
+        int count = useBaby ? type.babyCount : type.adultCount;
+        ModLang.sendRandom(player, level.getRandom(), prefix, count);
     }
 
     private boolean hasLineOfSight(Villager villager, ServerPlayer player, ServerLevel level) {
@@ -3382,145 +2376,45 @@ public class VillagerEventHandler {
     }
 
     private enum BlockType {
-        BELL(-50, "Broke the village bell!",
-                new String[] {
-                        "§4[Aldeano] ¡LA CAMPANA! ¡Nuestro sistema de emergencia!",
-                        "§4[Aldeano] ¡NO! ¡Esa era nuestra campana de alerta!",
-                        "§4[Aldeano] ¡Destruiste nuestra campana!",
-                        "§4[Aldeano] *horrorizado* ¡La campana es nuestra línea de vida!",
-                        "§4[Aldeano] ¿¡Cómo pediremos ayuda ahora!",
-                        "§4[Aldeano] ¡Esa campana ha salvado vidas!",
-                        "§4[Aldeano] ¡Guardias! ¡La campana está destruida!",
-                        "§4[Aldeano] ¡Esto es imperdonable!",
-                        "§c[Aldeano] *en pánico* ¡Nuestro sistema de alerta!",
-                        "§c[Aldeano] ¡Los saqueadores atacarán y no lo sabremos!"
-                },
-                new String[] {
-                        "§c[Aldeano Bebé] *llora en voz alta* ¡La campana! ¡Está rota!",
-                        "§c[Aldeano Bebé] ¿¡Por qué la rompiste!",
-                        "§c[Aldeano Bebé] ¡Mamá! ¡La campana!",
-                        "§c[Aldeano Bebé] *sollozando* ¡Eso era importante!"
-                }),
-        BED(-20, "¡Rompió la cama de un aldeano!",
-                new String[] {
-                        "§c[Aldeano] ¡Esa es MI cama!",
-                        "§c[Aldeano] ¿¡Dónde se supone que duerma ahora!",
-                        "§c[Aldeano] ¡Monstruo!",
-                        "§c[Aldeano] *furioso* ¡Me tomó semanas hacerla!",
-                        "§c[Aldeano] ¡ACABO de hacer esa cama!",
-                        "§c[Aldeano] ¡No tienes respeto por los demás!",
-                        "§c[Aldeano] ¡Esa es mi única cama!",
-                        "§c[Aldeano] ¡Trabajo todo el día y rompes mi cama!",
-                        "§c[Aldeano] *indignado* ¡Dormiré en el suelo por tu culpa!",
-                        "§c[Aldeano] ¿¡Romper la cama de alguien! ¿¡En serio!"
-                },
-                new String[] {
-                        "§c[Aldeano Bebé] ¡Mi cama! *solloza incontrolablemente*",
-                        "§c[Aldeano Bebé] ¡Necesito eso para dormir!",
-                        "§c[Aldeano Bebé] *llorando* ¿¡Dónde dormiré!",
-                        "§c[Aldeano Bebé] ¡Papá! ¡Mi cama está rota!",
-                        "§c[Aldeano Bebé] *lamentando* ¿¡Por qué!"
-                }),
-        CROP(-15, "¡Destruyó los cultivos de la aldea!",
-                new String[] {
-                        "§c[Aldeano] ¡Nuestra comida! ¡Estás destruyendo nuestros cultivos!",
-                        "§c[Aldeano] ¡Los necesitamos para sobrevivir!",
-                        "§c[Aldeano] ¡DEJA de pisotear nuestra granja!",
-                        "§c[Aldeano] ¡Eso tomó MESES en crecer!",
-                        "§c[Aldeano] ¡Pasaremos hambre por tu culpa!",
-                        "§c[Aldeano] *desesperado* ¡Esa es nuestra reserva de invierno!",
-                        "§c[Aldeano] ¿¡Sabes lo difícil que es cultivar!",
-                        "§c[Aldeano] ¡Esos cultivos alimentan a toda la aldea!",
-                        "§c[Aldeano] *enojado* ¡Aléjate de nuestros campos!",
-                        "§c[Aldeano] ¡Estás destruyendo nuestro sustento!",
-                        "§c[Aldeano] ¡Toda la aldea depende de estos cultivos!",
-                        "§c[Aldeano] ¿¡No tienes vergüenza!"
-                },
-                new String[] {
-                        "§c[Aldeano Bebé] ¡La comida! *llora*",
-                        "§c[Aldeano Bebé] ¡Mamá dijo que no toqué los cultivos!",
-                        "§c[Aldeano Bebé] *señala* ¡Malo! ¡Malo!",
-                        "§c[Aldeano Bebé] ¡Esos iban a ser pan!"
-                }),
-        WORKSTATION(-25, "¡Rompió una estación de trabajo!",
-                new String[] {
-                        "§4[Aldeano] ¡Ese es mi sustento!",
-                        "§4[Aldeano] ¡Necesito eso para trabajar!",
-                        "§4[Aldeano] ¿¡Cómo te atreves!",
-                        "§4[Aldeano] *conmocionado* ¡Mi mesa de trabajo!",
-                        "§4[Aldeano] ¡La he tenido por AÑOS!",
-                        "§4[Aldeano] ¡Así es como me gano la vida!",
-                        "§4[Aldeano] ¡Acabas de destruir mi trabajo!",
-                        "§4[Aldeano] *furioso* ¿¡Cómo se supone que trabaje ahora!",
-                        "§4[Aldeano] ¡Esa estación era esencial para la aldea!",
-                        "§c[Aldeano] ¡Sin eso no puedo ganar esmeraldas!",
-                        "§c[Aldeano] ¿¡Sabes lo caras que son esas cosas!",
-                        "§c[Aldeano] ¡Mi profesión entera depende de eso!"
-                },
-                new String[] {
-                        "§c[Aldeano Bebé] ¡La estación de trabajo de papá!",
-                        "§c[Aldeano Bebé] *jadea* ¡La rompiste!"
-                }),
-        DECORATION(-5, "¡Rompió una decoración de la aldea!",
-                new String[] {
-                        "§c[Aldeano] ¡Oye! ¡Eso hacía que la aldea se viera bonita!",
-                        "§c[Aldeano] ¿¡Por qué harías eso!",
-                        "§c[Aldeano] ¡Trabajamos duro para decorar!",
-                        "§6[Aldeano] *suspira* Eso era bonito...",
-                        "§6[Aldeano] ¿¡No podemos tener cosas lindas!",
-                        "§c[Aldeano] ¡Muestra algo de respeto por nuestra aldea!",
-                        "§6[Aldeano] Acabo de colocar eso ayer...",
-                        "§c[Aldeano] ¿¡Ahora rompes nuestras decoraciones!"
-                },
-                new String[] {}),
-        WELL(-30, "¡Dañó el pozo de la aldea!",
-                new String[] {
-                        "§4[Aldeano] ¡EL POZO! ¡Nuestra fuente de agua!",
-                        "§4[Aldeano] ¡Ese es nuestro único suministro de agua!",
-                        "§4[Aldeano] *horrorizado* ¡El pozo está destruido!",
-                        "§4[Aldeano] ¡Moriremos de sed!",
-                        "§c[Aldeano] ¿¡Cómo obtendremos agua ahora!",
-                        "§c[Aldeano] ¡Ese pozo nos ha servido por generaciones!",
-                        "§c[Aldeano] ¡Nos has condenado a todos!",
-                        "§c[Aldeano] *en pánico* ¡Nuestra agua! ¡Nuestra preciosa agua!",
-                        "§4[Aldeano] ¡Esto es una catástrofe!"
-                },
-                new String[] {
-                        "§c[Aldeano Bebé] *llorando* ¿¡Dónde obtenemos agua!",
-                        "§c[Aldeano Bebé] ¡Tengo sed! ¡El pozo!",
-                        "§c[Aldeano Bebé] ¡Mamá! ¡El lugar del agua está roto!"
-                }),
-        HOUSE(-15, "¡Dañó una casa!",
-                new String[] {
-                        "§c[Aldeano] ¡Estás destruyendo mi hogar!",
-                        "§c[Aldeano] ¡DETENTE! ¡Aquí es donde vivo!",
-                        "§c[Aldeano] ¡Mi casa! ¡La estás destrozando!",
-                        "§c[Aldeano] *desesperado* ¡No tengo otro lugar a donde ir!",
-                        "§c[Aldeano] ¡Esa es MI CASA que estás rompiendo!",
-                        "§c[Aldeano] ¡Construí esto con mis propias manos!",
-                        "§c[Aldeano] *furioso* ¡Aléjate de mi hogar!",
-                        "§c[Aldeano] ¡Esta casa me protege de los monstruos!",
-                        "§c[Aldeano] ¡Me estás dejando sin hogar!",
-                        "§c[Aldeano] ¿¡No tienes decencia!"
-                },
-                new String[] {
-                        "§c[Aldeano Bebé] ¡Nuestra casa! *llora*",
-                        "§c[Aldeano Bebé] *sollozando* ¿¡Dónde viviremos!",
-                        "§c[Aldeano Bebé] ¡No rompas nuestro hogar!",
-                        "§c[Aldeano Bebé] ¡Papá! ¡Nuestra casa!"
-                }),
-        NONE(0, "", new String[] {}, new String[] {});
+        BELL(-50, "villagediplomacy.sys.break_bell",
+                "villagediplomacy.react.break.bell.adult", 12,
+                "villagediplomacy.react.break.bell.baby", 6),
+        BED(-20, "villagediplomacy.sys.break_bed",
+                "villagediplomacy.react.break.bed.adult", 12,
+                "villagediplomacy.react.break.bed.baby", 7),
+        CROP(-15, "villagediplomacy.sys.break_crop",
+                "villagediplomacy.react.break.crop.adult", 14,
+                "villagediplomacy.react.break.crop.baby", 6),
+        WORKSTATION(-25, "villagediplomacy.sys.break_workstation",
+                "villagediplomacy.react.break.workstation.adult", 14,
+                "villagediplomacy.react.break.workstation.baby", 4),
+        DECORATION(-5, "villagediplomacy.sys.break_decoration",
+                "villagediplomacy.react.break.decoration.adult", 12,
+                "", 0),
+        WELL(-30, "villagediplomacy.sys.break_well",
+                "villagediplomacy.react.break.well.adult", 11,
+                "villagediplomacy.react.break.well.baby", 5),
+        HOUSE(-15, "villagediplomacy.sys.break_house",
+                "villagediplomacy.react.break.house.adult", 12,
+                "villagediplomacy.react.break.house.baby", 6),
+        NONE(0, "", "", 0, "", 0);
 
         final int penalty;
-        final String systemMessage;
-        final String[] adultMessages;
-        final String[] babyMessages;
+        final String systemMessageKey;
+        final String adultKeyPrefix;
+        final int adultCount;
+        final String babyKeyPrefix;
+        final int babyCount;
 
-        BlockType(int penalty, String systemMessage, String[] adultMessages, String[] babyMessages) {
+        BlockType(int penalty, String systemMessageKey,
+                String adultKeyPrefix, int adultCount,
+                String babyKeyPrefix, int babyCount) {
             this.penalty = penalty;
-            this.systemMessage = systemMessage;
-            this.adultMessages = adultMessages;
-            this.babyMessages = babyMessages;
+            this.systemMessageKey = systemMessageKey;
+            this.adultKeyPrefix = adultKeyPrefix;
+            this.adultCount = adultCount;
+            this.babyKeyPrefix = babyKeyPrefix;
+            this.babyCount = babyCount;
         }
     }
 
@@ -3933,11 +2827,10 @@ public class VillagerEventHandler {
             int oldRep = data.getReputation(curerUUID, nearestVillage.get());
             data.addReputation(curerUUID, nearestVillage.get(), 100);
             int newRep = data.getReputation(curerUUID, nearestVillage.get());
-            
-            curer.sendSystemMessage(Component.literal(
-                "§a[Diplomacia de Aldeas] ¡Curaste a un aldeano zombie! +100 Reputación (Total: " +
-                newRep + " - " + getReputationStatus(newRep) + ")"));
-                
+
+            curer.sendSystemMessage(Component.translatable("villagediplomacy.sys.cure_zombie"));
+            ModLang.sendReputationSummary(curer, 100, newRep);
+            checkAndNotifyReputationChange(curer, oldRep, newRep);
             checkReputationLevelChange(curer, level, newRep);
         }
     }

@@ -1,98 +1,88 @@
+
 package com.cesoti2006.villagediplomacy.events;
 
-import com.cesoti2006.villagediplomacy.data.VillageDetector;
-import com.cesoti2006.villagediplomacy.data.VillageRelationshipData;
-import com.cesoti2006.villagediplomacy.data.VillageReputationData;
-import net.minecraft.core.BlockPos;
+import com.cesoti2006.villagediplomacy.util.VillageDisplayName;
+import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.RenderGuiOverlayEvent;
+import net.minecraftforge.client.gui.overlay.VanillaGuiOverlay;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
-
+@Mod.EventBusSubscriber(modid = "villagediplomacy", value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class VillageHUDHandler {
 
-    private final Map<UUID, String> currentVillage = new HashMap<>();
-    private final Map<UUID, Long> lastVillageChangeTime = new HashMap<>();
-    private final Map<UUID, Long> playerSpawnTime = new HashMap<>();
-    private final Map<UUID, Long> lastHudMessageTime = new HashMap<>();
-    private static final long VILLAGE_CHECK_INTERVAL = 40;
-    private static final long HUD_DISPLAY_TIME = 4000;
+    private static int hudDisplayTimer = 0;
+    private static final int HUD_DISPLAY_TICKS = 100;
+    private static String cachedVillageName = null;
+    private static int cachedReputation = 0;
+    private static String cachedRelation = null;
 
-    @SubscribeEvent
-    public void onPlayerTick(TickEvent.PlayerTickEvent event) {
-        if (!(event.player instanceof ServerPlayer player)) return;
-        if (event.phase != TickEvent.Phase.END) return;
-        if (player.tickCount % VILLAGE_CHECK_INTERVAL != 0) return;
-        if (player.isCreative() || player.isSpectator()) return;
+    public static void onPlayerEnterVillage(String villageName, int reputation, String relation) {
+        cachedVillageName = villageName;
+        cachedReputation = reputation;
+        cachedRelation = relation;
+        hudDisplayTimer = HUD_DISPLAY_TICKS;
+    }
 
-        ServerLevel level = (ServerLevel) player.level();
-        UUID playerId = player.getUUID();
-
-        if (!playerSpawnTime.containsKey(playerId)) {
-            playerSpawnTime.put(playerId, System.currentTimeMillis());
-        }
-
-        long timeSinceSpawn = System.currentTimeMillis() - playerSpawnTime.get(playerId);
-        if (timeSinceSpawn < 5000) {
-            return;
-        }
-
-        Optional<BlockPos> nearestVillage = VillageDetector.findNearestVillage(level, player.blockPosition(), 200);
-
-        long now = System.currentTimeMillis();
-        if (nearestVillage.isPresent()) {
-            VillageRelationshipData relationData = VillageRelationshipData.get(level);
-            relationData.registerVillage(nearestVillage.get());
-            String villageId = relationData.getVillageId(nearestVillage.get());
-            String previousVillage = currentVillage.get(playerId);
-
-            if (previousVillage != null && !villageId.equals(previousVillage)) {
-                // Show leaving message for previous village
-                String prevVillageName = relationData.getVillageName(previousVillage);
-                player.sendSystemMessage(Component.literal("§7Leaving " + prevVillageName));
-            }
-
-            if (!villageId.equals(previousVillage) || now - lastHudMessageTime.getOrDefault(playerId, 0L) > HUD_DISPLAY_TIME) {
-                String villageName = relationData.getVillageName(villageId);
-                VillageReputationData repData = VillageReputationData.get(level);
-                int reputation = repData.getReputation(playerId);
-                String title = "§6§lEntering " + villageName;
-                String subtitle = getReputationSubtitle(reputation);
-
-                player.sendSystemMessage(Component.literal("§8━━━━━━━━━━━━━━━━━━━━━━━━━━━━"));
-                player.sendSystemMessage(Component.literal(""));
-                player.sendSystemMessage(Component.literal("         " + title));
-                player.sendSystemMessage(Component.literal("         Reputation: " + reputation + " (" + subtitle + ")"));
-                player.sendSystemMessage(Component.literal(""));
-                player.sendSystemMessage(Component.literal("§8━━━━━━━━━━━━━━━━━━━━━━━━━━━━"));
-
-                currentVillage.put(playerId, villageId);
-                lastVillageChangeTime.put(playerId, now);
-                lastHudMessageTime.put(playerId, now);
-            }
-        } else {
-            if (currentVillage.containsKey(playerId) && now - lastHudMessageTime.getOrDefault(playerId, 0L) > HUD_DISPLAY_TIME) {
-                String prevVillageName = currentVillage.get(playerId);
-                player.sendSystemMessage(Component.literal("§7Leaving " + prevVillageName));
-                currentVillage.remove(playerId);
-                lastVillageChangeTime.put(playerId, now);
-                lastHudMessageTime.put(playerId, now);
-            }
+    public static void tick() {
+        if (hudDisplayTimer > 0) {
+            hudDisplayTimer--;
         }
     }
 
-    private String getReputationSubtitle(int reputation) {
-        if (reputation >= 800) return "§6✦ Legendary Hero ✦";
-        if (reputation >= 500) return "§aVillage Hero";
-        if (reputation >= 200) return "§aFriendly Village";
-        if (reputation >= -200) return "§7Neutral Territory";
-        if (reputation >= -500) return "§cUnfriendly Village";
-        return "§4⚠ Hostile Territory ⚠";
+    @SubscribeEvent
+    public static void onClientTick(TickEvent.ClientTickEvent event) {
+        if (event.phase == TickEvent.Phase.END) {
+            tick();
+        }
+    }
+
+    @SubscribeEvent
+    public static void onRenderHUD(RenderGuiOverlayEvent.Post event) {
+        if (!event.getOverlay().id().equals(VanillaGuiOverlay.HOTBAR.id())) {
+            return;
+        }
+        if (hudDisplayTimer <= 0 || cachedVillageName == null) {
+            return;
+        }
+
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null || mc.level == null) {
+            return;
+        }
+        if (mc.screen != null) {
+            return;
+        }
+
+        var guiGraphics = event.getGuiGraphics();
+        int screenWidth = mc.getWindow().getGuiScaledWidth();
+
+        float alpha = 1.0f;
+        if (hudDisplayTimer < 20) {
+            alpha = hudDisplayTimer / 20.0f;
+        }
+        int alphaInt = (int) (alpha * 255);
+        int white = (alphaInt << 24) | 0xFFFFFF;
+
+        Component villageLine = Component.translatable(
+                "villagediplomacy.hud.line_village",
+                Component.translatable("villagediplomacy.village.name_prefix"),
+                VillageDisplayName.asComponent(cachedVillageName));
+        Component repLine = Component.translatable("villagediplomacy.hud.line_reputation", cachedReputation);
+        String relSub = cachedRelation == null ? "neutral" : cachedRelation.toLowerCase();
+        Component relLine = Component.translatable(
+                "villagediplomacy.hud.line_relations",
+                Component.translatable("villagediplomacy.hud." + relSub));
+
+        int x1 = (screenWidth - mc.font.width(villageLine)) / 2;
+        int x2 = (screenWidth - mc.font.width(repLine)) / 2;
+        int x3 = (screenWidth - mc.font.width(relLine)) / 2;
+
+        guiGraphics.drawString(mc.font, villageLine, x1, 12, white, true);
+        guiGraphics.drawString(mc.font, repLine, x2, 24, white, true);
+        guiGraphics.drawString(mc.font, relLine, x3, 36, white, true);
     }
 }

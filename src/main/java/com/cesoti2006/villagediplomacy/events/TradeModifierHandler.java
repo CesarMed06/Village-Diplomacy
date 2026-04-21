@@ -3,8 +3,14 @@ package com.cesoti2006.villagediplomacy.events;
 import com.cesoti2006.villagediplomacy.data.VillageDetector;
 import com.cesoti2006.villagediplomacy.data.VillageReputationData;
 import com.cesoti2006.villagediplomacy.personality.PersonalityTrait;
+import com.cesoti2006.villagediplomacy.util.ModLang;
+import net.minecraft.ChatFormatting;
+import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.npc.Villager;
@@ -15,6 +21,7 @@ import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -22,23 +29,30 @@ import java.util.UUID;
 public class TradeModifierHandler {
 
     private final Map<UUID, Long> tradeMessageCooldown = new HashMap<>();
-    private static final long TRADE_MESSAGE_COOLDOWN_MS = 30000; // 30 segundos
+    private static final long TRADE_MESSAGE_COOLDOWN_MS = 30000;
 
     @SubscribeEvent
     public void onVillagerInteract(PlayerInteractEvent.EntityInteract event) {
-        if (!(event.getTarget() instanceof Villager villager)) return;
-        if (!(event.getEntity() instanceof ServerPlayer player)) return;
-        if (!(event.getLevel() instanceof ServerLevel level)) return;
-        if (event.getHand() != net.minecraft.world.InteractionHand.MAIN_HAND) return; // Evitar duplicación de eventos
+        if (!(event.getTarget() instanceof Villager villager)) {
+            return;
+        }
+        if (!(event.getEntity() instanceof ServerPlayer player)) {
+            return;
+        }
+        if (!(event.getLevel() instanceof ServerLevel level)) {
+            return;
+        }
+        if (event.getHand() != net.minecraft.world.InteractionHand.MAIN_HAND) {
+            return;
+        }
 
         if (villager.isBaby()) {
             return;
         }
-        
-        // SHIFT + CLICK DERECHO = Mostrar personalidad detallada
+
         if (player.isShiftKeyDown()) {
             showVillagerPersonality(villager, player, level);
-            event.setCanceled(true); // No abrir GUI de comercio
+            event.setCanceled(true);
             return;
         }
 
@@ -56,69 +70,72 @@ public class TradeModifierHandler {
         if (reputation < -500) {
             event.setCanceled(true);
 
-            String[] rejectMessages = reputation < -800 ? new String[] {
-                "§4[Villager] A CRIMINAL! Guards, help!",
-                "§4[Villager] Stay away from me, criminal!",
-                "§4[Villager] I won't help someone like you!"
-            } : new String[] {
-                "§c[Villager] I don't want to trade with you!",
-                "§c[Villager] Leave me alone!",
-                "§c[Villager] Your reputation precedes you..."
-            };
+            if (reputation < -800) {
+                ModLang.sendRandom(player, level.getRandom(), "villagediplomacy.trade.reject.criminal", 3);
+            } else {
+                ModLang.sendRandom(player, level.getRandom(), "villagediplomacy.trade.reject.enemy", 3);
+            }
 
-            player.sendSystemMessage(Component.literal(
-                    rejectMessages[(int)(Math.random() * rejectMessages.length)]));
-
-            String statusMsg = reputation < -800 ?
-                    "§4[Village Diplomacy] Villagers refuse to trade with WANTED criminals!" :
-                    "§c[Village Diplomacy] This villager refuses to trade due to your ENEMY reputation!";
-
-            player.sendSystemMessage(Component.literal(statusMsg));
+            player.sendSystemMessage(Component.translatable(
+                    reputation < -800 ? "villagediplomacy.trade.refuse_wanted" : "villagediplomacy.trade.refuse_enemy"));
         } else {
             int priceModifier = calculatePriceModifier(reputation);
 
             if (priceModifier != 0) {
                 modifyVillagerOffers(villager, priceModifier);
-                
-                // Cooldown para no saturar el chat con mensajes
+
                 UUID playerId = player.getUUID();
                 long currentTime = System.currentTimeMillis();
-                
-                if (!tradeMessageCooldown.containsKey(playerId) ||
-                        currentTime - tradeMessageCooldown.get(playerId) > TRADE_MESSAGE_COOLDOWN_MS) {
-                    
-                    // SOLO mostrar mensaje si hay descuento significativo (no neutral)
+
+                if (!tradeMessageCooldown.containsKey(playerId)
+                        || currentTime - tradeMessageCooldown.get(playerId) > TRADE_MESSAGE_COOLDOWN_MS) {
+
                     if (priceModifier < 0) {
-                        player.sendSystemMessage(Component.literal(
-                                "§a[Village Diplomacy] Your reputation grants a " + 
-                                Math.abs(priceModifier * 10) + "% discount on trades!"));
+                        player.sendSystemMessage(Component.translatable("villagediplomacy.trade.discount",
+                                Math.abs(priceModifier * 10)));
                         tradeMessageCooldown.put(playerId, currentTime);
                     } else if (priceModifier > 0) {
-                        player.sendSystemMessage(Component.literal(
-                                "§6[Village Diplomacy] Your reputation adds a " + 
-                                (priceModifier * 10) + "% surcharge on trades."));
+                        player.sendSystemMessage(Component.translatable("villagediplomacy.trade.surcharge",
+                                priceModifier * 10));
                         tradeMessageCooldown.put(playerId, currentTime);
                     }
                 }
             }
-            // Si priceModifier == 0 (NEUTRAL), NO mostrar nada
         }
     }
 
     private int calculatePriceModifier(int reputation) {
-        if (reputation >= 1000) return -5;
-        if (reputation >= 800) return -4;
-        if (reputation >= 500) return -3;
-        if (reputation >= 300) return -2;
-        if (reputation >= 100) return -1;
-        if (reputation >= -99) return 0;
-        if (reputation >= -299) return 1;
-        if (reputation >= -500) return 3;
+        if (reputation >= 1000) {
+            return -5;
+        }
+        if (reputation >= 800) {
+            return -4;
+        }
+        if (reputation >= 500) {
+            return -3;
+        }
+        if (reputation >= 300) {
+            return -2;
+        }
+        if (reputation >= 100) {
+            return -1;
+        }
+        if (reputation >= -99) {
+            return 0;
+        }
+        if (reputation >= -299) {
+            return 1;
+        }
+        if (reputation >= -500) {
+            return 3;
+        }
         return 5;
     }
 
     private void modifyVillagerOffers(Villager villager, int priceModifier) {
-        if (villager.getOffers().isEmpty()) return;
+        if (villager.getOffers().isEmpty()) {
+            return;
+        }
 
         for (MerchantOffer offer : villager.getOffers()) {
             ItemStack costA = offer.getBaseCostA();
@@ -126,117 +143,73 @@ public class TradeModifierHandler {
             costA.setCount(newCount);
         }
     }
-    
-    /**
-     * Mostrar personalidad completa con Shift+Click
-     */
+
     private void showVillagerPersonality(Villager villager, ServerPlayer player, ServerLevel level) {
-        com.cesoti2006.villagediplomacy.data.VillagerPersonalityData personalityData = 
-            com.cesoti2006.villagediplomacy.data.VillagerPersonalityData.get(level);
-        com.cesoti2006.villagediplomacy.personality.VillagerPersonality personality = 
-            personalityData.getPersonality(villager.getUUID());
-        
+        com.cesoti2006.villagediplomacy.data.VillagerPersonalityData personalityData =
+                com.cesoti2006.villagediplomacy.data.VillagerPersonalityData.get(level);
+        com.cesoti2006.villagediplomacy.personality.VillagerPersonality personality =
+                personalityData.getPersonality(villager.getUUID());
+
         if (personality == null) {
-            player.sendSystemMessage(Component.literal("§c[System] This villager does not have personality data yet."));
+            player.sendSystemMessage(Component.translatable("villagediplomacy.trade.no_personality"));
             return;
         }
-        
-        // Get correct professional level
+
         int profLevel = villager.getVillagerData().getLevel();
-        String profLevelName = switch(profLevel) {
-            case 1 -> "§7Novice";
-            case 2 -> "§fApprentice";
-            case 3 -> "§eJourneyman";
-            case 4 -> "§6Expert";
-            case 5 -> "§6✦ Master";
-            default -> "§7Unknown";
-        };
-        
-        String profession = villager.getVillagerData().getProfession().toString();
+        MutableComponent profLevelName = Component.translatable(switch (profLevel) {
+            case 1 -> "villagediplomacy.personality.level.novice";
+            case 2 -> "villagediplomacy.personality.level.apprentice";
+            case 3 -> "villagediplomacy.personality.level.journeyman";
+            case 4 -> "villagediplomacy.personality.level.expert";
+            case 5 -> "villagediplomacy.personality.level.master";
+            default -> "villagediplomacy.personality.level.unknown";
+        });
+
         boolean hasJob = !villager.getVillagerData().getProfession().equals(VillagerProfession.NONE);
-        
-        // HEADER
-        player.sendSystemMessage(Component.literal("§8▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬"));
-        player.sendSystemMessage(Component.literal("§6【 " + personality.getCustomName() + " 】"));
-        
-        // Profession and level
+
+        player.sendSystemMessage(Component.translatable("villagediplomacy.enter.bar"));
+        player.sendSystemMessage(Component.translatable("villagediplomacy.personality.title", personality.getCustomName()));
+
         if (hasJob) {
-            player.sendSystemMessage(Component.literal(
-                "§7" + profession + " §8| " + profLevelName
-            ));
+            VillagerProfession prof = villager.getVillagerData().getProfession();
+            ResourceLocation profKey = BuiltInRegistries.VILLAGER_PROFESSION.getKey(prof);
+            Component profName = profKey != null
+                    ? Component.translatable(Util.makeDescriptionId("entity.minecraft.villager.profession", profKey))
+                    : Component.literal(prof.toString());
+            player.sendSystemMessage(Component.translatable("villagediplomacy.personality.job_line",
+                    profName, profLevelName));
         } else {
-            player.sendSystemMessage(Component.literal("§7Unemployed"));
+            player.sendSystemMessage(Component.translatable("villagediplomacy.personality.unemployed"));
         }
-        
-        player.sendSystemMessage(Component.literal("§8▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬"));
-        
-        // PERSONALITY (Only show relevant traits)
-        player.sendSystemMessage(Component.literal("§e● §7Courage: " + getTraitColor(personality.getCourage()) + getTraitName(personality.getCourage())));
-        player.sendSystemMessage(Component.literal("§e● §7Generosity: " + getTraitColor(personality.getGenerosity()) + getTraitName(personality.getGenerosity())));
-        
-        // Only show work ethic if has job
+
+        player.sendSystemMessage(Component.translatable("villagediplomacy.enter.bar"));
+
+        sendTraitRow(player, "villagediplomacy.personality.label.courage", personality.getCourage());
+        sendTraitRow(player, "villagediplomacy.personality.label.generosity", personality.getGenerosity());
         if (hasJob) {
-            player.sendSystemMessage(Component.literal("§e● §7Work Ethic: " + getTraitColor(personality.getWorkEthic()) + getTraitName(personality.getWorkEthic())));
+            sendTraitRow(player, "villagediplomacy.personality.label.work_ethic", personality.getWorkEthic());
         }
-        
-        player.sendSystemMessage(Component.literal("§e● §7Social: " + getTraitColor(personality.getSocialBehavior()) + getTraitName(personality.getSocialBehavior())));
-        player.sendSystemMessage(Component.literal("§e● §7Temperament: " + getTraitColor(personality.getTemperament()) + getTraitName(personality.getTemperament())));
-        player.sendSystemMessage(Component.literal("§e● §7Honesty: " + getTraitColor(personality.getHonesty()) + getTraitName(personality.getHonesty())));
-        player.sendSystemMessage(Component.literal("§e● §7Outlook: " + getTraitColor(personality.getOutlook()) + getTraitName(personality.getOutlook())));
-        
-        player.sendSystemMessage(Component.literal("§8▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬"));
+        sendTraitRow(player, "villagediplomacy.personality.label.social", personality.getSocialBehavior());
+        sendTraitRow(player, "villagediplomacy.personality.label.temperament", personality.getTemperament());
+        sendTraitRow(player, "villagediplomacy.personality.label.honesty", personality.getHonesty());
+        sendTraitRow(player, "villagediplomacy.personality.label.outlook", personality.getOutlook());
+
+        player.sendSystemMessage(Component.translatable("villagediplomacy.enter.bar"));
     }
-    
-    private String getTraitColor(PersonalityTrait trait) {
-        return switch(trait.name()) {
-            case "COWARD", "CAUTIOUS", "GREEDY", "THRIFTY", "LAZY", "SHY", "HOTHEADED", "IMPULSIVE", "CUNNING", "PESSIMISTIC" -> "§c";
-            case "FEARLESS", "BRAVE", "CHARITABLE", "GENEROUS", "WORKAHOLIC", "DILIGENT", "EXTROVERTED", "CALM", "TRUSTWORTHY", "HONEST", "CHEERFUL" -> "§a";
-            default -> "§7";
-        };
+
+    private static void sendTraitRow(ServerPlayer player, String labelKey, PersonalityTrait trait) {
+        MutableComponent name = Component.translatable(
+                "villagediplomacy.trait." + trait.name().toLowerCase(Locale.ROOT));
+        name.withStyle(traitStyle(trait));
+        player.sendSystemMessage(Component.translatable("villagediplomacy.personality.trait_row",
+                Component.translatable(labelKey), name));
     }
-    
-    private String getTraitName(PersonalityTrait trait) {
-        return switch(trait.name()) {
-            case "COWARD" -> "Cobarde";
-            case "CAUTIOUS" -> "Cauteloso";
-            case "NEUTRAL_COURAGE" -> "Normal";
-            case "BRAVE" -> "Valiente";
-            case "FEARLESS" -> "Intrépido";
-            case "GREEDY" -> "Avaro";
-            case "THRIFTY" -> "Ahorrativo";
-            case "NEUTRAL_GENEROSITY" -> "Normal";
-            case "GENEROUS" -> "Generoso";
-            case "CHARITABLE" -> "Caritativo";
-            case "LAZY" -> "Perezoso";
-            case "RELAXED" -> "Relajado";
-            case "NEUTRAL_WORK" -> "Normal";
-            case "NEUTRAL_WORK_ETHIC" -> "Normal";
-            case "HARDWORKING" -> "Trabajador";
-            case "DILIGENT" -> "Diligente";
-            case "WORKAHOLIC" -> "Adicto al trabajo";
-            case "SHY" -> "Tímido";
-            case "RESERVED" -> "Reservado";
-            case "NEUTRAL_SOCIAL" -> "Normal";
-            case "OUTGOING" -> "Sociable";
-            case "SOCIABLE" -> "Sociable";
-            case "EXTROVERTED" -> "Extrovertido";
-            case "CALM" -> "Calmado";
-            case "PATIENT" -> "Paciente";
-            case "NEUTRAL" -> "Normal";
-            case "IRRITABLE" -> "Irritable";
-            case "IMPULSIVE" -> "Impulsivo";
-            case "HOTHEADED" -> "Irascible";
-            case "CUNNING" -> "Astuto";
-            case "SHREWD" -> "Sagaz";
-            case "NEUTRAL_HONESTY" -> "Normal";
-            case "HONEST" -> "Honesto";
-            case "TRUSTWORTHY" -> "Confiable";
-            case "PESSIMISTIC" -> "Pesimista";
-            case "REALISTIC" -> "Realista";
-            case "NEUTRAL_OUTLOOK" -> "Normal";
-            case "OPTIMISTIC" -> "Optimista";
-            case "CHEERFUL" -> "Alegre";
-            default -> trait.name();
+
+    private static ChatFormatting traitStyle(PersonalityTrait trait) {
+        return switch (trait.name()) {
+            case "COWARD", "CAUTIOUS", "GREEDY", "THRIFTY", "LAZY", "SHY", "HOTHEADED", "CUNNING", "PESSIMISTIC" -> ChatFormatting.RED;
+            case "FEARLESS", "BRAVE", "CHARITABLE", "GENEROUS", "WORKAHOLIC", "HARDWORKING", "EXTROVERTED", "CALM", "TRUSTWORTHY", "HONEST", "CHEERFUL" -> ChatFormatting.GREEN;
+            default -> ChatFormatting.GRAY;
         };
     }
 }

@@ -3,6 +3,8 @@ package com.cesoti2006.villagediplomacy.commands;
 import com.cesoti2006.villagediplomacy.data.VillageDetector;
 import com.cesoti2006.villagediplomacy.data.VillageReputationData;
 import com.cesoti2006.villagediplomacy.data.VillageRelationshipData;
+import com.cesoti2006.villagediplomacy.util.ModLang;
+import com.cesoti2006.villagediplomacy.util.VillageDisplayName;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -21,15 +23,13 @@ import java.util.Optional;
 public class DiplomacyCommands {
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
-        // Comandos de diplomacy (sin permisos)
         dispatcher.register(Commands.literal("diplomacy")
                 .then(Commands.literal("name")
                         .then(Commands.argument("villageName", StringArgumentType.greedyString())
                                 .executes(context -> nameCurrentVillage(context, StringArgumentType.getString(context, "villageName")))))
                 .then(Commands.literal("info")
                         .executes(DiplomacyCommands::showInfo)));
-        
-        // Comandos de admin
+
         dispatcher.register(Commands.literal("diplomacy")
                 .requires(source -> source.hasPermission(2))
                 .then(Commands.literal("reputation")
@@ -76,24 +76,26 @@ public class DiplomacyCommands {
     private static int getReputation(CommandContext<CommandSourceStack> context, ServerPlayer player) {
         ServerLevel level = player.serverLevel();
         VillageReputationData data = VillageReputationData.get(level);
-        
+
         Optional<BlockPos> nearestVillage = VillageDetector.findNearestVillage(level, player.blockPosition(), 200);
-        
+
         if (nearestVillage.isEmpty()) {
-            context.getSource().sendFailure(Component.literal("§cNo hay aldea cercana. Debes estar dentro de 200 bloques de una aldea."));
+            context.getSource().sendFailure(Component.translatable("villagediplomacy.cmd.error.no_village_near"));
             return 0;
         }
-        
+
         BlockPos villagePos = nearestVillage.get();
         int reputation = data.getReputation(player.getUUID(), villagePos);
-        String status = getReputationStatus(reputation);
-        
+
         VillageRelationshipData relationData = VillageRelationshipData.get(level);
         String villageId = relationData.getVillageId(villagePos);
-        String villageName = relationData.getVillageName(villageId);
+        String villageStored = relationData.getVillageName(villageId);
 
-        context.getSource().sendSuccess(() -> Component.literal(
-                "§6Reputación de " + player.getName().getString() + " en §e" + villageName + "§6: §f" + reputation + " §7(" + status + "§7)"), false);
+        context.getSource().sendSuccess(() -> Component.translatable("villagediplomacy.cmd.rep_get",
+                player.getName(),
+                VillageDisplayName.asComponent(villageStored),
+                reputation,
+                ModLang.repStatus(reputation)), false);
         return reputation;
     }
 
@@ -102,24 +104,27 @@ public class DiplomacyCommands {
         VillageReputationData data = VillageReputationData.get(level);
 
         Optional<BlockPos> nearestVillage = VillageDetector.findNearestVillage(level, player.blockPosition(), 200);
-        
+
         if (nearestVillage.isEmpty()) {
-            context.getSource().sendFailure(Component.literal("§cNo hay aldea cercana. Debes estar dentro de 200 bloques de una aldea."));
+            context.getSource().sendFailure(Component.translatable("villagediplomacy.cmd.error.no_village_near"));
             return 0;
         }
-        
+
         BlockPos villagePos = nearestVillage.get();
         int oldRep = data.getReputation(player.getUUID(), villagePos);
         data.setReputation(player.getUUID(), villagePos, amount);
         int newRep = data.getReputation(player.getUUID(), villagePos);
-        String status = getReputationStatus(newRep);
-        
+
         VillageRelationshipData relationData = VillageRelationshipData.get(level);
         String villageId = relationData.getVillageId(villagePos);
-        String villageName = relationData.getVillageName(villageId);
+        String villageStored = relationData.getVillageName(villageId);
 
-        context.getSource().sendSuccess(() -> Component.literal(
-                "§aReputación de " + player.getName().getString() + " en §e" + villageName + "§a: §f" + oldRep + " §7→ §f" + newRep + " §7(" + status + "§7)"), false);
+        context.getSource().sendSuccess(() -> Component.translatable("villagediplomacy.cmd.rep_set",
+                player.getName(),
+                VillageDisplayName.asComponent(villageStored),
+                oldRep,
+                newRep,
+                ModLang.repStatus(newRep)), false);
 
         return 1;
     }
@@ -129,25 +134,27 @@ public class DiplomacyCommands {
         VillageReputationData data = VillageReputationData.get(level);
 
         Optional<BlockPos> nearestVillage = VillageDetector.findNearestVillage(level, player.blockPosition(), 200);
-        
+
         if (nearestVillage.isEmpty()) {
-            context.getSource().sendFailure(Component.literal("§cNo hay aldea cercana. Debes estar dentro de 200 bloques de una aldea."));
+            context.getSource().sendFailure(Component.translatable("villagediplomacy.cmd.error.no_village_near"));
             return 0;
         }
-        
+
         BlockPos villagePos = nearestVillage.get();
         int oldRep = data.getReputation(player.getUUID(), villagePos);
         data.addReputation(player.getUUID(), villagePos, amount);
         int newRep = data.getReputation(player.getUUID(), villagePos);
-        String status = getReputationStatus(newRep);
-        
+
         VillageRelationshipData relationData = VillageRelationshipData.get(level);
         String villageId = relationData.getVillageId(villagePos);
-        String villageName = relationData.getVillageName(villageId);
+        String villageStored = relationData.getVillageName(villageId);
 
-        context.getSource().sendSuccess(() -> Component.literal(
-                "§aReputación de " + player.getName().getString() + " en §e" + villageName + "§a: §f" + oldRep + " §7→ §f" + newRep +
-                        " §7(" + status + "§7)"), false);
+        context.getSource().sendSuccess(() -> Component.translatable("villagediplomacy.cmd.rep_add",
+                player.getName(),
+                VillageDisplayName.asComponent(villageStored),
+                oldRep,
+                newRep,
+                ModLang.repStatus(newRep)), false);
 
         return 1;
     }
@@ -159,17 +166,21 @@ public class DiplomacyCommands {
         Map<String, BlockPos> villages = data.getAllVillages();
 
         if (villages.isEmpty()) {
-            context.getSource().sendSuccess(() -> Component.literal("§eNo hay aldeas registradas."), false);
+            context.getSource().sendSuccess(() -> Component.translatable("villagediplomacy.cmd.list_empty"), false);
             return 0;
         }
 
-        context.getSource().sendSuccess(() -> Component.literal("§6=== Aldeas Registradas ==="), false);
+        context.getSource().sendSuccess(() -> Component.translatable("villagediplomacy.cmd.list_header"), false);
         for (Map.Entry<String, BlockPos> entry : villages.entrySet()) {
             BlockPos pos = entry.getValue();
             String villageId = entry.getKey();
-            String villageName = data.getVillageName(villageId);
-            context.getSource().sendSuccess(() -> Component.literal(
-                    "§7- §6" + villageName + " §8(" + villageId + ") §7@ [" + pos.getX() + ", " + pos.getY() + ", " + pos.getZ() + "]"), false);
+            String villageStored = data.getVillageName(villageId);
+            context.getSource().sendSuccess(() -> Component.translatable("villagediplomacy.cmd.list_line",
+                    VillageDisplayName.asComponent(villageStored),
+                    villageId,
+                    pos.getX(),
+                    pos.getY(),
+                    pos.getZ()), false);
         }
 
         return villages.size();
@@ -180,21 +191,24 @@ public class DiplomacyCommands {
         VillageRelationshipData data = VillageRelationshipData.get(level);
 
         if (data.getVillagePosition(villageId) == null) {
-            context.getSource().sendFailure(Component.literal("§cAldea no encontrada: " + villageId));
+            context.getSource().sendFailure(Component.translatable("villagediplomacy.cmd.village_not_found", villageId));
             return 0;
         }
 
-        String villageName = data.getVillageName(villageId);
-        context.getSource().sendSuccess(() -> Component.literal("§6=== Relaciones de " + villageName + " ==="), false);
+        String villageStored = data.getVillageName(villageId);
+        context.getSource().sendSuccess(() -> Component.translatable("villagediplomacy.cmd.relations_header",
+                VillageDisplayName.asComponent(villageStored)), false);
 
         Map<String, BlockPos> allVillages = data.getAllVillages();
         for (String otherVillage : allVillages.keySet()) {
             if (!otherVillage.equals(villageId)) {
                 int points = data.getRelationship(villageId, otherVillage);
                 VillageRelationshipData.RelationshipStatus status = data.getStatus(villageId, otherVillage);
-                String otherVillageName = data.getVillageName(otherVillage);
-                context.getSource().sendSuccess(() -> Component.literal(
-                        "§7- §6" + otherVillageName + "§7: " + status.getDisplay() + " §7(" + points + " puntos)"), false);
+                String otherStored = data.getVillageName(otherVillage);
+                context.getSource().sendSuccess(() -> Component.translatable("villagediplomacy.cmd.relation_line",
+                        VillageDisplayName.asComponent(otherStored),
+                        Component.translatable(status.getTranslationKey()),
+                        points), false);
             }
         }
 
@@ -208,9 +222,11 @@ public class DiplomacyCommands {
         data.setRelationship(village1, village2, points);
         VillageRelationshipData.RelationshipStatus status = data.getStatus(village1, village2);
 
-        context.getSource().sendSuccess(() -> Component.literal(
-                "§aRelación establecida: " + village1 + " ↔ " + village2 +
-                        " = " + status.getDisplay() + " §7(" + points + " puntos)"), false);
+        context.getSource().sendSuccess(() -> Component.translatable("villagediplomacy.cmd.set_relation_done",
+                village1,
+                village2,
+                Component.translatable(status.getTranslationKey()),
+                points), false);
 
         return 1;
     }
@@ -220,116 +236,91 @@ public class DiplomacyCommands {
         VillageRelationshipData data = VillageRelationshipData.get(level);
 
         if (data.getVillagePosition(villageId) == null) {
-            context.getSource().sendFailure(Component.literal("§cAldea no encontrada: " + villageId));
+            context.getSource().sendFailure(Component.translatable("villagediplomacy.cmd.village_not_found", villageId));
             return 0;
         }
 
-        String oldName = data.getVillageName(villageId);
+        String oldStored = data.getVillageName(villageId);
         data.setVillageName(villageId, newName);
 
-        context.getSource().sendSuccess(() -> Component.literal(
-                "§aAldea renombrada: §6" + oldName + " §7→ §6" + newName), false);
+        context.getSource().sendSuccess(() -> Component.translatable("villagediplomacy.cmd.rename_done",
+                VillageDisplayName.asComponent(oldStored),
+                VillageDisplayName.asComponent(newName)), false);
 
         return 1;
     }
-    
-    /**
-     * Comando para mostrar información de reputación actual
-     */
+
     private static int showInfo(CommandContext<CommandSourceStack> context) {
         if (!(context.getSource().getEntity() instanceof ServerPlayer player)) {
             return 0;
         }
-        
+
         ServerLevel level = player.serverLevel();
-        
-        // Verificar si está en una aldea
+
         Optional<BlockPos> nearestVillage = VillageDetector.findNearestVillage(level, player.blockPosition(), 100);
         if (nearestVillage.isEmpty()) {
-            player.sendSystemMessage(Component.literal("§c¡No estás en una aldea!"));
+            player.sendSystemMessage(Component.translatable("villagediplomacy.cmd.info_not_in_village"));
             return 0;
         }
-        
+
         VillageReputationData reputationData = VillageReputationData.get(level);
         BlockPos villagePos = nearestVillage.get();
         int reputation = reputationData.getReputation(player.getUUID(), villagePos);
-        
+
         VillageRelationshipData relationData = VillageRelationshipData.get(level);
         relationData.registerVillage(villagePos);
         String villageId = relationData.getVillageId(villagePos);
-        String villageName = relationData.getVillageName(villageId);
-        String status = getReputationStatus(reputation);
-        
-        player.sendSystemMessage(Component.literal("§8▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬"));
-        player.sendSystemMessage(Component.literal("§6✦ Aldea: §e" + villageName));
-        player.sendSystemMessage(Component.literal("§7Reputación: §e" + reputation + " §8(§7" + status + "§8)"));
-        player.sendSystemMessage(Component.literal("§7Posición: §e" + villagePos.getX() + ", " + villagePos.getY() + ", " + villagePos.getZ()));
-        player.sendSystemMessage(Component.literal("§8▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬"));
-        
+        String villageStored = relationData.getVillageName(villageId);
+
+        player.sendSystemMessage(Component.translatable("villagediplomacy.enter.bar"));
+        player.sendSystemMessage(Component.translatable("villagediplomacy.cmd.info_village",
+                VillageDisplayName.asComponent(villageStored)));
+        player.sendSystemMessage(Component.translatable("villagediplomacy.cmd.info_reputation",
+                reputation,
+                ModLang.repStatus(reputation)));
+        player.sendSystemMessage(Component.translatable("villagediplomacy.cmd.info_pos",
+                villagePos.getX(), villagePos.getY(), villagePos.getZ()));
+        player.sendSystemMessage(Component.translatable("villagediplomacy.enter.bar"));
+
         return 1;
     }
-    
-    /**
-     * Comando para nombrar la aldea actual (cualquier jugador)
-     */
+
     private static int nameCurrentVillage(CommandContext<CommandSourceStack> context, String newName) {
         if (!(context.getSource().getEntity() instanceof ServerPlayer player)) {
-            context.getSource().sendFailure(Component.literal("§c¡Solo los jugadores pueden usar este comando!"));
+            context.getSource().sendFailure(Component.translatable("villagediplomacy.cmd.players_only"));
             return 0;
         }
-        
+
         ServerLevel level = player.serverLevel();
         Optional<BlockPos> nearestVillage = VillageDetector.findNearestVillage(level, player.blockPosition(), 100);
-        
+
         if (nearestVillage.isEmpty()) {
-            player.sendSystemMessage(Component.literal("§c¡Debes estar dentro de una aldea para nombrarla!"));
+            player.sendSystemMessage(Component.translatable("villagediplomacy.cmd.name_need_village"));
             return 0;
         }
-        
+
         BlockPos villagePos = nearestVillage.get();
         VillageRelationshipData relationData = VillageRelationshipData.get(level);
         relationData.registerVillage(villagePos);
         String villageId = relationData.getVillageId(villagePos);
-        
-        // Guardar el nombre
+
         relationData.setVillageName(villageId, newName);
-        
-        player.sendSystemMessage(Component.literal("§8▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬"));
-        player.sendSystemMessage(Component.literal("  §6✦ Aldea nombrada: §e" + newName));
-        player.sendSystemMessage(Component.literal("§8▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬"));
-        
+
+        player.sendSystemMessage(Component.translatable("villagediplomacy.enter.bar"));
+        player.sendSystemMessage(Component.translatable("villagediplomacy.cmd.name_done",
+                VillageDisplayName.asComponent(newName)));
+        player.sendSystemMessage(Component.translatable("villagediplomacy.enter.bar"));
+
         return 1;
     }
 
-    private static String getReputationStatus(int reputation) {
-        if (reputation >= 1000) return "§6HÉROE LEGENDARIO";
-        if (reputation >= 800) return "§6HÉROE";
-        if (reputation >= 500) return "§aCAMPEÓN";
-        if (reputation >= 300) return "§aAMIGO DE CONFIANZA";
-        if (reputation >= 100) return "§aAMISTOSO";
-        if (reputation >= 0) return "§7NEUTRAL";
-        if (reputation >= -99) return "§6SOSPECHOSO";
-        if (reputation >= -199) return "§cMAL VISTO";
-        if (reputation >= -299) return "§cNO BIENVENIDO";
-        if (reputation >= -499) return "§cPOCO AMISTOSO";
-        if (reputation >= -699) return "§4HOSTIL";
-        if (reputation >= -899) return "§4ENEMIGO";
-        return "§4CRIMINAL BUSCADO";
-    }
-    
-    /**
-     * TEST COMMAND: Force spawn trade caravan (DISABLED)
-     */
     private static int testCaravan(CommandContext<CommandSourceStack> context) {
-        context.getSource().sendFailure(Component.literal("§c[Sistema] Sistema de caravanas deshabilitado - enfocándonos en objetos personalizados"));
+        context.getSource().sendFailure(Component.translatable("villagediplomacy.cmd.test_disabled"));
         return 0;
     }
-    
-    /**
-     * TEST COMMAND: Force spawn war raid (DISABLED)
-     */
+
     private static int testRaid(CommandContext<CommandSourceStack> context) {
-        context.getSource().sendFailure(Component.literal("§c[Sistema] Sistema de incursiones deshabilitado - enfocándonos en objetos personalizados"));
+        context.getSource().sendFailure(Component.translatable("villagediplomacy.cmd.test_disabled"));
         return 0;
     }
 }

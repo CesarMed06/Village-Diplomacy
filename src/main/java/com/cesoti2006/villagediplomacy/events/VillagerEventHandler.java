@@ -1135,38 +1135,18 @@ public class VillagerEventHandler {
         if (caughtByVillager) {
             // Mensajes según reputación
             int reputation = data.getReputation(player.getUUID(), villagePos);
-            String[] messages;
-            
+            Component structureMsg;
             if (reputation >= 100) {
-                // FRIENDLY - menos agresivos
-                messages = new String[]{
-                    "§e[Aldeano] ¡Oye, cuidado con eso!",
-                    "§e[Aldeano] Eso es parte de nuestra aldea...",
-                    "§7[Aldeano] *parece preocupado*",
-                    "§e[Aldeano] ¿Seguro que necesitas romper eso?"
-                };
+                int i = level.getRandom().nextInt(4);
+                structureMsg = Component.translatable("villagediplomacy.react.structure.friendly." + i);
             } else if (reputation >= 0) {
-                // NEUTRAL
-                messages = new String[]{
-                    "§e[Aldeano] ¿Qué estás haciendo?",
-                    "§e[Aldeano] ¡Eso es propiedad de la aldea!",
-                    "§7[Aldeano] *frunce el ceño*",
-                    "§e[Aldeano] ¡Oye! ¡Nosotros construimos eso!"
-                };
+                int i = level.getRandom().nextInt(4);
+                structureMsg = Component.translatable("villagediplomacy.react.structure.neutral." + i);
             } else {
-                // UNFRIENDLY/ENEMY - muy agresivos
-                messages = new String[]{
-                    "§c[Aldeano] ¡DETENTE! ¡Eso es NUESTRO!",
-                    "§c[Aldeano] ¡Estás destruyendo nuestro hogar!",
-                    "§c[Aldeano] ¡VÁNDALO! ¡LADRÓN!",
-                    "§7[Aldeano] *grita furioso*",
-                    "§c[Aldeano] ¡Cómo TE ATREVES!",
-                    "§c[Aldeano] ¡Guardias! ¡Detengan a este criminal!"
-                };
+                int i = level.getRandom().nextInt(6);
+                structureMsg = Component.translatable("villagediplomacy.react.structure.hostile." + i);
             }
-            
-            player.sendSystemMessage(Component.literal(
-                messages[level.getRandom().nextInt(messages.length)]));
+            player.sendSystemMessage(structureMsg);
             player.sendSystemMessage(Component.translatable("villagediplomacy.sys.structure_break"));
             ModLang.sendReputationSummary(player, -10, newRep);
         }
@@ -1191,22 +1171,16 @@ public class VillagerEventHandler {
                 // Cancelar el intento de dormir
                 event.setResult(net.minecraft.world.entity.player.Player.BedSleepingProblem.OTHER_PROBLEM);
                 
-                String[] denialMessages = reputation < -500 ? new String[] {
-                        "§4[Aldeano] ¡FUERA! ¡No eres bienvenido aquí!",
-                        "§4[Aldeano] ¿¡Un criminal en NUESTRAS camas!? ¡NUNCA!",
-                        "§4[Aldeano] ¡Guardias! ¡Remuevan a este intruso!",
-                        "§4[Aldeano] ¡NO tienes derecho a descansar aquí!"
-                } : new String[] {
-                        "§c[Aldeano] No eres bienvenido a usar nuestras camas.",
-                        "§c[Aldeano] Busca otro lugar para dormir, forastero.",
-                        "§c[Aldeano] Estas camas son solo para aldeanos.",
-                        "§c[Aldeano] Tu reputación no te otorga este privilegio."
-                };
-                
-                player.sendSystemMessage(Component.literal(
-                        denialMessages[level.getRandom().nextInt(denialMessages.length)]));
-                player.sendSystemMessage(Component.literal(
-                        "§c✗ ¡Denegado! Tu reputación es muy baja para usar camas de aldea."));
+                Component bedDenied;
+                if (reputation < -500) {
+                    bedDenied = Component.translatable(
+                        "villagediplomacy.react.bed.denied.criminal." + level.getRandom().nextInt(4));
+                } else {
+                    bedDenied = Component.translatable(
+                        "villagediplomacy.react.bed.denied.low." + level.getRandom().nextInt(4));
+                }
+                player.sendSystemMessage(bedDenied);
+                player.sendSystemMessage(Component.translatable("villagediplomacy.sys.bed_denied"));
                 
                 return; // Salir sin procesar más
             }
@@ -1250,24 +1224,15 @@ public class VillagerEventHandler {
                 int newRep = data.getReputation(player.getUUID());
                 checkAndNotifyReputationChange(player, oldRep, newRep);
 
-                String[] adultMessages = {
-                        "§c[Aldeano] ¡OYE! ¡Esa es MI cama!",
-                        "§c[Aldeano] ¡Sal de mi cama, raro!",
-                        "§c[Aldeano] ¿¡No tienes vergüenza!?",
-                        "§c[Aldeano] ¡Eso es propiedad privada!",
-                        "§c[Aldeano] *enojado* ¡FUERA!"
-                };
-
-                String[] babyMessages = {
-                        "§c[Aldeano Bebé] ¡Ahí es donde duermo! *llora*",
-                        "§c[Aldeano Bebé] ¡Noooo! ¡Mi cama!",
-                        "§c[Aldeano Bebé] ¡Mami! ¡Un extraño está en mi cama!"
-                };
-
-                String message = caughtByBaby ? babyMessages[level.getRandom().nextInt(babyMessages.length)]
-                        : adultMessages[level.getRandom().nextInt(adultMessages.length)];
-
-                player.sendSystemMessage(Component.literal(message));
+                Component bedMsg;
+                if (caughtByBaby) {
+                    bedMsg = Component.translatable(
+                        "villagediplomacy.react.bed.stolen.baby." + level.getRandom().nextInt(3));
+                } else {
+                    bedMsg = Component.translatable(
+                        "villagediplomacy.react.bed.stolen.adult." + level.getRandom().nextInt(5));
+                }
+                player.sendSystemMessage(bedMsg);
                 player.sendSystemMessage(Component.translatable("villagediplomacy.sys.bed_use"));
                 ModLang.sendReputationSummary(player, -20, newRep);
 

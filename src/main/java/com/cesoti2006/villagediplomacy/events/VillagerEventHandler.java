@@ -2703,23 +2703,23 @@ public class VillagerEventHandler {
                 };
                 case "WISE" -> new String[]{
                     "§d[" + villagerName + "] Saludos, legendario.",
-                    "§d[" + villagerName + "] Tu reputación te precede, héroe.",
-                    "§d[" + villagerName + "] La aldea te debe mucho."
+                    Component.translatable("villagediplomacy.react.greet.legend.0", villagerName).getString(),
+                    Component.translatable("villagediplomacy.react.greet.legend.1", villagerName).getString()
                 };
                 case "GOSSIP" -> new String[]{
-                    "§a[" + villagerName + "] ¡HÉROE! ¡Todos hablan de ti!",
-                    "§a[" + villagerName + "] ¿¡Escuchaste! ¡Oh espera, TÚ ERES el héroe!",
-                    "§a[" + villagerName + "] ¡Toda la aldea te ama!"
+                    Component.translatable("villagediplomacy.react.greet.champion.0", villagerName).getString(),
+                    Component.translatable("villagediplomacy.react.greet.champion.1", villagerName).getString(),
+                    Component.translatable("villagediplomacy.react.greet.champion.2", villagerName).getString()
                 };
                 case "CHEERFUL" -> new String[]{
-                    "§a[" + villagerName + "] ¡GENIAL! ¡Nuestro héroe está aquí!",
-                    "§a[" + villagerName + "] ¡El mejor día! ¡Has vuelto!",
-                    "§a[" + villagerName + "] *salta emocionado* ¡HÉROE!"
+                    Component.translatable("villagediplomacy.react.greet.champion.exc.0", villagerName).getString(),
+                    Component.translatable("villagediplomacy.react.greet.champion.exc.1", villagerName).getString(),
+                    Component.translatable("villagediplomacy.react.greet.champion.exc.2", villagerName).getString()
                 };
                 default -> new String[]{
-                    "§6[" + villagerName + "] ¡Bienvenido de vuelta, héroe!",
-                    "§6[" + villagerName + "] ¡Bueno verte, campeón!",
-                    "§6[" + villagerName + "] ¡La aldea está segura contigo aquí!"
+                    Component.translatable("villagediplomacy.react.greet.trusted.0", villagerName).getString(),
+                    Component.translatable("villagediplomacy.react.greet.trusted.1", villagerName).getString(),
+                    Component.translatable("villagediplomacy.react.greet.trusted.2", villagerName).getString()
                 };
             };
         }
@@ -2727,12 +2727,12 @@ public class VillagerEventHandler {
         // Mensajes para ALLY (200-499)
         return switch (temperament) {
             case "BRAVE" -> new String[]{
-                "§a[" + villagerName + "] ¡Buen día, amigo!",
+                Component.translatable("villagediplomacy.react.greet.friendly.0", villagerName).getString(),
                 "§a[" + villagerName + "] ¡Aliado! ¡Bienvenido!",
                 "§a[" + villagerName + "] ¡Un placer verte!"
             };
             case "SHY" -> new String[]{
-                "§b[" + villagerName + "] *sonríe* Hola...",
+                Component.translatable("villagediplomacy.react.greet.friendly.shy.0", villagerName).getString(),
                 "§b[" + villagerName + "] *saluda* ¡H-hola!",
                 "§b[" + villagerName + "] ¡Oh! Hola, amigo..."
             };
@@ -2749,21 +2749,21 @@ public class VillagerEventHandler {
             case "GOSSIP" -> new String[]{
                 "§a[" + villagerName + "] ¡Oh! ¡Hola! ¿¡Escuchaste sobre...!?",
                 "§a[" + villagerName + "] ¡Perfecto momento! ¡Tengo noticias!",
-                "§a[" + villagerName + "] ¡Tú! ¡Justo estaba hablando de ti!"
+                Component.translatable("villagediplomacy.react.greet.friendly.1", villagerName).getString()
             };
             case "FRIENDLY" -> new String[]{
                 "§a[" + villagerName + "] ¡Hola, amigo!",
                 "§a[" + villagerName + "] ¡Genial verte!",
-                "§a[" + villagerName + "] ¿Cómo te va, amigo?"
+                Component.translatable("villagediplomacy.react.greet.friendly.2", villagerName).getString()
             };
             case "CHEERFUL" -> new String[]{
-                "§a[" + villagerName + "] ¡Hola! ¡Qué día tan hermoso!",
-                "§a[" + villagerName + "] *sonríe* ¡Hola, amigo!",
+                Component.translatable("villagediplomacy.react.greet.friendly.3", villagerName).getString(),
+                Component.translatable("villagediplomacy.react.greet.friendly.4", villagerName).getString(),
                 "§a[" + villagerName + "] ¡Maravilloso verte!"
             };
             default -> new String[]{
                 "§a[" + villagerName + "] ¡Hola, amigo!",
-                "§a[" + villagerName + "] ¡Buen día!",
+                Component.translatable("villagediplomacy.react.greet.friendly.5", villagerName).getString(),
                 "§a[" + villagerName + "] ¡Bienvenido!"
             };
         };

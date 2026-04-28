@@ -26,10 +26,19 @@ public final class VillageDiplomacyNetwork {
                 .decoder(OpenVillageHudPacket::new)
                 .consumerMainThread(OpenVillageHudPacket::handle)
                 .add();
+        CHANNEL.messageBuilder(CloseVillageHudPacket.class, id++, NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(CloseVillageHudPacket::write)
+                .decoder(CloseVillageHudPacket::new)
+                .consumerMainThread(CloseVillageHudPacket::handle)
+                .add();
     }
 
     public static void sendOpenHud(ServerPlayer player, String villageSerialized, int reputation, String relationKey) {
         CHANNEL.send(PacketDistributor.PLAYER.with(() -> player),
                 new OpenVillageHudPacket(villageSerialized, reputation, relationKey));
+    }
+
+    public static void sendCloseHud(ServerPlayer player) {
+        CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), new CloseVillageHudPacket());
     }
 }

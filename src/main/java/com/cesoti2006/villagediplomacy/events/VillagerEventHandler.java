@@ -2008,6 +2008,8 @@ public class VillagerEventHandler {
                     reputation,
                     ModLang.repStatus(reputation)));
             player.sendSystemMessage(Component.translatable("villagediplomacy.enter.bar"));
+            // Cierra HUD anterior antes de abrir el nuevo
+            VillageDiplomacyNetwork.sendCloseHud(player);
             VillageDiplomacyNetwork.sendOpenHud(player, villageNameStored, reputation,
                     ModLang.hudRelationKey(reputation));
 

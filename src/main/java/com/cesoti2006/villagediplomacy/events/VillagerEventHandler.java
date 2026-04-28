@@ -2469,7 +2469,7 @@ public class VillagerEventHandler {
                         // Mensajes contextuales cuando el golem empieza a perseguir
                         String[] warningMessages = {
                             Component.translatable("villagediplomacy.react.guard.0").getString(),
-                            "§c[Guardia de la Aldea] *pisa agresivamente* ¡SAL DE ESTA ALDEA!",
+                            Component.translatable("villagediplomacy.react.guard.4").getString(),
                             Component.translatable("villagediplomacy.react.guard.1").getString(),
                             Component.translatable("villagediplomacy.react.guard.2").getString(),
                             Component.translatable("villagediplomacy.react.guard.3").getString()

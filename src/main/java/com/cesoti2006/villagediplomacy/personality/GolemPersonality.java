@@ -154,24 +154,32 @@ public class GolemPersonality {
     /**
      * Respuesta al ser golpeado por jugador amigable (reservado; claves i18n listas si se conecta al sistema de golpes).
      */
-    public String getFriendlyHitResponse(int strikes) {
+    public Component getFriendlyHitResponseComponent(int strikes) {
         if (strikes == 1) {
-            return switch (temperament) {
-                case GENTLE -> "§a[" + name + "] Amigo... ¿por qué?";
-                case STERN -> "§7[" + name + "] Para. Ahora.";
-                case FIERCE -> "§c[" + name + "] *gruñe* ¡No me pongas a prueba!";
-                case DEVOTED, DUTIFUL, INDEPENDENT -> "§e[" + name + "] ¡Hey!";
+            String k = switch (temperament) {
+                case GENTLE -> "villagediplomacy.golem.warn1.gentle";
+                case STERN -> "villagediplomacy.golem.warn1.stern";
+                case FIERCE -> "villagediplomacy.golem.warn1.fierce";
+                default -> "villagediplomacy.golem.warn1.default";
             };
+            return Component.translatable(k, name).withStyle(net.minecraft.ChatFormatting.GOLD);
         } else if (strikes == 2) {
-            return switch (temperament) {
-                case GENTLE -> "§6[" + name + "] ¡Por favor... no quiero hacerte daño!";
-                case STERN -> "§c[" + name + "] Esta es tu última advertencia.";
-                case FIERCE -> "§4[" + name + "] ¡ESTÁS COMETIENDO UN ERROR!";
-                case DEVOTED, DUTIFUL, INDEPENDENT -> "§c[" + name + "] ¡Para!";
+            String k = switch (temperament) {
+                case GENTLE -> "villagediplomacy.golem.warn2.gentle";
+                case STERN -> "villagediplomacy.golem.warn2.stern";
+                case FIERCE -> "villagediplomacy.golem.warn2.fierce";
+                default -> "villagediplomacy.golem.warn2.default";
             };
+            return Component.translatable(k, name).withStyle(net.minecraft.ChatFormatting.RED);
         } else {
-            return "§4[" + name + "] ¡Que así sea!";
+            return Component.translatable("villagediplomacy.golem.warn3", name)
+                    .withStyle(net.minecraft.ChatFormatting.DARK_RED);
         }
+    }
+
+    @Deprecated
+    public String getFriendlyHitResponse(int strikes) {
+        return getFriendlyHitResponseComponent(strikes).getString();
     }
 
     public String getName() {

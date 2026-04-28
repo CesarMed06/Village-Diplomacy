@@ -103,10 +103,11 @@ public class GolemBehaviorHandler {
         }
 
         // Si no hay amenazas, dar información
-        Component storyLine = Component.literal("§7[")
-                .append(Component.literal(personality.getName()))
-                .append("] §o")
-                .append(personality.getCreationStoryComponent(villageRef));
+        Component storyLine = Component.literal("[")
+                .withStyle(net.minecraft.ChatFormatting.GRAY)
+                .append(Component.literal(personality.getName()).withStyle(personality.getTemperament().chatColor()))
+                .append(Component.literal("] ").withStyle(net.minecraft.ChatFormatting.GRAY))
+                .append(personality.getCreationStoryComponent(villageRef).copy().withStyle(net.minecraft.ChatFormatting.ITALIC));
 
         Component[] responses = {
                 personality.getGreetingComponent(),

@@ -1274,15 +1274,15 @@ public class VillagerEventHandler {
                     String[] denialMessages;
                     if (reputation < -500) {
                         denialMessages = new String[]{
-                            "§4[Aldeano] ¡NO tienes derecho a tocar nuestra campana!",
-                            "§4[Aldeano] ¡Aléjate de ahí, criminal!",
-                            "§c[Aldeano] ¡Esa campana no es para gente como tú!"
+                            Component.translatable("villagediplomacy.react.bell.ring.neg.0").getString(),
+                            Component.translatable("villagediplomacy.react.bell.ring.neg.1").getString(),
+                            Component.translatable("villagediplomacy.react.bell.ring.neg.2").getString()
                         };
                     } else {
                         denialMessages = new String[]{
-                            "§c[Aldeano] No podemos confiar en ti con la campana de la aldea.",
-                            "§c[Aldeano] Ganáte nuestra confianza primero.",
-                            "§e[Aldeano] La campana es solo para aldeanos."
+                            Component.translatable("villagediplomacy.react.bell.ring.neutral.0").getString(),
+                            Component.translatable("villagediplomacy.react.bell.ring.neutral.1").getString(),
+                            Component.translatable("villagediplomacy.react.bell.ring.neutral.2").getString()
                         };
                     }
                     
@@ -1315,9 +1315,9 @@ public class VillagerEventHandler {
                     // Reutilizar las variables ya definidas arriba
                     if (reputation >= 500) {
                         String[] positiveMessages = {
-                                "§a[Aldeano] ¡Reuniendo a todos, campeón!",
-                                "§a[Aldeano] ¡Llamando a la aldea por ti!",
-                                "§a[Aldeano] *asiente con aprobación*"
+                                Component.translatable("villagediplomacy.react.bell.ring.ally.0").getString(),
+                                Component.translatable("villagediplomacy.react.bell.ring.ally.1").getString(),
+                                Component.translatable("villagediplomacy.react.bell.ring.ally.2").getString()
                         };
                         player.sendSystemMessage(Component.literal(
                                 positiveMessages[level.getRandom().nextInt(positiveMessages.length)]));
@@ -1326,13 +1326,13 @@ public class VillagerEventHandler {
                         int newRep = data.getReputation(playerId);
 
                         String[] messages = {
-                                "§c[Aldeano] ¡Deja de tocar la campana!",
-                                "§c[Aldeano] ¡Eso es solo para emergencias!",
-                                "§c[Aldeano] ¿¡Estás intentando causar pánico!?",
-                                "§c[Aldeano] ¡Esto no es gracioso!",
-                                "§c[Aldeano] *se cubre los oídos* ¡DETENTE!",
-                                "§c[Aldeano] ¡Estás abusando de nuestro sistema de emergencias!",
-                                "§c[Aldeano] ¡Los guardias se§ enterarán de esto!"
+                                Component.translatable("villagediplomacy.react.bell.spam.0").getString(),
+                                Component.translatable("villagediplomacy.react.bell.spam.1").getString(),
+                                Component.translatable("villagediplomacy.react.bell.spam.2").getString(),
+                                Component.translatable("villagediplomacy.react.bell.spam.3").getString(),
+                                Component.translatable("villagediplomacy.react.bell.spam.4").getString(),
+                                Component.translatable("villagediplomacy.react.bell.spam.5").getString(),
+                                Component.translatable("villagediplomacy.react.bell.spam.6").getString()
                         };
 
                         player.sendSystemMessage(Component.literal(
@@ -1427,10 +1427,10 @@ public class VillagerEventHandler {
                         checkAndNotifyReputationChange(player, oldRep, newRep);
 
                         String[] messages = {
-                                "§c[Aldeano] ¡OYE! ¡No dejes salir a los animales!",
-                                "§c[Aldeano] ¡Esa es nuestra granja! ¡Aléjate!",
-                                "§c[Aldeano] ¿¡Qué estás haciendo!?",
-                                "§c[Aldeano] ¡Deja nuestros cultivos en paz!"
+                                Component.translatable("villagediplomacy.react.animal.escape.0").getString(),
+                                Component.translatable("villagediplomacy.react.animal.escape.1").getString(),
+                                Component.translatable("villagediplomacy.react.animal.escape.2").getString(),
+                                Component.translatable("villagediplomacy.react.crop.0").getString()
                         };
 
                         player.sendSystemMessage(Component.literal(
@@ -1497,11 +1497,11 @@ public class VillagerEventHandler {
                     }
 
                     String[] messages = {
-                            "§c[Aldeano] ¡Oye! ¡Esa es nuestra " + blockName + "!",
-                            "§c[Aldeano] ¡No toques nuestro equipo!",
-                            "§c[Aldeano] ¡Estás usando NUESTROS recursos!",
-                            "§c[Aldeano] ¡Eso es propiedad de la aldea!",
-                            "§c[Aldeano] ¡Deja de usar nuestras herramientas!"
+                            Component.translatable("villagediplomacy.react.workblock.0", blockName).getString(),
+                            Component.translatable("villagediplomacy.react.workblock.1").getString(),
+                            Component.translatable("villagediplomacy.react.workblock.2").getString(),
+                            Component.translatable("villagediplomacy.react.workblock.3").getString(),
+                            Component.translatable("villagediplomacy.react.workblock.4").getString()
                     };
 
                     player.sendSystemMessage(Component.literal(
@@ -1564,9 +1564,9 @@ public class VillagerEventHandler {
                         checkAndNotifyReputationChange(player, oldRep, newRep);
 
                         String[] messages = {
-                                "§c[Aldeano] ¡Esa es MI mesa de crafteo!",
-                                "§c[Aldeano] ¡Haz tus propias herramientas!",
-                                "§c[Aldeano] ¡Oye! ¡No uses mis cosas!"
+                                Component.translatable("villagediplomacy.react.crafting.0").getString(),
+                                Component.translatable("villagediplomacy.react.crafting.1").getString(),
+                                Component.translatable("villagediplomacy.react.crafting.2").getString()
                         };
 
                         player.sendSystemMessage(Component.literal(
@@ -1636,26 +1636,26 @@ public class VillagerEventHandler {
                         checkAndNotifyReputationChange(player, oldRep, newRep);
 
                         String[] adultMessages = {
-                                "§c[Aldeano] ¡OYE! ¡Estás dejando salir a los animales!",
-                                "§c[Aldeano] ¡NO! ¡Cierra esa verja!",
-                                "§c[Aldeano] ¡El ganado escapará!",
-                                "§c[Aldeano] ¿¡Qué estás haciendo!? ¡Esos son NUESTROS animales!",
-                                "§c[Aldeano] ¡DETENTE! ¡Tomó una eternidad meterlos ahí!",
-                                "§c[Aldeano] ¡Estás liberando nuestro sustento!",
-                                "§c[Aldeano] ¡Esos animales alimentan a toda la aldea!",
-                                "§c[Aldeano] ¿¡Estás intentando sabotearnos!?",
-                                "§c[Aldeano] ¡Cierra esa verja AHORA!",
-                                "§c[Aldeano] ¡Están escapando! ¡Alguien ayude!"
+                                Component.translatable("villagediplomacy.react.gate.adult.0").getString(),
+                                Component.translatable("villagediplomacy.react.gate.adult.1").getString(),
+                                Component.translatable("villagediplomacy.react.gate.adult.2").getString(),
+                                Component.translatable("villagediplomacy.react.gate.adult.3").getString(),
+                                Component.translatable("villagediplomacy.react.gate.adult.4").getString(),
+                                Component.translatable("villagediplomacy.react.gate.adult.5").getString(),
+                                Component.translatable("villagediplomacy.react.gate.adult.6").getString(),
+                                Component.translatable("villagediplomacy.react.gate.adult.7").getString(),
+                                Component.translatable("villagediplomacy.react.gate.adult.8").getString(),
+                                Component.translatable("villagediplomacy.react.gate.adult.9").getString()
                         };
 
                         String[] babyMessages = {
-                                "§c[Aldeano Bebé] ¡Noooo! ¡Los animales se están saliendo!",
-                                "§c[Aldeano Bebé] *llora* ¡Deténlos!",
-                                "§c[Aldeano Bebé] ¡Mi vaca mascota! ¡Se está escapando!",
-                                "§c[Aldeano Bebé] ¿¡Por qué harías eso!?",
-                                "§c[Aldeano Bebé] ¡Papi se va a enojar mucho!",
-                                "§c[Aldeano Bebé] ¡Malo! ¡Mala persona!",
-                                "§c[Aldeano Bebé] *solloza* ¡Están escapando!"
+                                Component.translatable("villagediplomacy.react.gate.baby.0").getString(),
+                                Component.translatable("villagediplomacy.react.gate.baby.1").getString(),
+                                Component.translatable("villagediplomacy.react.gate.baby.2").getString(),
+                                Component.translatable("villagediplomacy.react.gate.baby.3").getString(),
+                                Component.translatable("villagediplomacy.react.gate.baby.4").getString(),
+                                Component.translatable("villagediplomacy.react.gate.baby.5").getString(),
+                                Component.translatable("villagediplomacy.react.gate.baby.6").getString()
                         };
 
                         String message = caughtByBaby ? babyMessages[level.getRandom().nextInt(babyMessages.length)]
@@ -2418,22 +2418,22 @@ public class VillagerEventHandler {
 
                     if (level.getRandom().nextInt(50) == 0) {
                         String[] fearMessages = reputation <= -800 ? new String[] {
-                                "§4[Aldeano] ¡CORRAN! ¡El criminal está aquí!",
-                                "§4[Aldeano] ¡AYUDA! ¡Alguien ayúdenos!",
-                                "§4[Aldeano] ¡Aléjense de nosotros!",
-                                "§4[Aldeano] ¡Guardias! ¡GUARDIAS!",
-                                "§4[Aldeano Bebé] *gritando* ¡DA MIEDO!"
+                                Component.translatable("villagediplomacy.react.criminal.0").getString(),
+                                Component.translatable("villagediplomacy.react.criminal.1").getString(),
+                                Component.translatable("villagediplomacy.react.flee.hostile.0").getString(),
+                                Component.translatable("villagediplomacy.react.flee.hostile.1").getString(),
+                                Component.translatable("villagediplomacy.react.flee.hostile.baby.0").getString()
                         }
                                 : reputation <= -500 ? new String[] {
-                                        "§c[Aldeano] ¡Aléjate de mí!",
-                                        "§c[Aldeano] ¡No quiero problemas!",
-                                        "§c[Aldeano] ¡Déjanos en paz!",
-                                        "§c[Aldeano Bebé] ¡Mamá! ¡Tengo miedo!"
+                                        Component.translatable("villagediplomacy.react.flee.neg.0").getString(),
+                                        Component.translatable("villagediplomacy.react.flee.neg.1").getString(),
+                                        Component.translatable("villagediplomacy.react.flee.neg.2").getString(),
+                                        Component.translatable("villagediplomacy.react.flee.neg.baby.0").getString()
                                 }
                                         : new String[] {
-                                                "§6[Aldeano] Por favor, mantente atrás...",
-                                                "§6[Aldeano] Preferiría que mantuvieras tu distancia.",
-                                                "§6[Aldeano] No me siento cómodo contigo cerca."
+                                                Component.translatable("villagediplomacy.react.flee.low.0").getString(),
+                                                Component.translatable("villagediplomacy.react.flee.low.1").getString(),
+                                                Component.translatable("villagediplomacy.react.flee.low.2").getString()
                                         };
 
                         player.sendSystemMessage(Component.literal(
@@ -2468,11 +2468,11 @@ public class VillagerEventHandler {
 
                         // Mensajes contextuales cuando el golem empieza a perseguir
                         String[] warningMessages = {
-                            "§4[Guardia de la Aldea] ¡Eres un criminal buscado! ¡Ríndete ahora!",
+                            Component.translatable("villagediplomacy.react.guard.0").getString(),
                             "§c[Guardia de la Aldea] *pisa agresivamente* ¡SAL DE ESTA ALDEA!",
-                            "§4[Guardia de la Aldea] ¡Tus crímenes no quedarán impunes!",
-                            "§c[Guardia de la Aldea] *levanta el puño* ¡Se hará justicia!",
-                            "§4[Diplomacia de Aldeas] ¡Estás BUSCADO! ¡Los guardias atacan a la vista!"
+                            Component.translatable("villagediplomacy.react.guard.1").getString(),
+                            Component.translatable("villagediplomacy.react.guard.2").getString(),
+                            Component.translatable("villagediplomacy.react.guard.3").getString()
                         };
                         
                         if (level.getRandom().nextInt(3) == 0) {
@@ -2687,18 +2687,18 @@ public class VillagerEventHandler {
         if (isHero) {
             return switch (temperament) {
                 case "BRAVE" -> new String[]{
-                    "§6[" + villagerName + "] ¡Héroe! ¡Es un honor!",
-                    "§6[" + villagerName + "] ¡Nuestro campeón ha vuelto!",
+                    Component.translatable("villagediplomacy.react.greet.hero.0", villagerName).getString(),
+                    Component.translatable("villagediplomacy.react.greet.hero.1", villagerName).getString(),
                     "§6[" + villagerName + "] ¡Valiente! ¡Bienvenido de vuelta!"
                 };
                 case "SHY" -> new String[]{
-                    "§b[" + villagerName + "] ¡H-héroe! *se inclina nerviosamente*",
-                    "§b[" + villagerName + "] *saluda tímidamente* ¡Eres increíble!",
+                    Component.translatable("villagediplomacy.react.greet.hero.shy.0", villagerName).getString(),
+                    Component.translatable("villagediplomacy.react.greet.hero.shy.1", villagerName).getString(),
                     "§b[" + villagerName + "] ¡Te... te admiro mucho!"
                 };
                 case "GREEDY" -> new String[]{
-                    "§e[" + villagerName + "] ¡Nuestro cliente más valorado!",
-                    "§e[" + villagerName + "] ¡El héroe! ¿Quieres comerciar?",
+                    Component.translatable("villagediplomacy.react.greet.ally.0", villagerName).getString(),
+                    Component.translatable("villagediplomacy.react.greet.ally.1", villagerName).getString(),
                     "§e[" + villagerName + "] ¡El mejor cliente! ¡Bienvenido!"
                 };
                 case "WISE" -> new String[]{

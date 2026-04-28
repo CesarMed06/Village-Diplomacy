@@ -17,10 +17,10 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 @Mod("villagediplomacy")
 public class VillageDiplomacyMod {
 
-    public static VillagerEventHandler eventHandler; // Instancia estática accesible
+    public static VillagerEventHandler eventHandler;
 
-    public VillageDiplomacyMod() {
-        IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
+    public VillageDiplomacyMod(FMLJavaModLoadingContext context) {
+        IEventBus modBus = context.getModEventBus();
         modBus.addListener(this::commonSetup);
 
         eventHandler = new VillagerEventHandler();

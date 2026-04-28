@@ -11,13 +11,12 @@ public final class VillageDiplomacyNetwork {
 
     private static final String PROTOCOL = "2";
     public static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
-            new ResourceLocation("villagediplomacy", "main"),
+            ResourceLocation.fromNamespaceAndPath("villagediplomacy", "main"),
             () -> PROTOCOL,
             PROTOCOL::equals,
             PROTOCOL::equals);
 
-    private VillageDiplomacyNetwork() {
-    }
+    private VillageDiplomacyNetwork() {}
 
     public static void register() {
         int id = 0;

@@ -1,4 +1,3 @@
-
 package com.cesoti2006.villagediplomacy.events;
 
 import com.cesoti2006.villagediplomacy.util.VillageDisplayName;
@@ -21,15 +20,29 @@ public class VillageHUDHandler {
     private static String cachedRelation = null;
 
     public static void onPlayerEnterVillage(String villageName, int reputation, String relation) {
+        hudDisplayTimer = 0;
+        cachedVillageName = null;
+        cachedReputation = 0;
+        cachedRelation = null;
         cachedVillageName = villageName;
         cachedReputation = reputation;
         cachedRelation = relation;
         hudDisplayTimer = HUD_DISPLAY_TICKS;
     }
 
+    public static void onPlayerLeaveVillage() {
+        hudDisplayTimer = 0;
+        cachedVillageName = null;
+        cachedReputation = 0;
+        cachedRelation = null;
+    }
+
     public static void tick() {
         if (hudDisplayTimer > 0) {
             hudDisplayTimer--;
+            if (hudDisplayTimer == 0) {
+                cachedVillageName = null;
+            }
         }
     }
 
@@ -67,12 +80,16 @@ public class VillageHUDHandler {
         int alphaInt = (int) (alpha * 255);
         int white = (alphaInt << 24) | 0xFFFFFF;
 
+        String villageName = cachedVillageName;
+        int reputation = cachedReputation;
+        String relation = cachedRelation;
+
         Component villageLine = Component.translatable(
                 "villagediplomacy.hud.line_village",
                 Component.translatable("villagediplomacy.village.name_prefix"),
-                VillageDisplayName.asComponent(cachedVillageName));
-        Component repLine = Component.translatable("villagediplomacy.hud.line_reputation", cachedReputation);
-        String relSub = cachedRelation == null ? "neutral" : cachedRelation.toLowerCase();
+                VillageDisplayName.asComponent(villageName));
+        Component repLine = Component.translatable("villagediplomacy.hud.line_reputation", reputation);
+        String relSub = relation == null ? "neutral" : relation.toLowerCase();
         Component relLine = Component.translatable(
                 "villagediplomacy.hud.line_relations",
                 Component.translatable("villagediplomacy.hud." + relSub));

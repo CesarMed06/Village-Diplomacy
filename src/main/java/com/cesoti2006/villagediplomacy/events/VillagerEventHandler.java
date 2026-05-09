@@ -29,6 +29,19 @@ import net.minecraft.world.entity.animal.camel.Camel;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.monster.ZombieVillager;
+import net.minecraft.world.entity.monster.Zombie;
+import net.minecraft.world.entity.monster.Husk;
+import net.minecraft.world.entity.monster.Drowned;
+import net.minecraft.world.entity.monster.AbstractSkeleton;
+import net.minecraft.world.entity.monster.Creeper;
+import net.minecraft.world.entity.monster.Spider;
+import net.minecraft.world.entity.monster.CaveSpider;
+import net.minecraft.world.entity.monster.Witch;
+import net.minecraft.world.entity.monster.Vindicator;
+import net.minecraft.world.entity.monster.Evoker;
+import net.minecraft.world.entity.monster.Ravager;
+import net.minecraft.world.entity.monster.Pillager;
+import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.inventory.ChestMenu;
 import net.minecraft.world.item.ItemStack;
@@ -151,7 +164,7 @@ public class VillagerEventHandler {
             return;
 
         VillageRelationshipData relationData = VillageRelationshipData.get(level);
-        relationData.registerVillage(nearestVillage.get());
+        relationData.registerVillage(nearestVillage.get(), level);
 
         VillageReputationData data = VillageReputationData.get(level);
         BlockPos villagePos = nearestVillage.get();
@@ -236,7 +249,7 @@ public class VillagerEventHandler {
             return;
 
         VillageRelationshipData relationData = VillageRelationshipData.get(level);
-        relationData.registerVillage(nearestVillage.get());
+        relationData.registerVillage(nearestVillage.get(), level);
 
         VillageReputationData data = VillageReputationData.get(level);
         BlockPos villagePos = nearestVillage.get();
@@ -347,7 +360,7 @@ public class VillagerEventHandler {
         checkReputationLevelChange(player, level, newRep);
 
         VillageRelationshipData relationData = VillageRelationshipData.get(level);
-        relationData.registerVillage(nearestVillage.get());
+        relationData.registerVillage(nearestVillage.get(), level);
 
         processStrikeSystem(player, level, villagerPos);
     }
@@ -456,6 +469,44 @@ public class VillagerEventHandler {
     }
 
     @SubscribeEvent
+    public void onHostileMobKill(LivingDeathEvent event) {
+        if (!(event.getSource().getEntity() instanceof ServerPlayer player)) return;
+        if (!(event.getEntity().level() instanceof ServerLevel level)) return;
+        if (!(event.getEntity() instanceof Monster)) return;
+
+        LivingEntity killed = event.getEntity();
+        BlockPos deathPos = killed.blockPosition();
+        Optional<BlockPos> nearestVillage = VillageDetector.findNearestVillage(level, deathPos, 200);
+        if (nearestVillage.isEmpty()) return;
+
+        BlockPos villagePos = nearestVillage.get();
+
+        List<Villager> nearbyVillagers = level.getEntitiesOfClass(
+                Villager.class, AABB.ofSize(Vec3.atCenterOf(deathPos), 32, 32, 32));
+        boolean witnessed = false;
+        for (Villager v : nearbyVillagers) {
+            if (hasLineOfSight(v, player, level)) { witnessed = true; break; }
+        }
+        if (!witnessed) return;
+
+        HostileKillKind kind = hostileKillKindFor(killed);
+        VillageReputationData data = VillageReputationData.get(level);
+        int oldRep = data.getReputation(player.getUUID(), villagePos);
+        data.addReputation(player.getUUID(), villagePos, kind.repBonus());
+        int newRep = data.getReputation(player.getUUID(), villagePos);
+        checkAndNotifyReputationChange(player, oldRep, newRep);
+
+        ModLang.sendRandom(player, level.getRandom(),
+                "villagediplomacy.react.hostilekill." + kind.key(), kind.lineCount());
+        player.sendSystemMessage(Component.translatable("villagediplomacy.sys.hostile_killed",
+                Component.translatable(killed.getType().getDescriptionId()),
+                kind.repBonus(), newRep, ModLang.repStatus(newRep)));
+
+        VillageRelationshipData relationData = VillageRelationshipData.get(level);
+        relationData.registerVillage(villagePos, level);
+    }
+
+    @SubscribeEvent
     public void onAnimalDeath(LivingDeathEvent event) {
         if (event.getEntity() instanceof Villager) {
             return;
@@ -496,7 +547,7 @@ public class VillagerEventHandler {
                 ModLang.repStatus(newRep)));
 
         VillageRelationshipData relationData = VillageRelationshipData.get(level);
-        relationData.registerVillage(villagePos);
+        relationData.registerVillage(villagePos, level);
     }
 
     @SubscribeEvent
@@ -736,10 +787,12 @@ public class VillagerEventHandler {
 
                 boolean caughtByVillager = false;
                 boolean caughtByBaby = false;
+                Villager spottingVillager = null;
 
                 for (Villager villager : nearbyVillagers) {
                     if (hasLineOfSight(villager, player, level)) {
                         caughtByVillager = true;
+                        spottingVillager = villager;
                         if (villager.isBaby()) {
                             caughtByBaby = true;
                         }
@@ -763,7 +816,7 @@ public class VillagerEventHandler {
                             -10, newRep, ModLang.repStatus(newRep)));
 
                     VillageRelationshipData relationData = VillageRelationshipData.get(level);
-                    relationData.registerVillage(villagePos);
+                    relationData.registerVillage(villagePos, level);
                 }
             }
         }
@@ -829,7 +882,7 @@ public class VillagerEventHandler {
                 chestLootCooldown.put(playerId, currentTime);
 
                 VillageRelationshipData relationData = VillageRelationshipData.get(level);
-                relationData.registerVillage(villagePos);
+                relationData.registerVillage(villagePos, level);
             }
         }
     }
@@ -861,10 +914,12 @@ public class VillagerEventHandler {
 
                 boolean caughtByVillager = false;
                 boolean caughtByBaby = false;
+                Villager spottingVillager = null;
 
                 for (Villager villager : nearbyVillagers) {
                     if (hasLineOfSight(villager, player, level)) {
                         caughtByVillager = true;
+                        spottingVillager = villager;
                         if (villager.isBaby()) {
                             caughtByBaby = true;
                         }
@@ -879,13 +934,13 @@ public class VillagerEventHandler {
                     int newRep = data.getReputation(player.getUUID(), villagePosBreak);
                     checkAndNotifyReputationChange(player, oldRep, newRep);
 
-                    sendBlockBreakVillagerLine(blockType, caughtByBaby, level, player);
+                    sendBlockBreakVillagerLine(blockType, caughtByBaby, level, player, spottingVillager);
 
                     player.sendSystemMessage(Component.translatable(blockType.systemMessageKey,
                             penalty, newRep, ModLang.repStatus(newRep)));
 
                     VillageRelationshipData relationData = VillageRelationshipData.get(level);
-                    relationData.registerVillage(villagePosBreak);
+                    relationData.registerVillage(villagePosBreak, level);
                 }
             }
         }
@@ -1111,15 +1166,9 @@ public class VillagerEventHandler {
         // Excluir job site blocks (el jugador puede romper sus propios bloques de trabajo sin penalización)
         if (isJobSiteBlock(block)) return;
         
-        // Penalize
+        // Buscar aldeanos cercanos
         VillageReputationData data = VillageReputationData.get(level);
         BlockPos villagePos = nearestVillage.get();
-        int oldRep = data.getReputation(player.getUUID(), villagePos);
-        data.addReputation(player.getUUID(), villagePos, -10);
-        int newRep = data.getReputation(player.getUUID(), villagePos);
-        checkAndNotifyReputationChange(player, oldRep, newRep);
-        
-        // Buscar aldeanos cercanos para mensajes
         List<Villager> nearbyVillagers = level.getEntitiesOfClass(
                 Villager.class,
                 AABB.ofSize(Vec3.atCenterOf(blockPos), 32, 32, 32));
@@ -1133,6 +1182,10 @@ public class VillagerEventHandler {
         }
         
         if (caughtByVillager) {
+            int oldRep = data.getReputation(player.getUUID(), villagePos);
+            data.addReputation(player.getUUID(), villagePos, -10);
+            int newRep = data.getReputation(player.getUUID(), villagePos);
+            checkAndNotifyReputationChange(player, oldRep, newRep);
             // Mensajes según reputación
             int reputation = data.getReputation(player.getUUID(), villagePos);
             Component structureMsg;
@@ -1239,7 +1292,7 @@ public class VillagerEventHandler {
                 bedUsageCooldown.put(playerId, currentTime);
 
                 VillageRelationshipData relationData = VillageRelationshipData.get(level);
-                relationData.registerVillage(nearestVillage.get());
+                relationData.registerVillage(nearestVillage.get(), level);
             }
         }
     }
@@ -1343,7 +1396,7 @@ public class VillagerEventHandler {
 
                     bellRingCooldown.put(playerId, currentTime);
                     VillageRelationshipData relationData = VillageRelationshipData.get(level);
-                    relationData.registerVillage(nearestVillage.get());
+                    relationData.registerVillage(nearestVillage.get(), level);
                 }
             }
         }
@@ -1441,7 +1494,7 @@ public class VillagerEventHandler {
                         trapdoorCooldown.put(playerId, currentTime);
 
                         VillageRelationshipData relationData = VillageRelationshipData.get(level);
-                        relationData.registerVillage(nearestVillage.get());
+                        relationData.registerVillage(nearestVillage.get(), level);
                     }
                 }
             }
@@ -1511,7 +1564,7 @@ public class VillagerEventHandler {
                     ModLang.sendReputationSummary(player, -8, newRep);
 
                     VillageRelationshipData relationData = VillageRelationshipData.get(level);
-                    relationData.registerVillage(nearestVillage.get());
+                    relationData.registerVillage(nearestVillage.get(), level);
                 }
             }
         }
@@ -1668,7 +1721,7 @@ public class VillagerEventHandler {
                         fenceGateCooldown.put(playerId, currentTime);
 
                         VillageRelationshipData relationData = VillageRelationshipData.get(level);
-                        relationData.registerVillage(nearestVillage.get());
+                        relationData.registerVillage(nearestVillage.get(), level);
                     }
                 }
             }
@@ -1880,6 +1933,28 @@ public class VillagerEventHandler {
         return new AnimalDeathKind("other", 1, 1);
     }
 
+
+    private record HostileKillKind(String key, int repBonus, int lineCount) {
+    }
+
+    private static HostileKillKind hostileKillKindFor(LivingEntity killed) {
+        if (killed instanceof Pillager || killed instanceof Vindicator
+                || killed instanceof Evoker || killed instanceof Ravager
+                || killed instanceof Witch) {
+            return new HostileKillKind("raid", 15, 8);
+        }
+        if (killed instanceof Zombie || killed instanceof Husk
+                || killed instanceof Drowned || killed instanceof AbstractSkeleton) {
+            return new HostileKillKind("undead", 10, 8);
+        }
+        if (killed instanceof Creeper) {
+            return new HostileKillKind("creeper", 8, 6);
+        }
+        if (killed instanceof Spider || killed instanceof CaveSpider) {
+            return new HostileKillKind("spider", 5, 5);
+        }
+        return new HostileKillKind("other", 5, 6);
+    }
     private record AnimalAttackKind(String key, int babyCount, int adultCount) {
     }
 
@@ -1944,7 +2019,7 @@ public class VillagerEventHandler {
         // Detectar entrada a aldea
         BlockPos villagePos = nearestVillage.get();
         VillageRelationshipData relationData = VillageRelationshipData.get(level);
-        relationData.registerVillage(villagePos);
+        relationData.registerVillage(villagePos, level);
         String villageId = relationData.getVillageId(villagePos);
         String villageNameStored = relationData.getVillageName(villageId);
 
@@ -2319,11 +2394,25 @@ public class VillagerEventHandler {
         return false;
     }
 
-    private void sendBlockBreakVillagerLine(BlockType type, boolean isBaby, ServerLevel level, ServerPlayer player) {
+    private void sendBlockBreakVillagerLine(BlockType type, boolean isBaby, ServerLevel level, ServerPlayer player, Villager spotter) {
         boolean useBaby = isBaby && type.babyCount > 0;
         String prefix = useBaby ? type.babyKeyPrefix : type.adultKeyPrefix;
         int count = useBaby ? type.babyCount : type.adultCount;
-        ModLang.sendRandom(player, level.getRandom(), prefix, count);
+        String villagerName;
+        if (spotter != null && spotter.hasCustomName()) {
+            villagerName = spotter.getCustomName().getString();
+        } else if (spotter != null) {
+            String prof = spotter.getVillagerData().getProfession().toString().toLowerCase();
+            prof = prof.contains(":") ? prof.substring(prof.indexOf(":") + 1) : prof;
+            villagerName = prof.equals("none") || prof.equals("nitwit") ? "Villager" :
+                Character.toUpperCase(prof.charAt(0)) + prof.substring(1);
+        } else {
+            villagerName = "Villager";
+        }
+        int idx = level.getRandom().nextInt(count);
+        net.minecraft.network.chat.Component line = Component.translatable(prefix + "." + idx);
+        net.minecraft.network.chat.Component msg = Component.literal("§e[" + villagerName + "] §r").append(line);
+        player.sendSystemMessage(msg);
     }
 
     private boolean hasLineOfSight(Villager villager, ServerPlayer player, ServerLevel level) {

@@ -268,7 +268,7 @@ public class DiplomacyCommands {
         int reputation = reputationData.getReputation(player.getUUID(), villagePos);
 
         VillageRelationshipData relationData = VillageRelationshipData.get(level);
-        relationData.registerVillage(villagePos);
+        relationData.registerVillage(villagePos, context.getSource().getLevel());
         String villageId = relationData.getVillageId(villagePos);
         String villageStored = relationData.getVillageName(villageId);
 
@@ -301,7 +301,7 @@ public class DiplomacyCommands {
 
         BlockPos villagePos = nearestVillage.get();
         VillageRelationshipData relationData = VillageRelationshipData.get(level);
-        relationData.registerVillage(villagePos);
+        relationData.registerVillage(villagePos, context.getSource().getLevel());
         String villageId = relationData.getVillageId(villagePos);
 
         relationData.setVillageName(villageId, newName);

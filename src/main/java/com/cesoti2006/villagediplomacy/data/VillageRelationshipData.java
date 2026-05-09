@@ -110,13 +110,15 @@ public class VillageRelationshipData extends SavedData {
         return storage.computeIfAbsent(VillageRelationshipData::load, VillageRelationshipData::new, DATA_NAME);
     }
 
-    public void registerVillage(BlockPos pos) {
+    public void registerVillage(BlockPos pos, net.minecraft.server.level.ServerLevel level) {
         String villageId = getVillageId(pos);
         if (!villagePositions.containsKey(villageId)) {
             villagePositions.put(villageId, pos);
 
             if (!villageNames.containsKey(villageId)) {
-                String generatedName = VillageNameGenerator.generateNameFromPosition(pos.getX(), pos.getZ());
+                String generatedName = (level != null)
+                        ? VillageNameGenerator.generateFromBiome(level, pos)
+                        : VillageNameGenerator.generateNameFromPosition(pos.getX(), pos.getZ());
                 villageNames.put(villageId, generatedName);
             }
 

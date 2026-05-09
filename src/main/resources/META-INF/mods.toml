@@ -4,7 +4,7 @@ license="All Rights Reserved"
 
 [[mods]]
 modId="villagediplomacy"
-version="1.0.0"
+version="1.1.0"
 displayName="Village Diplomacy"
 updateJSONURL=""
 displayURL=""
@@ -18,12 +18,13 @@ Features:
 • Dynamic reputation system with 7 ranks (HERO to VILLAIN)
 • Unique villager personalities with custom behaviors
 • Hostility and forgiveness system for Iron Golems
-• Village naming and relationship tracking
+• Village naming system with biome-specific names (EN/ES)
 • Over 250 contextual messages based on your actions
 • Special interactions when placing blocks
 • Epic notifications for rank changes with effects
+• Reputation only lost when a villager witnesses your actions
 
-Build your reputation by trading, helping villagers, and respecting their property – or become a feared villain!
+Build your reputation by trading, helping villagers, and respecting their property - or become a feared villain!
 '''
 
 [[dependencies.villagediplomacy]]

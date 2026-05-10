@@ -42,6 +42,31 @@ import net.minecraft.world.entity.monster.Evoker;
 import net.minecraft.world.entity.monster.Ravager;
 import net.minecraft.world.entity.monster.Pillager;
 import net.minecraft.world.entity.monster.Monster;
+import net.minecraft.world.entity.monster.Slime;
+import net.minecraft.world.entity.monster.MagmaCube;
+import net.minecraft.world.entity.monster.Ghast;
+import net.minecraft.world.entity.monster.Phantom;
+import net.minecraft.world.entity.monster.ElderGuardian;
+import net.minecraft.world.entity.monster.Guardian;
+import net.minecraft.world.entity.monster.Shulker;
+import net.minecraft.world.entity.monster.Endermite;
+import net.minecraft.world.entity.monster.Silverfish;
+import net.minecraft.world.entity.monster.Blaze;
+import net.minecraft.world.entity.monster.WitherSkeleton;
+import net.minecraft.world.entity.monster.Stray;
+import net.minecraft.world.entity.monster.Vex;
+import net.minecraft.world.entity.monster.Illusioner;
+import net.minecraft.world.entity.monster.ZombifiedPiglin;
+import net.minecraft.world.entity.monster.piglin.Piglin;
+import net.minecraft.world.entity.monster.piglin.PiglinBrute;
+import net.minecraft.world.entity.monster.hoglin.Hoglin;
+import net.minecraft.world.entity.monster.Zoglin;
+import net.minecraft.world.entity.boss.wither.WitherBoss;
+import net.minecraft.world.entity.boss.enderdragon.EnderDragon;
+import net.minecraft.world.entity.monster.EnderMan;
+import net.minecraft.world.entity.monster.Endermite;
+import net.minecraft.world.entity.monster.warden.Warden;
+
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.inventory.ChestMenu;
 import net.minecraft.world.item.ItemStack;
@@ -472,7 +497,20 @@ public class VillagerEventHandler {
     public void onHostileMobKill(LivingDeathEvent event) {
         if (!(event.getSource().getEntity() instanceof ServerPlayer player)) return;
         if (!(event.getEntity().level() instanceof ServerLevel level)) return;
-        if (!(event.getEntity() instanceof Monster)) return;
+        LivingEntity mob = event.getEntity();
+        boolean isHostile = mob instanceof Monster
+            || mob instanceof Slime
+            || mob instanceof MagmaCube
+            || mob instanceof Ghast
+            || mob instanceof Phantom
+            || mob instanceof Shulker
+            || mob instanceof ElderGuardian
+            || mob instanceof Guardian
+            || mob instanceof Hoglin
+            || mob instanceof Zoglin
+            || mob instanceof WitherBoss
+            || mob instanceof EnderDragon;
+        if (!isHostile) return;
 
         LivingEntity killed = event.getEntity();
         BlockPos deathPos = killed.blockPosition();
@@ -497,7 +535,7 @@ public class VillagerEventHandler {
         checkAndNotifyReputationChange(player, oldRep, newRep);
 
         ModLang.sendRandom(player, level.getRandom(),
-                "villagediplomacy.react.hostilekill." + kind.key(), kind.lineCount());
+                "villagediplomacy.react.hostilekill." + kind.key() + "." + ModLang.repTier(newRep), kind.lineCount());
         player.sendSystemMessage(Component.translatable("villagediplomacy.sys.hostile_killed",
                 Component.translatable(killed.getType().getDescriptionId()),
                 kind.repBonus(), newRep, ModLang.repStatus(newRep)));
@@ -508,6 +546,30 @@ public class VillagerEventHandler {
 
     @SubscribeEvent
     public void onAnimalDeath(LivingDeathEvent event) {
+        if (event.getEntity() instanceof Monster) return;
+        if (event.getEntity() instanceof Slime) return;
+        if (event.getEntity() instanceof MagmaCube) return;
+        if (event.getEntity() instanceof Ghast) return;
+        if (event.getEntity() instanceof Phantom) return;
+        if (event.getEntity() instanceof ElderGuardian) return;
+        if (event.getEntity() instanceof Guardian) return;
+        if (event.getEntity() instanceof Shulker) return;
+        if (event.getEntity() instanceof Endermite) return;
+        if (event.getEntity() instanceof Silverfish) return;
+        if (event.getEntity() instanceof Blaze) return;
+        if (event.getEntity() instanceof WitherSkeleton) return;
+        if (event.getEntity() instanceof Stray) return;
+        if (event.getEntity() instanceof Vex) return;
+        if (event.getEntity() instanceof Illusioner) return;
+        if (event.getEntity() instanceof ZombifiedPiglin) return;
+        if (event.getEntity() instanceof Piglin) return;
+        if (event.getEntity() instanceof PiglinBrute) return;
+        if (event.getEntity() instanceof Hoglin) return;
+        if (event.getEntity() instanceof Zoglin) return;
+        if (event.getEntity() instanceof WitherBoss) return;
+        if (event.getEntity() instanceof EnderDragon) return;
+        if (event.getEntity() instanceof EnderMan) return;
+        if (event.getEntity() instanceof Warden) return;
         if (event.getEntity() instanceof Villager) {
             return;
         }
@@ -1933,7 +1995,6 @@ public class VillagerEventHandler {
         return new AnimalDeathKind("other", 1, 1);
     }
 
-
     private record HostileKillKind(String key, int repBonus, int lineCount) {
     }
 
@@ -1941,19 +2002,19 @@ public class VillagerEventHandler {
         if (killed instanceof Pillager || killed instanceof Vindicator
                 || killed instanceof Evoker || killed instanceof Ravager
                 || killed instanceof Witch) {
-            return new HostileKillKind("raid", 15, 8);
+            return new HostileKillKind("raid", 15, 5);
         }
         if (killed instanceof Zombie || killed instanceof Husk
                 || killed instanceof Drowned || killed instanceof AbstractSkeleton) {
-            return new HostileKillKind("undead", 10, 8);
+            return new HostileKillKind("undead", 10, 5);
         }
         if (killed instanceof Creeper) {
-            return new HostileKillKind("creeper", 8, 6);
+            return new HostileKillKind("creeper", 8, 4);
         }
         if (killed instanceof Spider || killed instanceof CaveSpider) {
-            return new HostileKillKind("spider", 5, 5);
+            return new HostileKillKind("spider", 5, 4);
         }
-        return new HostileKillKind("other", 5, 6);
+        return new HostileKillKind("other", 5, 4);
     }
     private record AnimalAttackKind(String key, int babyCount, int adultCount) {
     }

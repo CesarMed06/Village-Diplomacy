@@ -92,6 +92,13 @@ public final class ModLang {
     }
 
     /** HUD / relation line: ally, friendly, neutral, hostile, enemy */
+    public static String repTier(int reputation) {
+        if (reputation >= 300) return "warm";
+        if (reputation >= 0) return "neutral";
+        return "cold";
+    }
+
+
     public static String hudRelationKey(int reputation) {
         if (reputation >= 300) {
             return "ally";

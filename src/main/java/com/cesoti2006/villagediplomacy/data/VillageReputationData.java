@@ -71,7 +71,9 @@ public class VillageReputationData extends SavedData {
     }
 
     private String getVillageKey(BlockPos villagePos) {
-        return villagePos.getX() + "," + villagePos.getY() + "," + villagePos.getZ();
+        int snapX = (villagePos.getX() >> 6) << 6;
+        int snapZ = (villagePos.getZ() >> 6) << 6;
+        return snapX + "_" + snapZ;
     }
 
     public int getReputation(UUID playerId, BlockPos villagePos) {

@@ -71,6 +71,7 @@ repositories {
 
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
+    compileOnly fileTree(dir: 'libs', include: ['*.jar'])
 
     // Aquí podrías añadir dependencias de otros mods si algún día las necesitas
 }

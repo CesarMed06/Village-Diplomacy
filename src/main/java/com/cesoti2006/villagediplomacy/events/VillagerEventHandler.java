@@ -67,6 +67,7 @@ import net.minecraft.world.entity.monster.EnderMan;
 import net.minecraft.world.entity.monster.Endermite;
 import net.minecraft.world.entity.monster.warden.Warden;
 
+import net.minecraft.world.entity.npc.AbstractVillager;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.inventory.ChestMenu;
 import net.minecraft.world.item.ItemStack;
@@ -173,14 +174,14 @@ public class VillagerEventHandler {
 
     @SubscribeEvent
     public void onVillagerDeath(LivingDeathEvent event) {
-        if (!(event.getEntity() instanceof Villager))
+        if (!(event.getEntity() instanceof AbstractVillager))
             return;
         if (!(event.getEntity().level() instanceof ServerLevel level))
             return;
         if (!(event.getSource().getEntity() instanceof ServerPlayer player))
             return;
 
-        Villager villager = (Villager) event.getEntity();
+        AbstractVillager villager = (AbstractVillager) event.getEntity();
         BlockPos villagerPos = villager.blockPosition();
 
         Optional<BlockPos> nearestVillage = VillageDetector.findNearestVillage(level, villagerPos, 200);
@@ -223,9 +224,9 @@ public class VillagerEventHandler {
         checkAndNotifyReputationChange(player, oldRep, newRep);
 
         if (villager.isBaby()) {
-            ModLang.sendRandom(player, level.getRandom(), "villagediplomacy.react.villagerdeath.baby", 4);
+            ModLang.sendDialogRandom(player, level.getRandom(), villager, "villagediplomacy.react.villagerdeath.baby", 4);
         } else {
-            ModLang.sendRandom(player, level.getRandom(), "villagediplomacy.react.villagerdeath.adult", 4);
+            ModLang.sendDialogRandom(player, level.getRandom(), villager, "villagediplomacy.react.villagerdeath.adult", 4);
         }
         ModLang.sendReputationSummary(player, reputationLoss, newRep);
 
@@ -352,14 +353,14 @@ public class VillagerEventHandler {
 
     @SubscribeEvent
     public void onVillagerAttack(LivingAttackEvent event) {
-        if (!(event.getEntity() instanceof Villager))
+        if (!(event.getEntity() instanceof AbstractVillager))
             return;
         if (!(event.getSource().getEntity() instanceof ServerPlayer player))
             return;
         if (!(event.getEntity().level() instanceof ServerLevel level))
             return;
 
-        Villager villager = (Villager) event.getEntity();
+        AbstractVillager villager = (AbstractVillager) event.getEntity();
         BlockPos villagerPos = villager.blockPosition();
 
         Optional<BlockPos> nearestVillage = VillageDetector.findNearestVillage(level, villagerPos, 200);
@@ -378,7 +379,12 @@ public class VillagerEventHandler {
         int newRep = data.getReputation(player.getUUID(), villagePos);
         checkAndNotifyReputationChange(player, oldRep, newRep);
 
-        player.sendSystemMessage(getDialogComponent(newRep));
+        ModLang.sendDialogRandom(player, level.getRandom(), villager,
+                newRep >= 75 ? "villagediplomacy.dialog.friendly" :
+                newRep >= 25 ? "villagediplomacy.dialog.neutral" :
+                newRep < 0   ? "villagediplomacy.dialog.hostile" :
+                               "villagediplomacy.dialog.greeting",
+                newRep >= 75 ? 7 : newRep >= 25 ? 6 : newRep < 0 ? 6 : 7);
         player.sendSystemMessage(Component.translatable("villagediplomacy.sys.villager_attacked",
                 -10, newRep, ModLang.repStatus(newRep)));
 
@@ -388,50 +394,6 @@ public class VillagerEventHandler {
         relationData.registerVillage(nearestVillage.get(), level);
 
         processStrikeSystem(player, level, villagerPos);
-    }
-
-    /**
-     * Obtiene un diálogo aleatorio según la categoría y la reputación actual.
-     * Usa el sistema de traducción de Minecraft para EN/ES automático.
-     */
-    private static Component getDialogComponent(int reputation) {
-        java.util.Random random = new java.util.Random();
-        if (reputation >= 75) {
-            return Component.translatable("villagediplomacy.dialog.friendly." + random.nextInt(7));
-        } else if (reputation >= 25) {
-            return Component.translatable("villagediplomacy.dialog.neutral." + random.nextInt(6));
-        } else if (reputation < 0) {
-            return Component.translatable("villagediplomacy.dialog.hostile." + random.nextInt(6));
-        } else {
-            return Component.translatable("villagediplomacy.dialog.greeting." + random.nextInt(7));
-        }
-    }
-
-    /**
-     * Diálogo de comercio aleatorio.
-     */
-    private static String getTradeDialog() {
-        java.util.Random random = new java.util.Random();
-        int index = random.nextInt(6);
-        return Component.translatable("villagediplomacy.dialog.trade." + index).getString();
-    }
-
-    /**
-     * Diálogo de advertencia aleatorio (nuevo en v1.1.0).
-     */
-    private static String getWarningDialog() {
-        java.util.Random random = new java.util.Random();
-        int index = random.nextInt(6);
-        return Component.translatable("villagediplomacy.dialog.warning." + index).getString();
-    }
-
-    /**
-     * Diálogo de quest aleatorio (nuevo en v1.1.0).
-     */
-    private static String getQuestDialog() {
-        java.util.Random random = new java.util.Random();
-        int index = random.nextInt(5);
-        return Component.translatable("villagediplomacy.dialog.quest." + index).getString();
     }
 
     @SubscribeEvent
@@ -479,7 +441,7 @@ public class VillagerEventHandler {
                         AnimalAttackKind attackKind = animalAttackKindFor(animalType);
                         String suffix = villager.isBaby() ? ".baby" : ".adult";
                         int lineCount = villager.isBaby() ? attackKind.babyCount() : attackKind.adultCount();
-                        ModLang.sendRandom(player, level.getRandom(),
+                        ModLang.sendDialogRandom(player, level.getRandom(), villager,
                                 "villagediplomacy.react.animalattack." + attackKind.key() + suffix, lineCount);
                         player.sendSystemMessage(Component.translatable("villagediplomacy.sys.animal_attack_warn",
                                 Component.translatable(event.getEntity().getType().getDescriptionId())));
@@ -519,10 +481,10 @@ public class VillagerEventHandler {
 
         BlockPos villagePos = nearestVillage.get();
 
-        List<Villager> nearbyVillagers = level.getEntitiesOfClass(
-                Villager.class, AABB.ofSize(Vec3.atCenterOf(deathPos), 32, 32, 32));
+        List<AbstractVillager> nearbyVillagers = level.getEntitiesOfClass(
+                AbstractVillager.class, AABB.ofSize(Vec3.atCenterOf(deathPos), 32, 32, 32));
         boolean witnessed = false;
-        for (Villager v : nearbyVillagers) {
+        for (AbstractVillager v : nearbyVillagers) {
             if (hasLineOfSight(v, player, level)) { witnessed = true; break; }
         }
         if (!witnessed) return;
@@ -534,8 +496,15 @@ public class VillagerEventHandler {
         int newRep = data.getReputation(player.getUUID(), villagePos);
         checkAndNotifyReputationChange(player, oldRep, newRep);
 
-        ModLang.sendRandom(player, level.getRandom(),
-                "villagediplomacy.react.hostilekill." + kind.key() + "." + ModLang.repTier(newRep), kind.lineCount());
+        AbstractVillager hostileWitness = nearbyVillagers.stream()
+                .filter(v -> hasLineOfSight(v, player, level)).findFirst().orElse(null);
+        if (hostileWitness != null) {
+            ModLang.sendDialogRandom(player, level.getRandom(), hostileWitness,
+                    "villagediplomacy.react.hostilekill." + kind.key() + "." + ModLang.repTier(newRep), kind.lineCount());
+        } else {
+            ModLang.sendRandom(player, level.getRandom(),
+                    "villagediplomacy.react.hostilekill." + kind.key() + "." + ModLang.repTier(newRep), kind.lineCount());
+        }
         player.sendSystemMessage(Component.translatable("villagediplomacy.sys.hostile_killed",
                 Component.translatable(killed.getType().getDescriptionId()),
                 kind.repBonus(), newRep, ModLang.repStatus(newRep)));
@@ -600,8 +569,13 @@ public class VillagerEventHandler {
         AnimalDeathKind react = animalDeathKindFor(killed);
         String suffix = useBaby ? ".baby" : ".adult";
         int lineCount = useBaby ? react.babyCount : react.adultCount;
-        ModLang.sendRandom(player, level.getRandom(),
-                "villagediplomacy.react.animaldeath." + react.key + suffix, lineCount);
+        if (witness != null) {
+            ModLang.sendDialogRandom(player, level.getRandom(), witness,
+                    "villagediplomacy.react.animaldeath." + react.key + suffix, lineCount);
+        } else {
+            ModLang.sendRandom(player, level.getRandom(),
+                    "villagediplomacy.react.animaldeath." + react.key + suffix, lineCount);
+        }
 
         player.sendSystemMessage(Component.translatable("villagediplomacy.sys.animal_killed",
                 Component.translatable(killed.getType().getDescriptionId()),
@@ -660,6 +634,14 @@ public class VillagerEventHandler {
                         String.valueOf(currentBonus));
             }
         }
+    }
+
+    @SubscribeEvent
+    public void onPlayerLogin(net.minecraftforge.event.entity.player.PlayerEvent.PlayerLoggedInEvent event) {
+        if (!(event.getEntity() instanceof ServerPlayer player)) return;
+        UUID id = player.getUUID();
+        lastVisitedVillage.remove(id);
+        greetingCooldown.remove(id);
     }
 
     @SubscribeEvent
@@ -775,37 +757,37 @@ public class VillagerEventHandler {
             if (reputation >= 500) {
                 if (isClosing) {
                     if (caughtByBaby) {
-                        ModLang.sendRandom(player, level.getRandom(), "villagediplomacy.react.door.high.close.baby", 4);
+                        ModLang.sendDialogRandom(player, level.getRandom(), witnessVillager, "villagediplomacy.react.door.high.close.baby", 4);
                     } else {
-                        ModLang.sendRandom(player, level.getRandom(), "villagediplomacy.react.door.high.close.adult", 6);
+                        ModLang.sendDialogRandom(player, level.getRandom(), witnessVillager, "villagediplomacy.react.door.high.close.adult", 6);
                     }
                 } else if (caughtByBaby) {
-                    ModLang.sendRandom(player, level.getRandom(), "villagediplomacy.react.door.high.open.baby", 5);
+                    ModLang.sendDialogRandom(player, level.getRandom(), witnessVillager, "villagediplomacy.react.door.high.open.baby", 5);
                 } else if (isNight) {
-                    ModLang.sendRandom(player, level.getRandom(), "villagediplomacy.react.door.high.open.night", 4);
+                    ModLang.sendDialogRandom(player, level.getRandom(), witnessVillager, "villagediplomacy.react.door.high.open.night", 4);
                 } else if (isMorning) {
-                    ModLang.sendRandom(player, level.getRandom(), "villagediplomacy.react.door.high.open.morning", 4);
+                    ModLang.sendDialogRandom(player, level.getRandom(), witnessVillager, "villagediplomacy.react.door.high.open.morning", 4);
                 } else {
-                    ModLang.sendRandom(player, level.getRandom(), "villagediplomacy.react.door.high.open.day", 8);
+                    ModLang.sendDialogRandom(player, level.getRandom(), witnessVillager, "villagediplomacy.react.door.high.open.day", 8);
                 }
 
             } else if (reputation >= 100) {
                 if (level.getRandom().nextInt(2) == 0) {
                     if (isClosing) {
-                        ModLang.sendRandom(player, level.getRandom(), "villagediplomacy.react.door.neutral.close", 4);
+                        ModLang.sendDialogRandom(player, level.getRandom(), witnessVillager, "villagediplomacy.react.door.neutral.close", 4);
                     } else if (isNight) {
-                        ModLang.sendRandom(player, level.getRandom(), "villagediplomacy.react.door.neutral.open.night", 3);
+                        ModLang.sendDialogRandom(player, level.getRandom(), witnessVillager, "villagediplomacy.react.door.neutral.open.night", 3);
                     } else {
-                        ModLang.sendRandom(player, level.getRandom(), "villagediplomacy.react.door.neutral.open.day", 6);
+                        ModLang.sendDialogRandom(player, level.getRandom(), witnessVillager, "villagediplomacy.react.door.neutral.open.day", 6);
                     }
                 }
 
             } else if (reputation >= -99) {
                 if (level.getRandom().nextInt(2) == 0) {
                     if (caughtByBaby) {
-                        ModLang.sendRandom(player, level.getRandom(), "villagediplomacy.react.door.low.baby", 3);
+                        ModLang.sendDialogRandom(player, level.getRandom(), witnessVillager, "villagediplomacy.react.door.low.baby", 3);
                     } else {
-                        ModLang.sendRandom(player, level.getRandom(), "villagediplomacy.react.door.low.adult", 6);
+                        ModLang.sendDialogRandom(player, level.getRandom(), witnessVillager, "villagediplomacy.react.door.low.adult", 6);
                     }
                 }
 
@@ -814,9 +796,9 @@ public class VillagerEventHandler {
                 int newRep = data.getReputation(playerId, nearestVillage.get());
 
                 if (caughtByBaby) {
-                    ModLang.sendRandom(player, level.getRandom(), "villagediplomacy.react.door.neg.baby", 6);
+                    ModLang.sendDialogRandom(player, level.getRandom(), witnessVillager, "villagediplomacy.react.door.neg.baby", 6);
                 } else {
-                    ModLang.sendRandom(player, level.getRandom(), "villagediplomacy.react.door.neg.adult", 10);
+                    ModLang.sendDialogRandom(player, level.getRandom(), witnessVillager, "villagediplomacy.react.door.neg.adult", 10);
                 }
                 player.sendSystemMessage(Component.translatable("villagediplomacy.sys.trespass_door"));
                 ModLang.sendReputationSummary(player, -5, newRep);
@@ -869,9 +851,9 @@ public class VillagerEventHandler {
                     checkAndNotifyReputationChange(player, oldRep, newRep);
 
                     if (caughtByBaby) {
-                        ModLang.sendRandom(player, level.getRandom(), "villagediplomacy.react.theft.chest.baby", THEFT_CHEST_BABY);
+                        ModLang.sendDialogRandom(player, level.getRandom(), spottingVillager, "villagediplomacy.react.theft.chest.baby", THEFT_CHEST_BABY);
                     } else {
-                        ModLang.sendRandom(player, level.getRandom(), "villagediplomacy.react.theft.chest.adult", THEFT_CHEST_ADULT);
+                        ModLang.sendDialogRandom(player, level.getRandom(), spottingVillager, "villagediplomacy.react.theft.chest.adult", THEFT_CHEST_ADULT);
                     }
 
                     player.sendSystemMessage(Component.translatable("villagediplomacy.sys.chest_open",
@@ -915,10 +897,12 @@ public class VillagerEventHandler {
 
             boolean caughtByVillager = false;
             boolean caughtByBaby = false;
+            Villager lootWitness = null;
 
             for (Villager villager : nearbyVillagers) {
                 if (hasLineOfSight(villager, player, level)) {
                     caughtByVillager = true;
+                    lootWitness = villager;
                     if (villager.isBaby()) {
                         caughtByBaby = true;
                     }
@@ -933,9 +917,9 @@ public class VillagerEventHandler {
                 checkAndNotifyReputationChange(player, oldRep, newRep);
 
                 if (caughtByBaby) {
-                    ModLang.sendRandom(player, level.getRandom(), "villagediplomacy.react.theft.loot.baby", THEFT_LOOT_BABY);
+                    ModLang.sendDialogRandom(player, level.getRandom(), lootWitness, "villagediplomacy.react.theft.loot.baby", THEFT_LOOT_BABY);
                 } else {
-                    ModLang.sendRandom(player, level.getRandom(), "villagediplomacy.react.theft.loot.adult", THEFT_LOOT_ADULT);
+                    ModLang.sendDialogRandom(player, level.getRandom(), lootWitness, "villagediplomacy.react.theft.loot.adult", THEFT_LOOT_ADULT);
                 }
 
                 player.sendSystemMessage(Component.translatable("villagediplomacy.sys.loot_village",
@@ -1382,27 +1366,11 @@ public class VillagerEventHandler {
                 UUID playerId = player.getUUID();
                 int reputation = data.getReputation(playerId);
                 
-                // Bloquear campana si reputación es muy baja
                 if (reputation < -200) {
                     event.setCanceled(true);
-                    
-                    String[] denialMessages;
-                    if (reputation < -500) {
-                        denialMessages = new String[]{
-                            Component.translatable("villagediplomacy.react.bell.ring.neg.0").getString(),
-                            Component.translatable("villagediplomacy.react.bell.ring.neg.1").getString(),
-                            Component.translatable("villagediplomacy.react.bell.ring.neg.2").getString()
-                        };
-                    } else {
-                        denialMessages = new String[]{
-                            Component.translatable("villagediplomacy.react.bell.ring.neutral.0").getString(),
-                            Component.translatable("villagediplomacy.react.bell.ring.neutral.1").getString(),
-                            Component.translatable("villagediplomacy.react.bell.ring.neutral.2").getString()
-                        };
-                    }
-                    
-                    player.sendSystemMessage(Component.literal(
-                        denialMessages[level.getRandom().nextInt(denialMessages.length)]));
+                    String prefix = reputation < -500 ? "villagediplomacy.react.bell.ring.neg" : "villagediplomacy.react.bell.ring.neutral";
+                    int idx = level.getRandom().nextInt(3);
+                    player.sendSystemMessage(Component.translatable(prefix + "." + idx));
                     return;
                 }
                 
@@ -1427,31 +1395,14 @@ public class VillagerEventHandler {
                 }
 
                 if (caughtByVillager) {
-                    // Reutilizar las variables ya definidas arriba
                     if (reputation >= 500) {
-                        String[] positiveMessages = {
-                                Component.translatable("villagediplomacy.react.bell.ring.ally.0").getString(),
-                                Component.translatable("villagediplomacy.react.bell.ring.ally.1").getString(),
-                                Component.translatable("villagediplomacy.react.bell.ring.ally.2").getString()
-                        };
-                        player.sendSystemMessage(Component.literal(
-                                positiveMessages[level.getRandom().nextInt(positiveMessages.length)]));
+                        int idx = level.getRandom().nextInt(3);
+                        player.sendSystemMessage(Component.translatable("villagediplomacy.react.bell.ring.ally." + idx));
                     } else if (reputation < 100) {
                         data.addReputation(playerId, -15);
                         int newRep = data.getReputation(playerId);
-
-                        String[] messages = {
-                                Component.translatable("villagediplomacy.react.bell.spam.0").getString(),
-                                Component.translatable("villagediplomacy.react.bell.spam.1").getString(),
-                                Component.translatable("villagediplomacy.react.bell.spam.2").getString(),
-                                Component.translatable("villagediplomacy.react.bell.spam.3").getString(),
-                                Component.translatable("villagediplomacy.react.bell.spam.4").getString(),
-                                Component.translatable("villagediplomacy.react.bell.spam.5").getString(),
-                                Component.translatable("villagediplomacy.react.bell.spam.6").getString()
-                        };
-
-                        player.sendSystemMessage(Component.literal(
-                                messages[level.getRandom().nextInt(messages.length)]));
+                        int idx = level.getRandom().nextInt(7);
+                        player.sendSystemMessage(Component.translatable("villagediplomacy.react.bell.spam." + idx));
                         player.sendSystemMessage(Component.translatable("villagediplomacy.sys.bell_ring"));
                         ModLang.sendReputationSummary(player, -15, newRep);
                     }
@@ -1541,15 +1492,14 @@ public class VillagerEventHandler {
                         int newRep = data.getReputation(player.getUUID());
                         checkAndNotifyReputationChange(player, oldRep, newRep);
 
-                        String[] messages = {
-                                Component.translatable("villagediplomacy.react.animal.escape.0").getString(),
-                                Component.translatable("villagediplomacy.react.animal.escape.1").getString(),
-                                Component.translatable("villagediplomacy.react.animal.escape.2").getString(),
-                                Component.translatable("villagediplomacy.react.crop.0").getString()
+                        String[] escapeKeys = {
+                                "villagediplomacy.react.animal.escape.0",
+                                "villagediplomacy.react.animal.escape.1",
+                                "villagediplomacy.react.animal.escape.2",
+                                "villagediplomacy.react.crop.0"
                         };
-
-                        player.sendSystemMessage(Component.literal(
-                                messages[level.getRandom().nextInt(messages.length)]));
+                        player.sendSystemMessage(Component.translatable(
+                                escapeKeys[level.getRandom().nextInt(escapeKeys.length)]));
                         player.sendSystemMessage(Component.translatable("villagediplomacy.sys.trapdoor_farm"));
                         ModLang.sendReputationSummary(player, -10, newRep);
 
@@ -1611,16 +1561,12 @@ public class VillagerEventHandler {
                         blockName = "brewing stand";
                     }
 
-                    String[] messages = {
-                            Component.translatable("villagediplomacy.react.workblock.0", blockName).getString(),
-                            Component.translatable("villagediplomacy.react.workblock.1").getString(),
-                            Component.translatable("villagediplomacy.react.workblock.2").getString(),
-                            Component.translatable("villagediplomacy.react.workblock.3").getString(),
-                            Component.translatable("villagediplomacy.react.workblock.4").getString()
-                    };
-
-                    player.sendSystemMessage(Component.literal(
-                            messages[level.getRandom().nextInt(messages.length)]));
+                    int wbIdx = level.getRandom().nextInt(5);
+                    if (wbIdx == 0) {
+                        player.sendSystemMessage(Component.translatable("villagediplomacy.react.workblock.0", blockName));
+                    } else {
+                        player.sendSystemMessage(Component.translatable("villagediplomacy.react.workblock." + wbIdx));
+                    }
                     player.sendSystemMessage(Component.translatable("villagediplomacy.sys.village_block_use",
                             clickedBlock.getName()));
                     ModLang.sendReputationSummary(player, -8, newRep);
@@ -1678,14 +1624,8 @@ public class VillagerEventHandler {
                         int newRep = data.getReputation(player.getUUID());
                         checkAndNotifyReputationChange(player, oldRep, newRep);
 
-                        String[] messages = {
-                                Component.translatable("villagediplomacy.react.crafting.0").getString(),
-                                Component.translatable("villagediplomacy.react.crafting.1").getString(),
-                                Component.translatable("villagediplomacy.react.crafting.2").getString()
-                        };
-
-                        player.sendSystemMessage(Component.literal(
-                                messages[level.getRandom().nextInt(messages.length)]));
+                        int crIdx = level.getRandom().nextInt(3);
+                        player.sendSystemMessage(Component.translatable("villagediplomacy.react.crafting." + crIdx));
                         player.sendSystemMessage(Component.translatable("villagediplomacy.sys.crafting_use"));
                         ModLang.sendReputationSummary(player, -8, newRep);
 
@@ -1750,33 +1690,10 @@ public class VillagerEventHandler {
                         int newRep = data.getReputation(player.getUUID());
                         checkAndNotifyReputationChange(player, oldRep, newRep);
 
-                        String[] adultMessages = {
-                                Component.translatable("villagediplomacy.react.gate.adult.0").getString(),
-                                Component.translatable("villagediplomacy.react.gate.adult.1").getString(),
-                                Component.translatable("villagediplomacy.react.gate.adult.2").getString(),
-                                Component.translatable("villagediplomacy.react.gate.adult.3").getString(),
-                                Component.translatable("villagediplomacy.react.gate.adult.4").getString(),
-                                Component.translatable("villagediplomacy.react.gate.adult.5").getString(),
-                                Component.translatable("villagediplomacy.react.gate.adult.6").getString(),
-                                Component.translatable("villagediplomacy.react.gate.adult.7").getString(),
-                                Component.translatable("villagediplomacy.react.gate.adult.8").getString(),
-                                Component.translatable("villagediplomacy.react.gate.adult.9").getString()
-                        };
-
-                        String[] babyMessages = {
-                                Component.translatable("villagediplomacy.react.gate.baby.0").getString(),
-                                Component.translatable("villagediplomacy.react.gate.baby.1").getString(),
-                                Component.translatable("villagediplomacy.react.gate.baby.2").getString(),
-                                Component.translatable("villagediplomacy.react.gate.baby.3").getString(),
-                                Component.translatable("villagediplomacy.react.gate.baby.4").getString(),
-                                Component.translatable("villagediplomacy.react.gate.baby.5").getString(),
-                                Component.translatable("villagediplomacy.react.gate.baby.6").getString()
-                        };
-
-                        String message = caughtByBaby ? babyMessages[level.getRandom().nextInt(babyMessages.length)]
-                                : adultMessages[level.getRandom().nextInt(adultMessages.length)];
-
-                        player.sendSystemMessage(Component.literal(message));
+                        String gatePrefix = caughtByBaby ? "villagediplomacy.react.gate.baby" : "villagediplomacy.react.gate.adult";
+                        int gateCount = caughtByBaby ? 7 : 10;
+                        int gateIdx = level.getRandom().nextInt(gateCount);
+                        player.sendSystemMessage(Component.translatable(gatePrefix + "." + gateIdx));
                         player.sendSystemMessage(Component.translatable("villagediplomacy.sys.animal_release"));
                         ModLang.sendReputationSummary(player, -12, newRep);
 
@@ -2459,24 +2376,12 @@ public class VillagerEventHandler {
         boolean useBaby = isBaby && type.babyCount > 0;
         String prefix = useBaby ? type.babyKeyPrefix : type.adultKeyPrefix;
         int count = useBaby ? type.babyCount : type.adultCount;
-        String villagerName;
-        if (spotter != null && spotter.hasCustomName()) {
-            villagerName = spotter.getCustomName().getString();
-        } else if (spotter != null) {
-            String prof = spotter.getVillagerData().getProfession().toString().toLowerCase();
-            prof = prof.contains(":") ? prof.substring(prof.indexOf(":") + 1) : prof;
-            villagerName = prof.equals("none") || prof.equals("nitwit") ? "Villager" :
-                Character.toUpperCase(prof.charAt(0)) + prof.substring(1);
-        } else {
-            villagerName = "Villager";
-        }
+        if (count <= 0 || prefix.isEmpty()) return;
         int idx = level.getRandom().nextInt(count);
-        net.minecraft.network.chat.Component line = Component.translatable(prefix + "." + idx);
-        net.minecraft.network.chat.Component msg = Component.literal("§e[" + villagerName + "] §r").append(line);
-        player.sendSystemMessage(msg);
+        player.sendSystemMessage(Component.translatable(prefix + "." + idx));
     }
 
-    private boolean hasLineOfSight(Villager villager, ServerPlayer player, ServerLevel level) {
+    private boolean hasLineOfSight(LivingEntity villager, ServerPlayer player, ServerLevel level) {
         Vec3 villagerEyes = villager.getEyePosition();
         Vec3 playerEyes = player.getEyePosition();
 
@@ -2567,27 +2472,31 @@ public class VillagerEventHandler {
                             1.2); // Velocidad de huida
 
                     if (level.getRandom().nextInt(50) == 0) {
-                        String[] fearMessages = reputation <= -800 ? new String[] {
-                                Component.translatable("villagediplomacy.react.criminal.0").getString(),
-                                Component.translatable("villagediplomacy.react.criminal.1").getString(),
-                                Component.translatable("villagediplomacy.react.flee.hostile.0").getString(),
-                                Component.translatable("villagediplomacy.react.flee.hostile.1").getString(),
-                                Component.translatable("villagediplomacy.react.flee.hostile.baby.0").getString()
+                        String[] fearKeys;
+                        if (reputation <= -800) {
+                            fearKeys = new String[]{
+                                "villagediplomacy.react.criminal.0",
+                                "villagediplomacy.react.criminal.1",
+                                "villagediplomacy.react.flee.hostile.0",
+                                "villagediplomacy.react.flee.hostile.1",
+                                "villagediplomacy.react.flee.hostile.baby.0"
+                            };
+                        } else if (reputation <= -500) {
+                            fearKeys = new String[]{
+                                "villagediplomacy.react.flee.neg.0",
+                                "villagediplomacy.react.flee.neg.1",
+                                "villagediplomacy.react.flee.neg.2",
+                                "villagediplomacy.react.flee.neg.baby.0"
+                            };
+                        } else {
+                            fearKeys = new String[]{
+                                "villagediplomacy.react.flee.low.0",
+                                "villagediplomacy.react.flee.low.1",
+                                "villagediplomacy.react.flee.low.2"
+                            };
                         }
-                                : reputation <= -500 ? new String[] {
-                                        Component.translatable("villagediplomacy.react.flee.neg.0").getString(),
-                                        Component.translatable("villagediplomacy.react.flee.neg.1").getString(),
-                                        Component.translatable("villagediplomacy.react.flee.neg.2").getString(),
-                                        Component.translatable("villagediplomacy.react.flee.neg.baby.0").getString()
-                                }
-                                        : new String[] {
-                                                Component.translatable("villagediplomacy.react.flee.low.0").getString(),
-                                                Component.translatable("villagediplomacy.react.flee.low.1").getString(),
-                                                Component.translatable("villagediplomacy.react.flee.low.2").getString()
-                                        };
-
-                        player.sendSystemMessage(Component.literal(
-                                fearMessages[level.getRandom().nextInt(fearMessages.length)]));
+                        player.sendSystemMessage(Component.translatable(
+                                fearKeys[level.getRandom().nextInt(fearKeys.length)]));
                     }
                 }
             }
@@ -2616,18 +2525,9 @@ public class VillagerEventHandler {
                     if (distance < 20.0) {
                         golem.setTarget(player);
 
-                        // Mensajes contextuales cuando el golem empieza a perseguir
-                        String[] warningMessages = {
-                            Component.translatable("villagediplomacy.react.guard.0").getString(),
-                            Component.translatable("villagediplomacy.react.guard.4").getString(),
-                            Component.translatable("villagediplomacy.react.guard.1").getString(),
-                            Component.translatable("villagediplomacy.react.guard.2").getString(),
-                            Component.translatable("villagediplomacy.react.guard.3").getString()
-                        };
-                        
                         if (level.getRandom().nextInt(3) == 0) {
-                            player.sendSystemMessage(Component.literal(
-                                    warningMessages[level.getRandom().nextInt(warningMessages.length)]));
+                            int guardIdx = level.getRandom().nextInt(5);
+                            player.sendSystemMessage(Component.translatable("villagediplomacy.react.guard." + guardIdx));
                         }
                     }
                 }
@@ -2635,86 +2535,6 @@ public class VillagerEventHandler {
         }
     }
 
-    /**
-     * DEPRECATED - War Golem system removed for simplification
-     */
-    @SubscribeEvent
-    public void onWarGolemDeath(LivingDeathEvent event) {
-        // Sistema de raids deshabilitado
-    }
-    
-    /**
-     * DEPRECATED - Caravan system removed for simplification
-     */
-    @SubscribeEvent
-    public void onCaravanDeath(LivingDeathEvent event) {
-        // Sistema de caravanas deshabilitado
-    }
-
-    // ==================== GEOPOLITICS SYSTEM ====================
-    
-    private long lastGeopoliticsTick = 0;
-    
-    /**
-     * Main tick handler for geopolitics systems (OPTIMIZED - only every 20 ticks)
-     */
-    @SubscribeEvent
-    public void onServerTick(TickEvent.ServerTickEvent event) {
-        if (event.phase != TickEvent.Phase.END) return;
-        
-        for (ServerLevel level : event.getServer().getAllLevels()) {
-            long gameTime = level.getGameTime();
-            
-            // Only check every 20 ticks (1 second) instead of every tick
-            if (gameTime - lastGeopoliticsTick < 20) {
-                continue;
-            }
-            
-            lastGeopoliticsTick = gameTime;
-            
-            // Sistema de geopolítica deshabilitado (movido a DLC futuro)
-        }
-    }
-    
-    /**
-     * DISABLED - Village discovery system (moved to future DLC)
-     */
-    private final Set<String> discoveredVillages = new HashSet<>();
-    
-    @SubscribeEvent
-    public void onVillagerDiscovery(net.minecraftforge.event.entity.EntityJoinLevelEvent event) {
-        // Sistema de descubrimiento de aldeas deshabilitado temporalmente
-    }
-    
-    /**
-     * DEPRECATED - Handle caravan merchant death (system removed)
-     */
-    @SubscribeEvent
-    public void onCaravanMerchantKilled(LivingDeathEvent event) {
-        // Sistema de caravanas deshabilitado
-    }
-    
-    /**
-     * DEPRECATED - Handle war golem death (system removed)
-     */
-    @SubscribeEvent
-    public void onWarGolemKilled(LivingDeathEvent event) {
-        // Sistema de raids deshabilitado
-    }
-    
-    /**
-     * DEPRECATED - Check player escort when near caravan (system removed)
-     */
-    @SubscribeEvent
-    public void onPlayerMoveNearCaravan(TickEvent.PlayerTickEvent event) {
-        // Sistema de caravanas deshabilitado
-    }
-    
-    // ==================== FEEDBACK VISUAL Y SONORO ====================
-    
-    /**
-     * Spawns heart particles and plays XP sound when reputation increases
-     */
     private void spawnPositiveFeedback(ServerLevel level, LivingEntity entity) {
         if (entity == null) return;
         
@@ -2805,10 +2625,9 @@ public class VillagerEventHandler {
             String temperament = personality != null ? personality.getTemperament().name() : "NEUTRAL";
             String villagerName = personality != null ? personality.getCustomName() : "Villager";
             
-            String[] greetings = getGreetingsForTemperament(temperament, reputation, villagerName);
-            String greeting = greetings[level.getRandom().nextInt(greetings.length)];
-            
-            player.sendSystemMessage(Component.literal(greeting));
+            String[] greetingKeys = getGreetingKeys(temperament, reputation);
+            String key = greetingKeys[level.getRandom().nextInt(greetingKeys.length)];
+            player.sendSystemMessage(Component.translatable(key, villagerName));
             
             // Efecto visual - corazones
             Vec3 villagerPos = villager.position();
@@ -2830,91 +2649,89 @@ public class VillagerEventHandler {
         }
     }
     
-    private String[] getGreetingsForTemperament(String temperament, int reputation, String villagerName) {
+    private String[] getGreetingKeys(String temperament, int reputation) {
         boolean isHero = reputation >= 500;
-        
-        // Mensajes especiales para HERO
+
         if (isHero) {
             return switch (temperament) {
                 case "BRAVE" -> new String[]{
-                    Component.translatable("villagediplomacy.react.greet.hero.0", villagerName).getString(),
-                    Component.translatable("villagediplomacy.react.greet.hero.1", villagerName).getString(),
-                    "§6[" + villagerName + "] ¡Valiente! ¡Bienvenido de vuelta!"
+                    "villagediplomacy.react.greet.hero.0",
+                    "villagediplomacy.react.greet.hero.1",
+                    "villagediplomacy.react.greet.hero.brave.0"
                 };
                 case "SHY" -> new String[]{
-                    Component.translatable("villagediplomacy.react.greet.hero.shy.0", villagerName).getString(),
-                    Component.translatable("villagediplomacy.react.greet.hero.shy.1", villagerName).getString(),
-                    "§b[" + villagerName + "] ¡Te... te admiro mucho!"
+                    "villagediplomacy.react.greet.hero.shy.0",
+                    "villagediplomacy.react.greet.hero.shy.1",
+                    "villagediplomacy.react.greet.hero.shy.2"
                 };
                 case "GREEDY" -> new String[]{
-                    Component.translatable("villagediplomacy.react.greet.ally.0", villagerName).getString(),
-                    Component.translatable("villagediplomacy.react.greet.ally.1", villagerName).getString(),
-                    "§e[" + villagerName + "] ¡El mejor cliente! ¡Bienvenido!"
+                    "villagediplomacy.react.greet.ally.0",
+                    "villagediplomacy.react.greet.ally.1",
+                    "villagediplomacy.react.greet.hero.greedy.0"
                 };
                 case "WISE" -> new String[]{
-                    "§d[" + villagerName + "] Saludos, legendario.",
-                    Component.translatable("villagediplomacy.react.greet.legend.0", villagerName).getString(),
-                    Component.translatable("villagediplomacy.react.greet.legend.1", villagerName).getString()
+                    "villagediplomacy.react.greet.hero.wise.0",
+                    "villagediplomacy.react.greet.legend.0",
+                    "villagediplomacy.react.greet.legend.1"
                 };
                 case "GOSSIP" -> new String[]{
-                    Component.translatable("villagediplomacy.react.greet.champion.0", villagerName).getString(),
-                    Component.translatable("villagediplomacy.react.greet.champion.1", villagerName).getString(),
-                    Component.translatable("villagediplomacy.react.greet.champion.2", villagerName).getString()
+                    "villagediplomacy.react.greet.champion.0",
+                    "villagediplomacy.react.greet.champion.1",
+                    "villagediplomacy.react.greet.champion.2"
                 };
                 case "CHEERFUL" -> new String[]{
-                    Component.translatable("villagediplomacy.react.greet.champion.exc.0", villagerName).getString(),
-                    Component.translatable("villagediplomacy.react.greet.champion.exc.1", villagerName).getString(),
-                    Component.translatable("villagediplomacy.react.greet.champion.exc.2", villagerName).getString()
+                    "villagediplomacy.react.greet.champion.exc.0",
+                    "villagediplomacy.react.greet.champion.exc.1",
+                    "villagediplomacy.react.greet.champion.exc.2"
                 };
                 default -> new String[]{
-                    Component.translatable("villagediplomacy.react.greet.trusted.0", villagerName).getString(),
-                    Component.translatable("villagediplomacy.react.greet.trusted.1", villagerName).getString(),
-                    Component.translatable("villagediplomacy.react.greet.trusted.2", villagerName).getString()
+                    "villagediplomacy.react.greet.trusted.0",
+                    "villagediplomacy.react.greet.trusted.1",
+                    "villagediplomacy.react.greet.trusted.2"
                 };
             };
         }
-        
-        // Mensajes para ALLY (200-499)
+
         return switch (temperament) {
             case "BRAVE" -> new String[]{
-                Component.translatable("villagediplomacy.react.greet.friendly.0", villagerName).getString(),
-                "§a[" + villagerName + "] ¡Aliado! ¡Bienvenido!",
-                "§a[" + villagerName + "] ¡Un placer verte!"
+                "villagediplomacy.react.greet.friendly.0",
+                "villagediplomacy.react.greet.ally.brave.0",
+                "villagediplomacy.react.greet.ally.brave.1"
             };
             case "SHY" -> new String[]{
-                Component.translatable("villagediplomacy.react.greet.friendly.shy.0", villagerName).getString(),
-                "§b[" + villagerName + "] *saluda* ¡H-hola!",
-                "§b[" + villagerName + "] ¡Oh! Hola, amigo..."
+                "villagediplomacy.react.greet.friendly.shy.0",
+                "villagediplomacy.react.greet.ally.shy.0",
+                "villagediplomacy.react.greet.ally.shy.1"
             };
             case "GREEDY" -> new String[]{
-                "§e[" + villagerName + "] ¡Mi cliente favorito!",
-                "§e[" + villagerName + "] ¡Buenos tratos hoy, amigo!",
-                "§e[" + villagerName + "] ¡Siempre es un placer!"
+                "villagediplomacy.react.greet.ally.greedy.0",
+                "villagediplomacy.react.greet.ally.greedy.1",
+                "villagediplomacy.react.greet.ally.greedy.2"
             };
             case "WISE" -> new String[]{
-                "§d[" + villagerName + "] Saludos, de confianza.",
-                "§d[" + villagerName + "] La paz sea contigo, amigo.",
-                "§d[" + villagerName + "] Bienvenido, aliado."
+                "villagediplomacy.react.greet.ally.wise.0",
+                "villagediplomacy.react.greet.ally.wise.1",
+                "villagediplomacy.react.greet.ally.wise.2"
             };
             case "GOSSIP" -> new String[]{
-                "§a[" + villagerName + "] ¡Oh! ¡Hola! ¿¡Escuchaste sobre...!?",
-                "§a[" + villagerName + "] ¡Perfecto momento! ¡Tengo noticias!",
-                Component.translatable("villagediplomacy.react.greet.friendly.1", villagerName).getString()
+                "villagediplomacy.react.greet.ally.gossip.0",
+                "villagediplomacy.react.greet.ally.gossip.1",
+                "villagediplomacy.react.greet.friendly.1"
             };
             case "FRIENDLY" -> new String[]{
-                "§a[" + villagerName + "] ¡Hola, amigo!",
-                "§a[" + villagerName + "] ¡Genial verte!",
-                Component.translatable("villagediplomacy.react.greet.friendly.2", villagerName).getString()
+                "villagediplomacy.react.greet.ally.friendly.0",
+                "villagediplomacy.react.greet.ally.friendly.1",
+                "villagediplomacy.react.greet.friendly.2"
             };
             case "CHEERFUL" -> new String[]{
-                Component.translatable("villagediplomacy.react.greet.friendly.3", villagerName).getString(),
-                Component.translatable("villagediplomacy.react.greet.friendly.4", villagerName).getString(),
-                "§a[" + villagerName + "] ¡Maravilloso verte!"
+                "villagediplomacy.react.greet.friendly.3",
+                "villagediplomacy.react.greet.friendly.4",
+                "villagediplomacy.react.greet.ally.cheerful.0"
             };
             default -> new String[]{
-                "§a[" + villagerName + "] ¡Hola, amigo!",
-                Component.translatable("villagediplomacy.react.greet.friendly.5", villagerName).getString(),
-                "§a[" + villagerName + "] ¡Bienvenido!"
+                "villagediplomacy.react.greet.ally.default.0",
+                "villagediplomacy.react.greet.friendly.5",
+                "villagediplomacy.react.greet.ally.default.1"
             };
         };
     }
@@ -2984,4 +2801,36 @@ public class VillagerEventHandler {
                block instanceof net.minecraft.world.level.block.SmithingTableBlock ||
                block instanceof net.minecraft.world.level.block.StonecutterBlock;
     }
-}
+    private void sendGreeting(ServerPlayer player, ServerLevel level, String villagerName, String key) {
+        ModLang.sendDialogNamed(player, villagerName, key);
+    }
+
+    private void sendGreetingForTemperament(ServerPlayer player, ServerLevel level,
+                                            String temperament, int reputation, String villagerName) {
+        boolean isHero = reputation >= 500;
+        String base = isHero ? "villagediplomacy.react.greet.hero" : "villagediplomacy.react.greet.ally";
+        String key;
+
+        if (isHero) {
+            key = switch (temperament) {
+                case "BRAVE"    -> base + ".brave." + level.getRandom().nextInt(3);
+                case "SHY"      -> base + ".shy." + level.getRandom().nextInt(3);
+                case "GREEDY"   -> "villagediplomacy.react.greet.ally." + level.getRandom().nextInt(3);
+                case "WISE"     -> "villagediplomacy.react.greet.legend." + level.getRandom().nextInt(3);
+                case "GOSSIP"   -> "villagediplomacy.react.greet.champion." + level.getRandom().nextInt(3);
+                case "CHEERFUL" -> "villagediplomacy.react.greet.champion.exc." + level.getRandom().nextInt(3);
+                default         -> "villagediplomacy.react.greet.trusted." + level.getRandom().nextInt(3);
+            };
+        } else {
+            key = switch (temperament) {
+                case "BRAVE"    -> "villagediplomacy.react.greet.friendly." + level.getRandom().nextInt(3);
+                case "SHY"      -> "villagediplomacy.react.greet.friendly.shy." + level.getRandom().nextInt(3);
+                case "GREEDY"   -> "villagediplomacy.react.greet.friendly.greedy." + level.getRandom().nextInt(3);
+                case "WISE"     -> "villagediplomacy.react.greet.friendly.wise." + level.getRandom().nextInt(3);
+                case "GOSSIP"   -> "villagediplomacy.react.greet.friendly.gossip." + level.getRandom().nextInt(3);
+                case "CHEERFUL" -> "villagediplomacy.react.greet.friendly.cheerful." + level.getRandom().nextInt(3);
+                default         -> "villagediplomacy.react.greet.friendly." + level.getRandom().nextInt(6);
+            };
+        }
+        ModLang.sendDialogNamed(player, villagerName, key);
+    }}

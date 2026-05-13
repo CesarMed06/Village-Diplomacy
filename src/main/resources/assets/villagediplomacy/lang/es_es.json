@@ -332,7 +332,7 @@
   "villagediplomacy.personality.level.master": "§6✦ Maestro",
   "villagediplomacy.personality.level.novice": "§7Novato",
   "villagediplomacy.personality.level.unknown": "§7Desconocido",
-  "villagediplomacy.personality.title": "§6【 %s 】",
+  "villagediplomacy.personality.title": "§6【 §e%s §6】",
   "villagediplomacy.personality.trait_row": "§e● %s: %s",
   "villagediplomacy.personality.unemployed": "§7Sin empleo",
   "villagediplomacy.react.animal.escape.0": "§8[§fAldeano§8] §7¡OYE! ¡No dejes salir a los animales!",

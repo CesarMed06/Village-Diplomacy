@@ -24,6 +24,23 @@ public final class ModLang {
 
     // ── Prefijo [Nombre] ───────────────────────────────────────────────────────
 
+    private static final java.util.Map<String, String> PROF_ES = java.util.Map.ofEntries(
+        java.util.Map.entry("farmer", "Granjero"),
+        java.util.Map.entry("librarian", "Bibliotecario"),
+        java.util.Map.entry("cleric", "Clérigo"),
+        java.util.Map.entry("armorer", "Armero"),
+        java.util.Map.entry("weaponsmith", "Herrero"),
+        java.util.Map.entry("toolsmith", "Forjador"),
+        java.util.Map.entry("butcher", "Carnicero"),
+        java.util.Map.entry("leatherworker", "Peletero"),
+        java.util.Map.entry("shepherd", "Pastor"),
+        java.util.Map.entry("fisherman", "Pescador"),
+        java.util.Map.entry("fletcher", "Flechero"),
+        java.util.Map.entry("cartographer", "Cartógrafo"),
+        java.util.Map.entry("mason", "Cantero"),
+        java.util.Map.entry("nitwit", "Aldeano")
+    );
+
     public static MutableComponent villagerPrefix(AbstractVillager villager) {
         String name;
         if (villager.hasCustomName()) {
@@ -31,11 +48,9 @@ public final class ModLang {
         } else if (villager instanceof net.minecraft.world.entity.npc.Villager v) {
             String prof = v.getVillagerData().getProfession().toString().toLowerCase();
             prof = prof.contains(":") ? prof.substring(prof.indexOf(":") + 1) : prof;
-            name = (prof.equals("none") || prof.equals("nitwit") || prof.isBlank())
-                ? "Villager"
-                : Character.toUpperCase(prof.charAt(0)) + prof.substring(1);
+            name = PROF_ES.getOrDefault(prof, "Aldeano");
         } else {
-            name = "Villager";
+            name = "Aldeano";
         }
         return Component.literal("[").withStyle(COLOR_BRACKET)
             .append(Component.literal(name).withStyle(COLOR_VILLAGER_NAME))

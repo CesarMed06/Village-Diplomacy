@@ -173,9 +173,24 @@ public class TradeModifierHandler {
         if (hasJob) {
             VillagerProfession prof = villager.getVillagerData().getProfession();
             ResourceLocation profKey = BuiltInRegistries.VILLAGER_PROFESSION.getKey(prof);
-            Component profName = profKey != null
-                    ? Component.translatable(Util.makeDescriptionId("entity.minecraft.villager.profession", profKey))
-                    : Component.literal(prof.toString());
+            java.util.Map<String, String> profEs = java.util.Map.ofEntries(
+                java.util.Map.entry("farmer", "Granjero"),
+                java.util.Map.entry("librarian", "Bibliotecario"),
+                java.util.Map.entry("cleric", "Clérigo"),
+                java.util.Map.entry("armorer", "Armero"),
+                java.util.Map.entry("weaponsmith", "Herrero"),
+                java.util.Map.entry("toolsmith", "Forjador"),
+                java.util.Map.entry("butcher", "Carnicero"),
+                java.util.Map.entry("leatherworker", "Peletero"),
+                java.util.Map.entry("shepherd", "Pastor"),
+                java.util.Map.entry("fisherman", "Pescador"),
+                java.util.Map.entry("fletcher", "Flechero"),
+                java.util.Map.entry("cartographer", "Cartógrafo"),
+                java.util.Map.entry("mason", "Cantero")
+            );
+            String profPath = profKey != null ? profKey.getPath() : prof.toString().toLowerCase();
+            Component profName = Component.literal(profEs.getOrDefault(profPath, 
+                Character.toUpperCase(profPath.charAt(0)) + profPath.substring(1)));
             player.sendSystemMessage(Component.translatable("villagediplomacy.personality.job_line",
                     profName, profLevelName));
         } else {

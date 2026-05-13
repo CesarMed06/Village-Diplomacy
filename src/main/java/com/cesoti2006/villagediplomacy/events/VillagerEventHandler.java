@@ -409,16 +409,13 @@ public class VillagerEventHandler {
         else if (event.getEntity() instanceof Sheep) animalType = "sheep";
         else if (event.getEntity() instanceof Pig) animalType = "pig";
         else if (event.getEntity() instanceof Chicken) animalType = "chicken";
-        else if (event.getEntity() instanceof Rabbit) animalType = "rabbit";
-        else if (event.getEntity() instanceof Camel) animalType = "camel";
-        else if (event.getEntity() instanceof AbstractHorse) animalType = "horse";
         
         if (animalType == null) return;
 
         BlockPos animalPos = event.getEntity().blockPosition();
         Optional<BlockPos> nearestVillage = VillageDetector.findNearestVillage(level, animalPos, 200);
 
-        if (nearestVillage.isPresent()) {
+        if (nearestVillage.isPresent() && isAnimalInEnclosure(level, animalPos)) {
             List<Villager> nearbyVillagers = level.getEntitiesOfClass(
                     Villager.class,
                     AABB.ofSize(Vec3.atCenterOf(animalPos), 48, 48, 48));
@@ -557,6 +554,11 @@ public class VillagerEventHandler {
         }
 
         BlockPos villagePos = nearestVillage.get();
+
+        if (!isAnimalInEnclosure(level, deathPos)) {
+            return;
+        }
+
         VillageReputationData data = VillageReputationData.get(level);
         UUID playerId = player.getUUID();
         int oldRep = data.getReputation(playerId, villagePos);
@@ -1949,6 +1951,24 @@ public class VillagerEventHandler {
         };
     }
 
+    private static boolean isAnimalInEnclosure(ServerLevel level, BlockPos animalPos) {
+        int fenceCount = 0;
+        for (int x = -6; x <= 6; x++) {
+            for (int z = -6; z <= 6; z++) {
+                for (int y = -1; y <= 1; y++) {
+                    Block b = level.getBlockState(animalPos.offset(x, y, z)).getBlock();
+                    if (b instanceof net.minecraft.world.level.block.FenceBlock
+                            || b instanceof net.minecraft.world.level.block.FenceGateBlock
+                            || b instanceof net.minecraft.world.level.block.WallBlock) {
+                        fenceCount++;
+                        if (fenceCount >= 4) return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
     private static Villager findNearestWitnessVillager(ServerLevel level, LivingEntity killed, double radius) {
         AABB box = killed.getBoundingBox().inflate(radius);
         List<Villager> list = level.getEntitiesOfClass(Villager.class, box);
@@ -1956,6 +1976,11 @@ public class VillagerEventHandler {
         double bestD = Double.MAX_VALUE;
         Vec3 center = killed.position();
         for (Villager v : list) {
+            Vec3 villagerEyes = v.getEyePosition();
+            ClipContext ctx = new ClipContext(villagerEyes, center.add(0, 1, 0),
+                    ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, v);
+            BlockHitResult hit = level.clip(ctx);
+            if (hit.getType() != HitResult.Type.MISS) continue;
             double d = v.position().distanceToSqr(center);
             if (d < bestD) {
                 bestD = d;

@@ -77,13 +77,7 @@ public class PersonalityBehaviorHandler {
             ));
             
             // Huir de jugador con espada/arma (versión simplificada)
-            villager.goalSelector.addGoal(2, new AvoidEntityGoal<>(
-                villager,
-                Player.class,
-                10.0F,
-                1.0D,
-                1.2D
-            ));
+            
         }
         
         // VALIENTE: Mirar más tiempo a jugadores

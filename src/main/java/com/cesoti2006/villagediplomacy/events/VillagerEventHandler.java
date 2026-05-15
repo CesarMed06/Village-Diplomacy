@@ -2466,19 +2466,19 @@ public class VillagerEventHandler {
     }
 
     private void makeVillagersFleeFromHostilePlayers(ServerPlayer player, ServerLevel level) {
-        VillageReputationData reputationData = VillageReputationData.get(level.getServer().overworld());
-        int reputation = reputationData.getReputation(player.getUUID());
-
-        if (reputation >= -299)
-            return;
-
         List<Villager> nearbyVillagers = level.getEntitiesOfClass(Villager.class,
                 player.getBoundingBox().inflate(10.0D));
 
         for (Villager villager : nearbyVillagers) {
             Optional<BlockPos> nearestVillage = VillageDetector.findNearestVillage(level, villager.blockPosition(),
-                    200);
+                    64);
             if (nearestVillage.isEmpty())
+                continue;
+
+            VillageReputationData reputationData = VillageReputationData.get(level.getServer().overworld());
+            int reputation = reputationData.getReputation(player.getUUID(), nearestVillage.get());
+
+            if (reputation >= -299)
                 continue;
 
             if (villager.getNavigation() != null && villager.isAlive()) {
@@ -2494,9 +2494,13 @@ public class VillagerEventHandler {
                             villager.getX() + dx,
                             villager.getY(),
                             villager.getZ() + dz,
-                            1.2); // Velocidad de huida
+                            1.2);
 
                     if (level.getRandom().nextInt(50) == 0) {
+                        VillagerPersonalityData pData = VillagerPersonalityData.get(level);
+                        VillagerPersonality personality = pData.getPersonality(villager.getUUID());
+                        String vName = personality != null ? personality.getCustomName() : villager.getName().getString();
+
                         String[] fearKeys;
                         if (reputation <= -800) {
                             fearKeys = new String[]{
@@ -2520,8 +2524,8 @@ public class VillagerEventHandler {
                                 "villagediplomacy.react.flee.low.2"
                             };
                         }
-                        player.sendSystemMessage(Component.translatable(
-                                fearKeys[level.getRandom().nextInt(fearKeys.length)]));
+                        String key = fearKeys[level.getRandom().nextInt(fearKeys.length)];
+                        player.sendSystemMessage(Component.translatable(key, vName));
                     }
                 }
             }

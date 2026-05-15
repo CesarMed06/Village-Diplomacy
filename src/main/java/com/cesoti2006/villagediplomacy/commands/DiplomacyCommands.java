@@ -28,10 +28,7 @@ public class DiplomacyCommands {
                         .then(Commands.argument("villageName", StringArgumentType.greedyString())
                                 .executes(context -> nameCurrentVillage(context, StringArgumentType.getString(context, "villageName")))))
                 .then(Commands.literal("info")
-                        .executes(DiplomacyCommands::showInfo)));
-
-        dispatcher.register(Commands.literal("diplomacy")
-                .requires(source -> source.hasPermission(2))
+                        .executes(DiplomacyCommands::showInfo))
                 .then(Commands.literal("reputation")
                         .then(Commands.literal("get")
                                 .then(Commands.argument("player", EntityArgument.player())

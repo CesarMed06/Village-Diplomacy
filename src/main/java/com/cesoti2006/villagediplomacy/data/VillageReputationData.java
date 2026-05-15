@@ -71,8 +71,8 @@ public class VillageReputationData extends SavedData {
     }
 
     private String getVillageKey(BlockPos villagePos) {
-        int snapX = (villagePos.getX() >> 6) << 6;
-        int snapZ = (villagePos.getZ() >> 6) << 6;
+        int snapX = (villagePos.getX() >> 7) << 7;
+        int snapZ = (villagePos.getZ() >> 7) << 7;
         return snapX + "_" + snapZ;
     }
 

@@ -441,7 +441,7 @@ public class VillagerEventHandler {
                         ModLang.sendDialogRandom(player, level.getRandom(), villager,
                                 "villagediplomacy.react.animalattack." + attackKind.key() + suffix, lineCount);
                         player.sendSystemMessage(Component.translatable("villagediplomacy.sys.animal_attack_warn",
-                                Component.translatable(event.getEntity().getType().getDescriptionId())));
+                                Component.translatable("entity.minecraft." + animalType)));
                         ModLang.sendReputationSummary(player, -5, newRep);
 
                         tradeCooldowns.put(playerId, currentTime);
@@ -503,7 +503,7 @@ public class VillagerEventHandler {
                     "villagediplomacy.react.hostilekill." + kind.key() + "." + ModLang.repTier(newRep), kind.lineCount());
         }
         player.sendSystemMessage(Component.translatable("villagediplomacy.sys.hostile_killed",
-                Component.translatable(killed.getType().getDescriptionId()),
+                Component.translatable(killed.getType().getDescriptionId()).getString(),
                 kind.repBonus(), newRep, ModLang.repStatus(newRep)));
 
         VillageRelationshipData relationData = VillageRelationshipData.get(level);
@@ -579,8 +579,13 @@ public class VillagerEventHandler {
                     "villagediplomacy.react.animaldeath." + react.key + suffix, lineCount);
         }
 
+        String killedAnimalName = killed instanceof Cow ? "Vaca"
+                : killed instanceof Sheep ? "Oveja"
+                : killed instanceof Pig ? "Cerdo"
+                : killed instanceof Chicken ? "Pollo"
+                : killed.getType().getDescriptionId();
         player.sendSystemMessage(Component.translatable("villagediplomacy.sys.animal_killed",
-                Component.translatable(killed.getType().getDescriptionId()),
+                killedAnimalName,
                 newRep,
                 ModLang.repStatus(newRep)));
 
@@ -2470,15 +2475,15 @@ public class VillagerEventHandler {
                 player.getBoundingBox().inflate(10.0D));
 
         for (Villager villager : nearbyVillagers) {
-            Optional<BlockPos> nearestVillage = VillageDetector.findNearestVillage(level, villager.blockPosition(),
-                    64);
+            Optional<BlockPos> nearestVillage = VillageDetector.findNearestVillage(level, player.blockPosition(),
+                    128);
             if (nearestVillage.isEmpty())
                 continue;
 
-            VillageReputationData reputationData = VillageReputationData.get(level.getServer().overworld());
+            VillageReputationData reputationData = VillageReputationData.get(level);
             int reputation = reputationData.getReputation(player.getUUID(), nearestVillage.get());
 
-            if (reputation >= -299)
+            if (reputation >= -499)
                 continue;
 
             if (villager.getNavigation() != null && villager.isAlive()) {

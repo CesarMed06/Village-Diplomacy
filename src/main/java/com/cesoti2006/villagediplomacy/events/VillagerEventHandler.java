@@ -668,21 +668,26 @@ public class VillagerEventHandler {
             int trades = pendingTrades.getOrDefault(playerId, 0);
             if (trades > 0) {
                 VillageReputationData data = VillageReputationData.get(level);
-                int oldRep = data.getReputation(playerId);
-
-                data.addReputation(playerId, trades * 5);
-                int newRep = data.getReputation(playerId);
-                checkAndNotifyReputationChange(player, oldRep, newRep);
+                Optional<BlockPos> nearestVillage = VillageDetector.findNearestVillage(level, player.blockPosition(), 200);
                 
-                // Feedback visual positivo (partículas + sonido)
-                spawnPositiveFeedback(level, player);
+                if (nearestVillage.isPresent()) {
+                    BlockPos villagePos = nearestVillage.get();
+                    int oldRep = data.getReputation(playerId, villagePos);
 
-                int ti = level.getRandom().nextInt(6);
-                player.sendSystemMessage(Component.translatable("villagediplomacy.react.trade." + ti, trades));
-                ModLang.sendReputationSummary(player, trades * 5, newRep);
+                    data.addReputation(playerId, villagePos, trades * 5);
+                    int newRep = data.getReputation(playerId, villagePos);
+                    checkAndNotifyReputationChange(player, oldRep, newRep);
+                
+                    // Feedback visual positivo (partículas + sonido)
+                    spawnPositiveFeedback(level, player);
 
-                pendingTrades.remove(playerId);
-                tradeWindowStart.remove(playerId);
+                    int ti = level.getRandom().nextInt(6);
+                    player.sendSystemMessage(Component.translatable("villagediplomacy.react.trade." + ti, trades));
+                    ModLang.sendReputationSummary(player, trades * 5, newRep);
+
+                    pendingTrades.remove(playerId);
+                    tradeWindowStart.remove(playerId);
+                }
             }
         }
 
@@ -1273,12 +1278,12 @@ public class VillagerEventHandler {
             VillageReputationData data = VillageReputationData.get(level);
             int reputation = data.getReputation(player.getUUID(), nearestVillage.get());
             
-            if (reputation < -100) {
+            if (reputation < -400) {
                 // Cancelar el intento de dormir
                 event.setResult(net.minecraft.world.entity.player.Player.BedSleepingProblem.OTHER_PROBLEM);
                 
                 Component bedDenied;
-                if (reputation < -500) {
+                if (reputation < -600) {
                     bedDenied = Component.translatable(
                         "villagediplomacy.react.bed.denied.criminal." + level.getRandom().nextInt(4));
                 } else {
@@ -1371,7 +1376,8 @@ public class VillagerEventHandler {
             if (nearestVillage.isPresent()) {
                 VillageReputationData data = VillageReputationData.get(level);
                 UUID playerId = player.getUUID();
-                int reputation = data.getReputation(playerId);
+                BlockPos villagePos = nearestVillage.get();
+                int reputation = data.getReputation(playerId, villagePos);
                 
                 if (reputation < -200) {
                     event.setCanceled(true);
@@ -1406,8 +1412,8 @@ public class VillagerEventHandler {
                         int idx = level.getRandom().nextInt(3);
                         player.sendSystemMessage(Component.translatable("villagediplomacy.react.bell.ring.ally." + idx));
                     } else if (reputation < 100) {
-                        data.addReputation(playerId, -15);
-                        int newRep = data.getReputation(playerId);
+                        data.addReputation(playerId, villagePos, -15);
+                        int newRep = data.getReputation(playerId, villagePos);
                         int idx = level.getRandom().nextInt(7);
                         player.sendSystemMessage(Component.translatable("villagediplomacy.react.bell.spam." + idx));
                         player.sendSystemMessage(Component.translatable("villagediplomacy.sys.bell_ring"));
@@ -1539,7 +1545,8 @@ public class VillagerEventHandler {
             if (nearestVillage.isPresent()) {
                 VillageReputationData data = VillageReputationData.get(level);
                 UUID playerId = player.getUUID();
-                int reputation = data.getReputation(playerId);
+                BlockPos villagePos = nearestVillage.get();
+                int reputation = data.getReputation(playerId, villagePos);
                 
                 // Penalización por usar bloques de trabajo de la aldea
                 List<Villager> nearbyVillagers = level.getEntitiesOfClass(
@@ -1556,8 +1563,8 @@ public class VillagerEventHandler {
                 }
 
                 if (caughtByVillager) {
-                    data.addReputation(playerId, -8);
-                    int newRep = data.getReputation(playerId);
+                    data.addReputation(playerId, villagePos, -8);
+                    int newRep = data.getReputation(playerId, villagePos);
 
                     String blockName = "workstation";
                     if (clickedBlock instanceof FurnaceBlock || clickedBlock instanceof BlastFurnaceBlock || clickedBlock instanceof SmokerBlock) {
@@ -2047,10 +2054,11 @@ public class VillagerEventHandler {
                                                                     : reputation >= -500 ? "§c×" : "§4☠";
 
             player.sendSystemMessage(Component.translatable("villagediplomacy.enter.bar"));
-            player.sendSystemMessage(Component.translatable(
-                    "villagediplomacy.enter.line1",
-                    Component.literal(icon),
-                    VillageDisplayName.asComponent(villageNameStored)));
+            
+            MutableComponent line1 = Component.literal("  " + icon + " §6Entrando a ")
+                    .append(VillageDisplayName.asComponent(villageNameStored));
+            player.sendSystemMessage(line1);
+            
             player.sendSystemMessage(Component.translatable(
                     "villagediplomacy.enter.line2",
                     reputation,
@@ -2541,10 +2549,17 @@ public class VillagerEventHandler {
         // No atacar en creative o spectator
         if (player.isCreative() || player.isSpectator())
             return;
-            
-        VillageReputationData reputationData = VillageReputationData.get(level.getServer().overworld());
-        int reputation = reputationData.getReputation(player.getUUID());
+        
+        // Encontrar la aldea más cercana donde está el jugador
+        Optional<BlockPos> nearestVillage = VillageDetector.findNearestVillage(level, player.blockPosition(), 200);
+        if (nearestVillage.isEmpty())
+            return;
+        
+        VillageReputationData reputationData = VillageReputationData.get(level);
+        // FIX CRÍTICO: Usar reputación DE ESTA ALDEA, no el promedio global
+        int reputation = reputationData.getReputation(player.getUUID(), nearestVillage.get());
 
+        // Solo atacar si reputación es muy baja en ESTA aldea específica
         if (reputation >= -500)
             return;
 

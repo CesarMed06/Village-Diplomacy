@@ -51,9 +51,9 @@ public class VillagerBehaviorHandler {
                 if (nearestVillage.isEmpty()) return false;
 
                 VillageReputationData data = VillageReputationData.get(level);
-                int reputation = data.getReputation(player.getUUID());
+                int reputation = data.getReputation(player.getUUID(), nearestVillage.get());
 
-                return reputation <= -500;
+                return reputation < -400;
             }
         ));
 
@@ -77,8 +77,10 @@ public class VillagerBehaviorHandler {
 
         applyVillageEffects(player, level, reputation);
 
-        if (reputation <= -500) {
+        if (reputation < -400) {
             makeGolemsHostile(player, level);
+        } else {
+            removeGolemTargets(player, level);
         }
     }
 
@@ -111,6 +113,18 @@ public class VillagerBehaviorHandler {
         for (IronGolem golem : nearbyGolems) {
             if (golem.getTarget() != player) {
                 golem.setTarget(player);
+            }
+        }
+    }
+
+    private void removeGolemTargets(ServerPlayer player, ServerLevel level) {
+        List<IronGolem> nearbyGolems = level.getEntitiesOfClass(IronGolem.class,
+                player.getBoundingBox().inflate(24.0D),
+                golem -> !golem.isPlayerCreated());
+
+        for (IronGolem golem : nearbyGolems) {
+            if (golem.getTarget() == player) {
+                golem.setTarget(null);
             }
         }
     }

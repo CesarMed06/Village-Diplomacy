@@ -173,7 +173,7 @@ public class PersonalityBehaviorHandler {
 
         for (net.minecraft.world.entity.player.Player player : nearbyPlayers) {
             if (player instanceof ServerPlayer sp) {
-                ModLang.sendRandomWithArgs(sp, level.getRandom(), prefix, count, name);
+                ModLang.sendDialogNamedRandom(sp, level.getRandom(), name, prefix, count);
             }
         }
         

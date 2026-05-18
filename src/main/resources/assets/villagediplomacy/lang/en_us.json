@@ -1712,5 +1712,8 @@
   "villagediplomacy.react.hostilekill.other.warm.1": "§8[§fVillager§8] §7I have never seen such a creature. But you handled it like nothing.",
   "villagediplomacy.react.hostilekill.other.warm.2": "§8[§fVillager§8] §7Monsters fear your name in this village. I am sure of it.",
   "villagediplomacy.react.hostilekill.other.warm.3": "§8[§fVillager§8] §7You are the greatest protector this village has ever known.",
-  "villagediplomacy.sys.hostile_killed": "§8[§aVillage Diplomacy§8] §aYou defeated a %s near the village. Reputation: §a+%d §7→ %d (%s)"
+  "villagediplomacy.sys.hostile_killed": "§8[§aVillage Diplomacy§8] §aYou defeated a %s near the village. Reputation: §a+%d §7→ %d (%s)",
+  "villagediplomacy.restrict.bed.villager.0": "§8[§fVillager§8] §7That is MY bed! Get away!",
+  "villagediplomacy.restrict.bed.villager.1": "§8[§fVillager§8] §7Beds are not for people like you!",
+  "villagediplomacy.restrict.bed.villager.2": "§8[§fVillager§8] §7Do not dare touch our beds!"
 }

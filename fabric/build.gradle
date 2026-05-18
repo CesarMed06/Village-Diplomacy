@@ -1,0 +1,67 @@
+plugins {
+    id 'fabric-loom' version '1.4.+'
+    id 'maven-publish'
+}
+
+sourceCompatibility = JavaVersion.VERSION_17
+targetCompatibility = JavaVersion.VERSION_17
+
+archivesBaseName = "villagediplomacy-fabric"
+version = mod_version
+group = mod_group_id
+
+repositories {
+    maven { url 'https://maven.fabricmc.net/' }
+    maven { url 'https://maven.minecraftforge.net/' }
+    mavenCentral()
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${minecraft_version}"
+    mappings loom.officialMojangMappings()
+
+    modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:0.91.1+1.20.1"
+}
+
+processResources {
+    inputs.property "version", project.version
+    inputs.property "minecraft_version", minecraft_version
+    inputs.property "mod_id", mod_id
+    inputs.property "mod_name", mod_name
+    inputs.property "mod_authors", mod_authors
+    inputs.property "mod_description", mod_description
+
+    filesMatching("fabric.mod.json") {
+        expand inputs.properties
+    }
+
+    filesMatching("assets/villagediplomacy/lang/*.json") {
+        // Don't expand language files
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = "UTF-8"
+}
+
+jar {
+    from("LICENSE") {
+        rename { "${it}_${archivesBaseName}" }
+    }
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+        }
+    }
+
+    repositories {
+        maven {
+            name = "fabricmc"
+            url = "file://${project.projectDir}/mcmodsrepo"
+        }
+    }
+}

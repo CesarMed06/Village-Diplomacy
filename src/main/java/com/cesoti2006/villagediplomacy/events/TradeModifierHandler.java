@@ -3,6 +3,7 @@ package com.cesoti2006.villagediplomacy.events;
 import com.cesoti2006.villagediplomacy.data.VillageDetector;
 import com.cesoti2006.villagediplomacy.data.VillageReputationData;
 import com.cesoti2006.villagediplomacy.personality.PersonalityTrait;
+import com.cesoti2006.villagediplomacy.reputation.ReputationTiersHandler;
 import com.cesoti2006.villagediplomacy.util.ModLang;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
@@ -29,7 +30,7 @@ import java.util.UUID;
 public class TradeModifierHandler {
 
     private final Map<UUID, Long> tradeMessageCooldown = new HashMap<>();
-    private static final long TRADE_MESSAGE_COOLDOWN_MS = 30000;
+    private static final long TRADE_MESSAGE_COOLDOWN_MS = 10000;
 
     @SubscribeEvent
     public void onVillagerInteract(PlayerInteractEvent.EntityInteract event) {
@@ -43,10 +44,6 @@ public class TradeModifierHandler {
             return;
         }
         if (event.getHand() != net.minecraft.world.InteractionHand.MAIN_HAND) {
-            return;
-        }
-
-        if (villager.isBaby()) {
             return;
         }
 
@@ -67,7 +64,8 @@ public class TradeModifierHandler {
         VillageReputationData data = VillageReputationData.get(level);
         int reputation = data.getReputation(player.getUUID(), villagePos);
 
-        if (reputation < -500) {
+        // Verificar si el tier bloquea trades
+        if (!ReputationTiersHandler.canTrade(reputation)) {
             event.setCanceled(true);
 
             if (reputation < -800) {
@@ -79,6 +77,7 @@ public class TradeModifierHandler {
             player.sendSystemMessage(Component.translatable(
                     reputation < -800 ? "villagediplomacy.trade.refuse_wanted" : "villagediplomacy.trade.refuse_enemy"));
         } else {
+            float multiplier = ReputationTiersHandler.getTradeMultiplier(reputation);
             int priceModifier = calculatePriceModifier(reputation);
 
             if (priceModifier != 0) {
@@ -90,13 +89,15 @@ public class TradeModifierHandler {
                 if (!tradeMessageCooldown.containsKey(playerId)
                         || currentTime - tradeMessageCooldown.get(playerId) > TRADE_MESSAGE_COOLDOWN_MS) {
 
-                    if (priceModifier < 0) {
+                    if (multiplier < 1.0f) {
+                        int discountPercent = Math.round((1.0f - multiplier) * 100);
                         player.sendSystemMessage(Component.translatable("villagediplomacy.trade.discount",
-                                Math.abs(priceModifier * 10)));
+                                discountPercent));
                         tradeMessageCooldown.put(playerId, currentTime);
-                    } else if (priceModifier > 0) {
+                    } else if (multiplier > 1.0f) {
+                        int surchargePercent = Math.round((multiplier - 1.0f) * 100);
                         player.sendSystemMessage(Component.translatable("villagediplomacy.trade.surcharge",
-                                priceModifier * 10));
+                                surchargePercent));
                         tradeMessageCooldown.put(playerId, currentTime);
                     }
                 }
@@ -105,31 +106,29 @@ public class TradeModifierHandler {
     }
 
     private int calculatePriceModifier(int reputation) {
-        if (reputation >= 1000) {
-            return -5;
+        float multiplier = ReputationTiersHandler.getTradeMultiplier(reputation);
+        // Convertir multiplicador a cambio de precio para items del trader
+        // 0.75f = 25% descuento = -3 items
+        // 0.80f = 20% descuento = -2 items
+        // 0.85f = 15% descuento = -2 items (redondeado)
+        // 0.90f = 10% descuento = -1 items
+        // 0.95f = 5% descuento = -1 items (redondeado)
+        // 1.0f = neutral = 0
+        // 1.05f = 5% recargo = +1 items
+        // 1.10f = 10% recargo = +1 items (redondeado)
+        // 1.15f = 15% recargo = +2 items
+        // 1.20f = 20% recargo = +2 items
+        // 1.25f = 25% recargo = +3 items
+        // 1.30f = 30% recargo = +3 items
+        
+        if (multiplier < 1.0f) {
+            // Descuento: round down (-1, -2, -3)
+            return Math.round((multiplier - 1.0f) * 5);
+        } else if (multiplier > 1.0f) {
+            // Recargo: round up (+1, +2, +3)
+            return Math.round((multiplier - 1.0f) * 5);
         }
-        if (reputation >= 800) {
-            return -4;
-        }
-        if (reputation >= 500) {
-            return -3;
-        }
-        if (reputation >= 300) {
-            return -2;
-        }
-        if (reputation >= 100) {
-            return -1;
-        }
-        if (reputation >= -99) {
-            return 0;
-        }
-        if (reputation >= -299) {
-            return 1;
-        }
-        if (reputation >= -500) {
-            return 3;
-        }
-        return 5;
+        return 0;
     }
 
     private void modifyVillagerOffers(Villager villager, int priceModifier) {

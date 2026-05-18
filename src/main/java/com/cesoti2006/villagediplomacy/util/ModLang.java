@@ -58,10 +58,14 @@ public final class ModLang {
     }
 
     public static MutableComponent namedPrefix(String name) {
-        return Component.literal("[")
-            .withStyle(COLOR_BRACKET)
+        return Component.literal("[").withStyle(COLOR_BRACKET)
             .append(Component.literal(name).withStyle(COLOR_VILLAGER_NAME))
             .append(Component.literal("] ").withStyle(COLOR_BRACKET));
+    }
+
+    public static MutableComponent namedPrefixClean(String name) {
+        return Component.literal(name).withStyle(COLOR_VILLAGER_NAME)
+            .append(Component.literal(" "));
     }
 
     // ── Envío básico ──────────────────────────────────────────────────────────
@@ -157,12 +161,13 @@ public final class ModLang {
         if (reputation >= 300)  return "villagediplomacy.rep.trusted_friend";
         if (reputation >= 100)  return "villagediplomacy.rep.friendly";
         if (reputation >= 0)    return "villagediplomacy.rep.neutral";
-        if (reputation >= -99)  return "villagediplomacy.rep.suspicious";
-        if (reputation >= -199) return "villagediplomacy.rep.disliked";
-        if (reputation >= -299) return "villagediplomacy.rep.unwelcome";
-        if (reputation >= -499) return "villagediplomacy.rep.unfriendly";
-        if (reputation >= -699) return "villagediplomacy.rep.hostile";
-        if (reputation >= -899) return "villagediplomacy.rep.enemy";
+        if (reputation > -100)  return "villagediplomacy.rep.neutral";
+        if (reputation >= -199) return "villagediplomacy.rep.suspicious";
+        if (reputation >= -299) return "villagediplomacy.rep.disliked";
+        if (reputation >= -499) return "villagediplomacy.rep.unwelcome";
+        if (reputation >= -699) return "villagediplomacy.rep.unfriendly";
+        if (reputation >= -899) return "villagediplomacy.rep.hostile";
+        if (reputation >= -999) return "villagediplomacy.rep.enemy";
         return "villagediplomacy.rep.wanted_criminal";
     }
 

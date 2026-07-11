@@ -6,16 +6,14 @@ import net.minecraft.network.chat.MutableComponent;
 
 import java.util.Random;
 
-/**
- * Personalidad de un Iron Golem
- */
+
 public class GolemPersonality {
     private final String name;
     private final GolemTrait temperament;
     private final GolemTrait loyalty;
-    /** Texto de historia guardado en mundos antiguos; vacío si se usa plantilla i18n. */
+    
     private final String legacyStory;
-    /** 0–6 = clave villagediplomacy.golem.story.{i}; -1 = usar legacyStory. */
+    
     private final int storyTemplateIndex;
 
     public enum GolemTrait {
@@ -50,9 +48,7 @@ public class GolemPersonality {
         this.storyTemplateIndex = storyTemplateIndex;
     }
 
-    /**
-     * Generar personalidad aleatoria para un golem
-     */
+    
     public static GolemPersonality generateRandom(String villageName, Random random) {
         String name = generateGolemName(random);
 
@@ -127,9 +123,7 @@ public class GolemPersonality {
         return Component.translatable(k, name);
     }
 
-    /**
-     * Historia de creación (plantilla i18n con %s = id de aldea, o texto legacy).
-     */
+    
     public Component getCreationStoryComponent(String villageRef) {
         if (storyTemplateIndex >= 0 && storyTemplateIndex < 7) {
             return Component.translatable("villagediplomacy.golem.story." + storyTemplateIndex, villageRef);
@@ -143,17 +137,13 @@ public class GolemPersonality {
         return Component.translatable("villagediplomacy.golem.title", nameC, traitC);
     }
 
-    /**
-     * @deprecated Usar {@link #getFullTitleComponent()} para nombres localizados en la entidad.
-     */
+    
     @Deprecated
     public String getFullTitle() {
         return getFullTitleComponent().getString();
     }
 
-    /**
-     * Respuesta al ser golpeado por jugador amigable (reservado; claves i18n listas si se conecta al sistema de golpes).
-     */
+    
     public Component getFriendlyHitResponseComponent(int strikes) {
         if (strikes == 1) {
             String k = switch (temperament) {
@@ -202,9 +192,7 @@ public class GolemPersonality {
         return legacyStory;
     }
 
-    /**
-     * Solo para compatibilidad con datos antiguos guardados en "Story".
-     */
+    
     @Deprecated
     public String getCreationStory() {
         return legacyStory;

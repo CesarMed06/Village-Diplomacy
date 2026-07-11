@@ -19,6 +19,10 @@ import net.minecraft.server.level.ServerPlayer;
 
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
+
+import com.cesoti2006.villagediplomacy.data.PlayerClaimedVillageData;
+import com.cesoti2006.villagediplomacy.data.PlayerClaimedVillageData.ClaimedVillage;
 
 public class DiplomacyCommands {
 
@@ -40,9 +44,14 @@ public class DiplomacyCommands {
                                                         IntegerArgumentType.getInteger(context, "amount"))))))
                         .then(Commands.literal("add")
                                 .then(Commands.argument("player", EntityArgument.player())
-                                        .then(Commands.argument("amount", IntegerArgumentType.integer(-500, 500))
+                                        .then(Commands.argument("amount", IntegerArgumentType.integer(-1000, 1000))
                                                 .executes(context -> addReputation(context, EntityArgument.getPlayer(context, "player"),
                                                         IntegerArgumentType.getInteger(context, "amount")))))))
+                .then(Commands.literal("getrep")
+                        .executes(context -> {
+                            ServerPlayer player = context.getSource().getPlayerOrException();
+                            return getReputation(context, player);
+                        }))
                 .then(Commands.literal("villages")
                         .then(Commands.literal("list")
                                 .executes(DiplomacyCommands::listVillages))
@@ -63,6 +72,11 @@ public class DiplomacyCommands {
                                                 .executes(context -> renameVillage(context,
                                                         StringArgumentType.getString(context, "villageId"),
                                                         StringArgumentType.getString(context, "newName")))))))
+                .then(Commands.literal("claim")
+                        .then(Commands.argument("name", StringArgumentType.greedyString())
+                                .executes(context -> claimVillage(context, StringArgumentType.getString(context, "name")))))
+                .then(Commands.literal("unclaim")
+                        .executes(DiplomacyCommands::unclaimVillage))
                 .then(Commands.literal("test")
                         .then(Commands.literal("caravan")
                                 .executes(DiplomacyCommands::testCaravan))
@@ -308,6 +322,93 @@ public class DiplomacyCommands {
                 VillageDisplayName.asComponent(newName)));
         player.sendSystemMessage(Component.translatable("villagediplomacy.enter.bar"));
 
+        return 1;
+    }
+
+    private static int claimVillage(CommandContext<CommandSourceStack> context, String name) {
+        if (!(context.getSource().getEntity() instanceof ServerPlayer player)) {
+            context.getSource().sendFailure(Component.translatable("villagediplomacy.cmd.players_only"));
+            return 0;
+        }
+
+        ServerLevel level = player.serverLevel();
+        BlockPos playerPos = player.blockPosition();
+
+        // Check not too close to an existing vanilla village
+        Optional<BlockPos> nearVanilla = VillageDetector.findNearestVillage(level, playerPos, 
+            com.cesoti2006.villagediplomacy.config.VillageDiplomacyConfig.INSTANCE.customVillageRadius.get() + 16);
+        if (nearVanilla.isPresent()) {
+            player.sendSystemMessage(Component.translatable("villagediplomacy.cmd.claim_too_close"));
+            return 0;
+        }
+
+        PlayerClaimedVillageData data = PlayerClaimedVillageData.get(level);
+
+        // Check not too close to other custom villages
+        int minDist = com.cesoti2006.villagediplomacy.config.VillageDiplomacyConfig.INSTANCE.customVillageRadius.get() * 2;
+        if (data.isTooCloseToAny(playerPos, minDist)) {
+            player.sendSystemMessage(Component.translatable("villagediplomacy.cmd.claim_overlap"));
+            return 0;
+        }
+
+        int radius = com.cesoti2006.villagediplomacy.config.VillageDiplomacyConfig.INSTANCE.customVillageRadius.get();
+        UUID owner = player.getUUID();
+        boolean success = data.addVillage(playerPos, name, owner, radius);
+
+        if (!success) {
+            player.sendSystemMessage(Component.translatable("villagediplomacy.cmd.claim_exists"));
+            return 0;
+        }
+
+        // Register the village in the relationship/reputation system so its name appears in entry/exit messages
+        VillageRelationshipData relationData = VillageRelationshipData.get(level);
+        relationData.registerVillage(playerPos, level);
+        String relationId = relationData.getVillageId(playerPos);
+        relationData.setVillageName(relationId, name);
+
+        // Initialize neutral reputation for the owner
+        VillageReputationData repData = VillageReputationData.get(level);
+        repData.setReputation(player.getUUID(), playerPos, 0);
+
+        player.sendSystemMessage(Component.translatable("villagediplomacy.enter.bar"));
+        player.sendSystemMessage(Component.translatable("villagediplomacy.cmd.claim_done", name,
+                playerPos.getX(), playerPos.getY(), playerPos.getZ(), radius));
+        player.sendSystemMessage(Component.translatable("villagediplomacy.enter.bar"));
+        return 1;
+    }
+
+    private static int unclaimVillage(CommandContext<CommandSourceStack> context) {
+        if (!(context.getSource().getEntity() instanceof ServerPlayer player)) {
+            context.getSource().sendFailure(Component.translatable("villagediplomacy.cmd.players_only"));
+            return 0;
+        }
+
+        ServerLevel level = player.serverLevel();
+        BlockPos playerPos = player.blockPosition();
+        PlayerClaimedVillageData data = PlayerClaimedVillageData.get(level);
+
+        // First try exact position
+        boolean removed = data.removeVillage(playerPos, player.getUUID());
+        
+        if (!removed) {
+            // Try nearest custom village within radius
+            int radius = com.cesoti2006.villagediplomacy.config.VillageDiplomacyConfig.INSTANCE.customVillageRadius.get();
+            Optional<BlockPos> nearestCustom = data.getNearestVillage(playerPos, radius);
+            if (nearestCustom.isPresent()) {
+                ClaimedVillage v = data.getVillageAt(nearestCustom.get());
+                if (v != null && v.owner.equals(player.getUUID())) {
+                    data.removeVillage(nearestCustom.get(), player.getUUID());
+                    removed = true;
+                }
+            }
+        }
+
+        if (!removed) {
+            player.sendSystemMessage(Component.translatable("villagediplomacy.cmd.unclaim_fail"));
+            return 0;
+        }
+
+        player.sendSystemMessage(Component.translatable("villagediplomacy.cmd.unclaim_done"));
         return 1;
     }
 

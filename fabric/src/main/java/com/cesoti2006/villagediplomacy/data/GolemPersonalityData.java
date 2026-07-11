@@ -9,9 +9,7 @@ import net.minecraft.world.level.saveddata.SavedData;
 
 import java.util.*;
 
-/**
- * Almacena las personalidades de todos los Iron Golems en el mundo
- */
+
 public class GolemPersonalityData extends SavedData {
     private static final String DATA_NAME = "villagediplomacy_golems";
     
@@ -81,9 +79,7 @@ public class GolemPersonalityData extends SavedData {
         return tag;
     }
     
-    /**
-     * Obtener o crear personalidad para un golem
-     */
+    
     public GolemPersonality getOrCreatePersonality(UUID golemId, String villageName, Random random) {
         if (!golemPersonalities.containsKey(golemId)) {
             GolemPersonality personality = GolemPersonality.generateRandom(villageName, random);
@@ -93,16 +89,12 @@ public class GolemPersonalityData extends SavedData {
         return golemPersonalities.get(golemId);
     }
     
-    /**
-     * Obtener personalidad existente
-     */
+    
     public GolemPersonality getPersonality(UUID golemId) {
         return golemPersonalities.get(golemId);
     }
     
-    /**
-     * Verificar cooldown de interacción
-     */
+    
     public boolean canInteract(UUID golemId, long cooldownMs) {
         long currentTime = System.currentTimeMillis();
         Long lastTime = lastInteraction.get(golemId);

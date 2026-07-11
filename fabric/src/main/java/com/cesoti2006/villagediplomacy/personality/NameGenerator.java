@@ -4,17 +4,15 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
-/**
- * Name generator based on biome
- */
+
 public class NameGenerator {
     
-    // NAMES BY BIOME
+    
     private static final Map<String, String[]> MALE_NAMES = new HashMap<>();
     private static final Map<String, String[]> FEMALE_NAMES = new HashMap<>();
     
     static {
-        // PLAINS (English names) - 40 male, 40 female
+        
         MALE_NAMES.put("plains", new String[]{
             "John", "William", "James", "Robert", "Michael", "David",
             "Richard", "Joseph", "Thomas", "Charles", "Daniel", "Matthew",
@@ -34,7 +32,7 @@ public class NameGenerator {
             "Rachel", "Ruth", "Susan", "Violet"
         });
         
-        // DESERT (Middle Eastern names) - 40 male, 40 female
+        
         MALE_NAMES.put("desert", new String[]{
             "Rashid", "Omar", "Khalil", "Hassan", "Tariq", "Malik",
             "Samir", "Rahim", "Faisal", "Aziz", "Karim", "Jamal",
@@ -54,7 +52,7 @@ public class NameGenerator {
             "Khadija", "Malika", "Najma", "Safiya"
         });
         
-        // TAIGA/SNOW (Nordic names) - 40 male, 40 female
+        
         MALE_NAMES.put("taiga", new String[]{
             "Bjorn", "Erik", "Olaf", "Sven", "Thor", "Ragnar",
             "Leif", "Harald", "Magnus", "Ivar", "Ulf", "Gunnar",
@@ -74,7 +72,7 @@ public class NameGenerator {
             "Hedda", "Idun", "Kaia", "Saga"
         });
         
-        // SAVANNA (African names) - 40 male, 40 female
+        
         MALE_NAMES.put("savanna", new String[]{
             "Kofi", "Jabari", "Kwame", "Tau", "Amari", "Zuberi",
             "Sekou", "Juma", "Bakari", "Kito", "Ade", "Nuru",
@@ -94,7 +92,7 @@ public class NameGenerator {
             "Chipo", "Dalila", "Femi", "Habiba"
         });
         
-        // JUNGLE (Tropical names) - 40 male, 40 female
+        
         MALE_NAMES.put("jungle", new String[]{
             "Mateo", "Diego", "Santiago", "Alejandro", "Javier", "Marco",
             "Paulo", "Leonardo", "Ricardo", "Rodrigo", "Emilio", "Dante",
@@ -114,7 +112,7 @@ public class NameGenerator {
             "Bianca", "Catalina", "Diana", "Emilia"
         });
         
-        // SWAMP (Slavic names) - 40 male, 40 female
+        
         MALE_NAMES.put("swamp", new String[]{
             "Igor", "Dimitri", "Nikolai", "Boris", "Yuri", "Viktor",
             "Alexei", "Sergei", "Pavel", "Vladimir", "Ivan", "Maxim",
@@ -135,24 +133,20 @@ public class NameGenerator {
         });
     }
     
-    /**
-     * Genera un nombre apropiado para el bioma
-     */
+    
     public static String generateName(String biomeType, boolean isMale, Random random) {
-        // Normalizar tipo de bioma
+        
         String normalizedBiome = normalizeBiome(biomeType);
         
-        // Seleccionar lista de nombres
+        
         Map<String, String[]> nameList = isMale ? MALE_NAMES : FEMALE_NAMES;
         String[] names = nameList.getOrDefault(normalizedBiome, nameList.get("plains"));
         
-        // Retornar nombre aleatorio
+        
         return names[random.nextInt(names.length)];
     }
     
-    /**
-     * Converts Minecraft biome ID to our type
-     */
+    
     private static String normalizeBiome(String biomeId) {
         String lower = biomeId.toLowerCase();
         
@@ -162,15 +156,13 @@ public class NameGenerator {
         if (lower.contains("jungle")) return "jungle";
         if (lower.contains("swamp") || lower.contains("bog")) return "swamp";
         
-        // Default: plains
+        
         return "plains";
     }
     
-    /**
-     * Generates a nickname based on profession and level
-     */
+    
     public static String generateNickname(String profession, int level, Random random) {
-        if (level < 4) return ""; // Only experts get nicknames
+        if (level < 4) return ""; 
         
         switch (profession.toLowerCase()) {
             case "librarian":

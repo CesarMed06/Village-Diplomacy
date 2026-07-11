@@ -1,27 +1,38 @@
-# eclipse
-bin
+# Eclipse
+bin/
 *.launch
 .settings
 .metadata
 .classpath
 .project
 
-# idea
-out
+# IntelliJ IDEA
+out/
 *.ipr
 *.iws
 *.iml
-.idea
+.idea/
 
-# gradle
-build
-.gradle
-!build/libs/*.jar
+# Gradle / Loom / Build outputs
+build/
+.gradle/
 
-# other
-eclipse
-run
+# Minecraft runtime
+run/
+logs/
+crash-reports/
 
-# Files from Forge MDK
-forge*changelog.txt
-fix_i18n*.py
+# IDE
+*.code-workspace
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Python scripts (not part of the mod)
+*.py
+
+# Misc
+*.log
+*.zip
+nul

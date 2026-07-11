@@ -3,6 +3,7 @@ package com.cesoti2006.villagediplomacy.data;
 import com.cesoti2006.villagediplomacy.util.VillageNameGenerator;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import javax.annotation.Nonnull;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerLevel;
@@ -22,7 +23,7 @@ public class VillageRelationshipData extends SavedData {
     public VillageRelationshipData() {
     }
 
-    public static VillageRelationshipData load(CompoundTag tag) {
+    public static VillageRelationshipData load(@Nonnull CompoundTag tag) {
         VillageRelationshipData data = new VillageRelationshipData();
 
         ListTag relationshipsList = tag.getList("Relationships", Tag.TAG_COMPOUND);
@@ -188,7 +189,7 @@ public class VillageRelationshipData extends SavedData {
             return translationKey;
         }
 
-        /** @deprecated Prefer {@link #getTranslationKey()} with {@code Component.translatable(...)} on the client. */
+        
         @Deprecated
         public String getDisplay() {
             return translationKey;

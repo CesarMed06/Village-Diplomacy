@@ -188,7 +188,7 @@ public class VillageRelationshipData extends SavedData {
             return translationKey;
         }
 
-        /** @deprecated Prefer {@link #getTranslationKey()} with {@code Component.translatable(...)} on the client. */
+        
         @Deprecated
         public String getDisplay() {
             return translationKey;

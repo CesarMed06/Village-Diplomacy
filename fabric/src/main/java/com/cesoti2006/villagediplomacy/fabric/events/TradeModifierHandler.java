@@ -1,0 +1,196 @@
+package com.cesoti2006.villagediplomacy.fabric.events;
+
+import com.cesoti2006.villagediplomacy.data.VillageDetector;
+import com.cesoti2006.villagediplomacy.data.VillageReputationData;
+import com.cesoti2006.villagediplomacy.data.VillagerPersonalityData;
+import com.cesoti2006.villagediplomacy.personality.PersonalityTrait;
+import com.cesoti2006.villagediplomacy.personality.VillagerPersonality;
+import com.cesoti2006.villagediplomacy.reputation.ReputationTiersHandler;
+import com.cesoti2006.villagediplomacy.util.ModLang;
+import net.minecraft.ChatFormatting;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.npc.Villager;
+import net.minecraft.world.entity.npc.VillagerProfession;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.trading.MerchantOffer;
+import net.fabricmc.fabric.api.event.player.UseEntityCallback;
+
+import java.util.*;
+
+public class TradeModifierHandler {
+
+    private final Map<UUID, Long> tradeMessageCooldown = new HashMap<>();
+    private static final long TRADE_MESSAGE_COOLDOWN_MS = 10000;
+
+    public void registerEvents() {
+        UseEntityCallback.EVENT.register((player, world, hand, entity, hitResult) -> {
+            if (!(entity instanceof Villager villager)) return net.minecraft.world.InteractionResult.PASS;
+            if (!(player instanceof ServerPlayer serverPlayer)) return net.minecraft.world.InteractionResult.PASS;
+            if (!(world instanceof ServerLevel level)) return net.minecraft.world.InteractionResult.PASS;
+            if (hand != InteractionHand.MAIN_HAND) return net.minecraft.world.InteractionResult.PASS;
+
+            
+            if (player.isShiftKeyDown()) {
+                showVillagerPersonality(villager, serverPlayer, level);
+                return net.minecraft.world.InteractionResult.SUCCESS;
+            }
+
+            BlockPos villagerPos = villager.blockPosition();
+            Optional<BlockPos> nearestVillage = VillageDetector.findNearestVillage(level, villagerPos, 200);
+            if (nearestVillage.isEmpty()) return net.minecraft.world.InteractionResult.PASS;
+
+            BlockPos villagePos = nearestVillage.get();
+            VillageReputationData data = VillageReputationData.get(level);
+            int reputation = data.getReputation(player.getUUID(), villagePos);
+
+            if (!ReputationTiersHandler.canTrade(reputation)) {
+                if (reputation < -800) {
+                    ModLang.sendRandom(serverPlayer, level.getRandom(), "villagediplomacy.trade.reject.criminal", 3);
+                } else {
+                    ModLang.sendRandom(serverPlayer, level.getRandom(), "villagediplomacy.trade.reject.enemy", 3);
+                }
+                serverPlayer.sendSystemMessage(Component.translatable(
+                        reputation < -800 ? "villagediplomacy.trade.refuse_wanted" : "villagediplomacy.trade.refuse_enemy"));
+                return net.minecraft.world.InteractionResult.FAIL;
+            }
+
+            float multiplier = ReputationTiersHandler.getTradeMultiplier(reputation);
+            int priceModifier = calculatePriceModifier(reputation);
+
+            if (priceModifier != 0) {
+                modifyVillagerOffers(villager, priceModifier);
+
+                UUID playerId = player.getUUID();
+                long currentTime = System.currentTimeMillis();
+
+                if (!tradeMessageCooldown.containsKey(playerId)
+                        || currentTime - tradeMessageCooldown.get(playerId) > TRADE_MESSAGE_COOLDOWN_MS) {
+
+                    if (multiplier < 1.0f) {
+                        int discountPercent = Math.round((1.0f - multiplier) * 100);
+                        serverPlayer.sendSystemMessage(Component.translatable("villagediplomacy.trade.discount",
+                                discountPercent));
+                        tradeMessageCooldown.put(playerId, currentTime);
+                    } else if (multiplier > 1.0f) {
+                        int surchargePercent = Math.round((multiplier - 1.0f) * 100);
+                        serverPlayer.sendSystemMessage(Component.translatable("villagediplomacy.trade.surcharge",
+                                surchargePercent));
+                        tradeMessageCooldown.put(playerId, currentTime);
+                    }
+                }
+            }
+
+            return net.minecraft.world.InteractionResult.PASS;
+        });
+    }
+
+    private int calculatePriceModifier(int reputation) {
+        float multiplier = ReputationTiersHandler.getTradeMultiplier(reputation);
+        if (multiplier < 1.0f) {
+            return Math.round((multiplier - 1.0f) * 5);
+        } else if (multiplier > 1.0f) {
+            return Math.round((multiplier - 1.0f) * 5);
+        }
+        return 0;
+    }
+
+    private void modifyVillagerOffers(Villager villager, int priceModifier) {
+        if (villager.getOffers().isEmpty()) {
+            return;
+        }
+        for (MerchantOffer offer : villager.getOffers()) {
+            ItemStack costA = offer.getBaseCostA();
+            int newCount = Math.max(1, costA.getCount() + priceModifier);
+            costA.setCount(newCount);
+        }
+    }
+
+    public static void showVillagerPersonality(Villager villager, ServerPlayer player, ServerLevel level) {
+        VillagerPersonalityData personalityData = VillagerPersonalityData.get(level);
+        VillagerPersonality personality = personalityData.getPersonality(villager.getUUID());
+
+        if (personality == null) {
+            player.sendSystemMessage(Component.translatable("villagediplomacy.trade.no_personality"));
+            return;
+        }
+
+        int profLevel = villager.getVillagerData().getLevel();
+        MutableComponent profLevelName = Component.translatable(switch (profLevel) {
+            case 1 -> "villagediplomacy.personality.level.novice";
+            case 2 -> "villagediplomacy.personality.level.apprentice";
+            case 3 -> "villagediplomacy.personality.level.journeyman";
+            case 4 -> "villagediplomacy.personality.level.expert";
+            case 5 -> "villagediplomacy.personality.level.master";
+            default -> "villagediplomacy.personality.level.unknown";
+        });
+
+        boolean hasJob = !villager.getVillagerData().getProfession().equals(VillagerProfession.NONE);
+
+        player.sendSystemMessage(Component.translatable("villagediplomacy.enter.bar"));
+        player.sendSystemMessage(Component.translatable("villagediplomacy.personality.title", personality.getCustomName()));
+
+        if (hasJob) {
+            VillagerProfession prof = villager.getVillagerData().getProfession();
+            ResourceLocation profKey = BuiltInRegistries.VILLAGER_PROFESSION.getKey(prof);
+            java.util.Map<String, String> profEs = java.util.Map.ofEntries(
+                java.util.Map.entry("farmer", "Granjero"),
+                java.util.Map.entry("librarian", "Bibliotecario"),
+                java.util.Map.entry("cleric", "Clérigo"),
+                java.util.Map.entry("armorer", "Armero"),
+                java.util.Map.entry("weaponsmith", "Herrero"),
+                java.util.Map.entry("toolsmith", "Forjador"),
+                java.util.Map.entry("butcher", "Carnicero"),
+                java.util.Map.entry("leatherworker", "Peletero"),
+                java.util.Map.entry("shepherd", "Pastor"),
+                java.util.Map.entry("fisherman", "Pescador"),
+                java.util.Map.entry("fletcher", "Flechero"),
+                java.util.Map.entry("cartographer", "Cartógrafo"),
+                java.util.Map.entry("mason", "Cantero")
+            );
+            String profPath = profKey != null ? profKey.getPath() : prof.toString().toLowerCase();
+            Component profName = Component.literal(profEs.getOrDefault(profPath,
+                Character.toUpperCase(profPath.charAt(0)) + profPath.substring(1)));
+            player.sendSystemMessage(Component.translatable("villagediplomacy.personality.job_line",
+                    profName, profLevelName));
+        } else {
+            player.sendSystemMessage(Component.translatable("villagediplomacy.personality.unemployed"));
+        }
+
+        player.sendSystemMessage(Component.translatable("villagediplomacy.enter.bar"));
+
+        sendTraitRow(player, "villagediplomacy.personality.label.courage", personality.getCourage());
+        sendTraitRow(player, "villagediplomacy.personality.label.generosity", personality.getGenerosity());
+        if (hasJob) {
+            sendTraitRow(player, "villagediplomacy.personality.label.work_ethic", personality.getWorkEthic());
+        }
+        sendTraitRow(player, "villagediplomacy.personality.label.social", personality.getSocialBehavior());
+        sendTraitRow(player, "villagediplomacy.personality.label.temperament", personality.getTemperament());
+        sendTraitRow(player, "villagediplomacy.personality.label.honesty", personality.getHonesty());
+        sendTraitRow(player, "villagediplomacy.personality.label.outlook", personality.getOutlook());
+
+        player.sendSystemMessage(Component.translatable("villagediplomacy.enter.bar"));
+    }
+
+    private static void sendTraitRow(ServerPlayer player, String labelKey, PersonalityTrait trait) {
+        MutableComponent name = Component.translatable(
+                "villagediplomacy.trait." + trait.name().toLowerCase(Locale.ROOT));
+        name.withStyle(traitStyle(trait));
+        player.sendSystemMessage(Component.translatable("villagediplomacy.personality.trait_row",
+                Component.translatable(labelKey), name));
+    }
+
+    private static ChatFormatting traitStyle(PersonalityTrait trait) {
+        return switch (trait.name()) {
+            case "COWARD", "CAUTIOUS", "GREEDY", "THRIFTY", "LAZY", "SHY", "HOTHEADED", "CUNNING", "PESSIMISTIC" -> ChatFormatting.RED;
+            case "FEARLESS", "BRAVE", "CHARITABLE", "GENEROUS", "WORKAHOLIC", "HARDWORKING", "EXTROVERTED", "CALM", "TRUSTWORTHY", "HONEST", "CHEERFUL" -> ChatFormatting.GREEN;
+            default -> ChatFormatting.GRAY;
+        };
+    }
+}

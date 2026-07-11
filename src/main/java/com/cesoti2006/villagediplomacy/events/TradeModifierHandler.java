@@ -6,7 +6,6 @@ import com.cesoti2006.villagediplomacy.personality.PersonalityTrait;
 import com.cesoti2006.villagediplomacy.reputation.ReputationTiersHandler;
 import com.cesoti2006.villagediplomacy.util.ModLang;
 import net.minecraft.ChatFormatting;
-import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
@@ -64,7 +63,7 @@ public class TradeModifierHandler {
         VillageReputationData data = VillageReputationData.get(level);
         int reputation = data.getReputation(player.getUUID(), villagePos);
 
-        // Verificar si el tier bloquea trades
+        
         if (!ReputationTiersHandler.canTrade(reputation)) {
             event.setCanceled(true);
 
@@ -107,25 +106,25 @@ public class TradeModifierHandler {
 
     private int calculatePriceModifier(int reputation) {
         float multiplier = ReputationTiersHandler.getTradeMultiplier(reputation);
-        // Convertir multiplicador a cambio de precio para items del trader
-        // 0.75f = 25% descuento = -3 items
-        // 0.80f = 20% descuento = -2 items
-        // 0.85f = 15% descuento = -2 items (redondeado)
-        // 0.90f = 10% descuento = -1 items
-        // 0.95f = 5% descuento = -1 items (redondeado)
-        // 1.0f = neutral = 0
-        // 1.05f = 5% recargo = +1 items
-        // 1.10f = 10% recargo = +1 items (redondeado)
-        // 1.15f = 15% recargo = +2 items
-        // 1.20f = 20% recargo = +2 items
-        // 1.25f = 25% recargo = +3 items
-        // 1.30f = 30% recargo = +3 items
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
         
         if (multiplier < 1.0f) {
-            // Descuento: round down (-1, -2, -3)
+            
             return Math.round((multiplier - 1.0f) * 5);
         } else if (multiplier > 1.0f) {
-            // Recargo: round up (+1, +2, +3)
+            
             return Math.round((multiplier - 1.0f) * 5);
         }
         return 0;

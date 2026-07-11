@@ -2,6 +2,8 @@ package com.cesoti2006.villagediplomacy.data;
 
 import com.cesoti2006.villagediplomacy.personality.GolemPersonality;
 import net.minecraft.nbt.CompoundTag;
+
+import javax.annotation.Nonnull;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerLevel;
@@ -9,9 +11,7 @@ import net.minecraft.world.level.saveddata.SavedData;
 
 import java.util.*;
 
-/**
- * Almacena las personalidades de todos los Iron Golems en el mundo
- */
+
 public class GolemPersonalityData extends SavedData {
     private static final String DATA_NAME = "villagediplomacy_golems";
     
@@ -26,7 +26,7 @@ public class GolemPersonalityData extends SavedData {
                 .computeIfAbsent(GolemPersonalityData::load, GolemPersonalityData::new, DATA_NAME);
     }
     
-    public static GolemPersonalityData load(CompoundTag tag) {
+    public static GolemPersonalityData load(@Nonnull CompoundTag tag) {
         GolemPersonalityData data = new GolemPersonalityData();
         
         ListTag golemsList = tag.getList("Golems", Tag.TAG_COMPOUND);
@@ -81,9 +81,7 @@ public class GolemPersonalityData extends SavedData {
         return tag;
     }
     
-    /**
-     * Obtener o crear personalidad para un golem
-     */
+    
     public GolemPersonality getOrCreatePersonality(UUID golemId, String villageName, Random random) {
         if (!golemPersonalities.containsKey(golemId)) {
             GolemPersonality personality = GolemPersonality.generateRandom(villageName, random);
@@ -93,16 +91,12 @@ public class GolemPersonalityData extends SavedData {
         return golemPersonalities.get(golemId);
     }
     
-    /**
-     * Obtener personalidad existente
-     */
+    
     public GolemPersonality getPersonality(UUID golemId) {
         return golemPersonalities.get(golemId);
     }
     
-    /**
-     * Verificar cooldown de interacción
-     */
+    
     public boolean canInteract(UUID golemId, long cooldownMs) {
         long currentTime = System.currentTimeMillis();
         Long lastTime = lastInteraction.get(golemId);

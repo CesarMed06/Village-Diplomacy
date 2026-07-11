@@ -10,7 +10,7 @@ public class OpenVillageHudPacket {
 
     private final String villageNameSerialized;
     private final int reputation;
-    /** One of: ally, friendly, neutral, hostile, enemy */
+    
     private final String relationKey;
 
     public OpenVillageHudPacket(String villageNameSerialized, int reputation, String relationKey) {

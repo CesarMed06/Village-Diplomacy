@@ -1,35 +1,29 @@
 package com.cesoti2006.villagediplomacy.personality;
 
-/**
- * Estados emocionales que afectan el comportamiento del aldeano
- */
+
 public enum EmotionalState {
-    NEUTRAL,        // Normal
-    HAPPY,          // Acaba de comerciar bien, fue salvado, etc.
-    SAD,            // Murió un vecino, fue robado
-    SCARED,         // Hay enemigos cerca, fue atacado
-    ANGRY,          // Le pegaron, le robaron
-    GRATEFUL,       // Le salvaste la vida
-    MOURNING;       // Está de luto por un aldeano muerto
+    NEUTRAL,        
+    HAPPY,          
+    SAD,            
+    SCARED,         
+    ANGRY,          
+    GRATEFUL,       
+    MOURNING;       
     
-    /**
-     * Duración del estado emocional en milisegundos
-     */
+    
     public long getDuration() {
         switch (this) {
-            case HAPPY: return 60000;      // 1 minuto
-            case GRATEFUL: return 300000;  // 5 minutos
-            case SCARED: return 120000;    // 2 minutos
-            case ANGRY: return 180000;     // 3 minutos
-            case SAD: return 240000;       // 4 minutos
-            case MOURNING: return 600000;  // 10 minutos
+            case HAPPY: return 60000;      
+            case GRATEFUL: return 300000;  
+            case SCARED: return 120000;    
+            case ANGRY: return 180000;     
+            case SAD: return 240000;       
+            case MOURNING: return 600000;  
             default: return 0;
         }
     }
     
-    /**
-     * Partículas que aparecen sobre el aldeano
-     */
+    
     public String getParticleEffect() {
         switch (this) {
             case HAPPY: return "heart";

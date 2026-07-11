@@ -1,5 +1,6 @@
 package com.cesoti2006.villagediplomacy.events;
 
+import com.cesoti2006.villagediplomacy.data.PlayerPlacedBlocks;
 import com.cesoti2006.villagediplomacy.data.VillageDetector;
 import com.cesoti2006.villagediplomacy.data.VillageReputationData;
 import com.cesoti2006.villagediplomacy.data.VillageRelationshipData;
@@ -19,6 +20,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.network.protocol.game.ClientboundBlockEventPacket;
 import net.minecraft.world.entity.animal.IronGolem;
 import net.minecraft.world.entity.animal.Cow;
 import net.minecraft.world.entity.animal.Sheep;
@@ -47,9 +49,9 @@ import net.minecraft.world.entity.monster.MagmaCube;
 import net.minecraft.world.entity.monster.Ghast;
 import net.minecraft.world.entity.monster.Phantom;
 import net.minecraft.world.entity.monster.ElderGuardian;
+import net.minecraft.world.entity.monster.Endermite;
 import net.minecraft.world.entity.monster.Guardian;
 import net.minecraft.world.entity.monster.Shulker;
-import net.minecraft.world.entity.monster.Endermite;
 import net.minecraft.world.entity.monster.Silverfish;
 import net.minecraft.world.entity.monster.Blaze;
 import net.minecraft.world.entity.monster.WitherSkeleton;
@@ -64,11 +66,11 @@ import net.minecraft.world.entity.monster.Zoglin;
 import net.minecraft.world.entity.boss.wither.WitherBoss;
 import net.minecraft.world.entity.boss.enderdragon.EnderDragon;
 import net.minecraft.world.entity.monster.EnderMan;
-import net.minecraft.world.entity.monster.Endermite;
 import net.minecraft.world.entity.monster.warden.Warden;
 
 import net.minecraft.world.entity.npc.AbstractVillager;
 import net.minecraft.world.entity.npc.Villager;
+import net.minecraft.world.Container;
 import net.minecraft.world.inventory.ChestMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -113,7 +115,6 @@ import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.entity.player.PlayerContainerEvent;
 import net.minecraftforge.event.entity.player.PlayerSleepInBedEvent;
-import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 import java.util.*;
@@ -127,6 +128,9 @@ public class VillagerEventHandler {
     private final Map<UUID, String> lastVisitedVillage = new HashMap<>();
     private final Map<UUID, List<Long>> villagerAttackTimes = new HashMap<>();
     private final Map<UUID, Long> chestLootCooldown = new HashMap<>();
+    private final Map<UUID, Integer> chestOpenReputation = new HashMap<>();
+    private final Map<UUID, Map<Integer, ItemStack>> chestSnapshot = new HashMap<>();
+    private final Map<UUID, BlockPos> chestOpenPosition = new HashMap<>();
     private final Map<UUID, Integer> pendingTrades = new HashMap<>();
     private final Map<UUID, Long> tradeWindowStart = new HashMap<>();
     private final Map<UUID, Long> bedUsageCooldown = new HashMap<>();
@@ -137,34 +141,33 @@ public class VillagerEventHandler {
     private final Map<UUID, Long> fenceGateCooldown = new HashMap<>();
     private final Map<UUID, Long> animalReleaseCooldown = new HashMap<>();
     private final Map<UUID, Long> doorOpenCooldown = new HashMap<>();
-    // Sistema de golems POR GOLEM INDIVIDUAL
-    private final Map<UUID, Map<UUID, Integer>> golemStrikesPerGolem = new HashMap<>(); // player -> (golem -> strikes)
-    private final Map<UUID, Map<UUID, Long>> golemLastHitTime = new HashMap<>(); // player -> (golem -> time)
+    
+    private final Map<UUID, Map<UUID, Integer>> golemStrikesPerGolem = new HashMap<>(); 
+    private final Map<UUID, Map<UUID, Long>> golemLastHitTime = new HashMap<>(); 
     private final Map<UUID, Long> lastGolemHitTime = new HashMap<>();
     private final Map<UUID, Long> golemForgivenessTime = new HashMap<>();
-    // Sistema de saludos (para HERO/ALLY)
+    
     private final Map<UUID, Map<UUID, Long>> villagerGreetingCooldown = new HashMap<>();
-    // Sistema de curación de zombie villagers (player que curó -> zombie curado)
+    
     private final Map<UUID, UUID> zombieVillagerCurers = new HashMap<>();
+    
+    private final Map<UUID, Long> playerLoginTime = new HashMap<>();
 
     private static final long TRADE_WINDOW_MS = 500;
     private static final long MAJOR_CRIME_DURATION_MS = 120000;
     private static final long MINOR_CRIME_DURATION_MS = 30000;
-    private static final long GREETING_COOLDOWN_MS = 600000; // 10 minutos
+    private static final long GREETING_COOLDOWN_MS = 600000; 
     private static final long STRIKE_WINDOW_MS = 60000;
     private static final int STRIKES_REQUIRED = 3;
     private static final long CHEST_LOOT_COOLDOWN_MS = 3000;
     private static final long BED_COOLDOWN_MS = 5000;
     private static final long BELL_COOLDOWN_MS = 3000;
     private static final long TRAPDOOR_COOLDOWN_MS = 2000;
-    private static final long DOOR_COOLDOWN_MS = 2000;
     private static final long CRAFTING_COOLDOWN_MS = 5000;
     private static final long FENCE_GATE_COOLDOWN_MS = 3000;
-    private static final long ANIMAL_RELEASE_COOLDOWN_MS = 4000;
-    private static final long DOOR_OPEN_COOLDOWN_MS = 3000;
-    private static final long GOLEM_RESET_COOLDOWN_MS = 1000; // Revisar golems cada 1 segundo
+    private static final long GOLEM_RESET_COOLDOWN_MS = 1000; 
 
-    // Cooldown para resetear golems (evitar spam)
+    
     private final Map<UUID, Long> golemResetCooldown = new HashMap<>();
 
     private static final int THEFT_CHEST_ADULT = 18;
@@ -195,26 +198,8 @@ public class VillagerEventHandler {
         VillageReputationData data = VillageReputationData.get(level);
         BlockPos villagePos = nearestVillage.get();
 
-        // SISTEMA DE LUTO: DESACTIVADO TEMPORALMENTE - Causaba congelamiento
-        /*
-        if (!villager.isBaby()) {
-            com.cesoti2006.villagediplomacy.data.VillageMourningData mourningData = 
-                com.cesoti2006.villagediplomacy.data.VillageMourningData.get(level);
-            
-            String villagerName = villager.hasCustomName() ? 
-                villager.getCustomName().getString() : "Villager";
-            String profession = villager.getVillagerData().getProfession().toString();
-            
-            // Obtener job site del brain memory
-            BlockPos jobSite = villager.getBrain()
-                .getMemory(net.minecraft.world.entity.ai.memory.MemoryModuleType.JOB_SITE)
-                .map(poi -> poi.pos())
-                .orElse(null);
-            
-            String villageId = VillageDetector.getVillageId(villagePos);
-            mourningData.registerDeath(villageId, villagerName, profession, jobSite);
-        }
-        */
+        
+        
 
         int reputationLoss = villager.isBaby() ? -200 : -100;
         int oldRep = data.getReputation(player.getUUID(), villagePos);
@@ -255,7 +240,7 @@ public class VillagerEventHandler {
         }
     }
 
-    // GOLEMS: 100% VANILLA - La reputación solo afecta mensajes de interacción, NO al combate
+    
 
     @SubscribeEvent
     public void onIronGolemDeath(LivingDeathEvent event) {
@@ -301,8 +286,96 @@ public class VillagerEventHandler {
         crimeCommittedTime.put(playerId, newCrimeEnd);
     }
 
-    // MENSAJE ÚNICO: cuando atacas al golem, te responde según su personalidad
-    // Luego comportamiento 100% VANILLA - te ataca normal
+    
+    
+    @SubscribeEvent
+    public void onGuardAttack(LivingAttackEvent event) {
+        if (!com.cesoti2006.villagediplomacy.integration.guardvillagers.GuardVillagersCompat.isLoaded()) return;
+        if (!(event.getEntity() instanceof LivingEntity)) return;
+        String clsName = event.getEntity().getClass().getName();
+        if (!clsName.equals("tallestegg.guardvillagers.entities.Guard")) return;
+        if (!(event.getSource().getEntity() instanceof net.minecraft.server.level.ServerPlayer player)) return;
+        if (!(event.getEntity().level() instanceof net.minecraft.server.level.ServerLevel level)) return;
+
+        java.util.Optional<net.minecraft.core.BlockPos> village = com.cesoti2006.villagediplomacy.data.VillageDetector.findNearestVillage(level, event.getEntity().blockPosition(), 200);
+        if (village.isEmpty()) return;
+
+        // Check cooldown before applying rep penalty
+        if (!com.cesoti2006.villagediplomacy.integration.guardvillagers.GuardVillagersCompat.tryAttackCooldown(player.getUUID())) return;
+
+        // Apply reputation penalty per hit (-5 per hit, capped by 3s cooldown)
+        net.minecraft.core.BlockPos villagePos = village.get();
+        com.cesoti2006.villagediplomacy.data.VillageReputationData data = com.cesoti2006.villagediplomacy.data.VillageReputationData.get(level);
+        int oldRep = data.getReputation(player.getUUID(), villagePos);
+        int guardAttackPenalty = com.cesoti2006.villagediplomacy.config.VillageDiplomacyConfig.INSTANCE.repGuardAttack.get();
+        data.addReputation(player.getUUID(), villagePos, guardAttackPenalty);
+        int newRep = data.getReputation(player.getUUID(), villagePos);
+        checkAndNotifyReputationChange(player, oldRep, newRep);
+        player.sendSystemMessage(net.minecraft.network.chat.Component.translatable("villagediplomacy.sys.guard_attacked"));
+        com.cesoti2006.villagediplomacy.util.ModLang.sendReputationSummary(player, guardAttackPenalty, newRep);
+
+        int rep = data.getReputation(player.getUUID(), villagePos);
+        com.cesoti2006.villagediplomacy.integration.guardvillagers.GuardVillagersCompat.getGuardAttackReaction(
+            level, player, (net.minecraft.world.entity.LivingEntity) event.getEntity(), rep
+        ).ifPresent(msg -> player.sendSystemMessage(msg));
+    }
+
+    @SubscribeEvent
+    public void onGuardDeath(LivingDeathEvent event) {
+        if (!com.cesoti2006.villagediplomacy.integration.guardvillagers.GuardVillagersCompat.isLoaded()) return;
+        if (!(event.getEntity() instanceof LivingEntity)) return;
+        String clsName = event.getEntity().getClass().getName();
+        if (!clsName.equals("tallestegg.guardvillagers.entities.Guard")) return;
+        if (!(event.getSource().getEntity() instanceof net.minecraft.server.level.ServerPlayer player)) return;
+        if (!(event.getEntity().level() instanceof net.minecraft.server.level.ServerLevel level)) return;
+
+        net.minecraft.world.entity.LivingEntity guard = (net.minecraft.world.entity.LivingEntity) event.getEntity();
+        net.minecraft.core.BlockPos guardPos = guard.blockPosition();
+
+        java.util.Optional<net.minecraft.core.BlockPos> nearestVillage = com.cesoti2006.villagediplomacy.data.VillageDetector.findNearestVillage(level, guardPos, 200);
+        if (nearestVillage.isEmpty()) return;
+
+        com.cesoti2006.villagediplomacy.data.VillageRelationshipData relationData = com.cesoti2006.villagediplomacy.data.VillageRelationshipData.get(level);
+        relationData.registerVillage(nearestVillage.get(), level);
+
+        com.cesoti2006.villagediplomacy.data.VillageReputationData data = com.cesoti2006.villagediplomacy.data.VillageReputationData.get(level);
+        net.minecraft.core.BlockPos villagePos = nearestVillage.get();
+
+        String guardName = com.cesoti2006.villagediplomacy.integration.guardvillagers.GuardVillagersCompat.getGuardName(guard);
+        int reputationLoss = com.cesoti2006.villagediplomacy.config.VillageDiplomacyConfig.INSTANCE.repGuardKill.get();
+        int oldRep = data.getReputation(player.getUUID(), villagePos);
+        data.addReputation(player.getUUID(), villagePos, reputationLoss);
+        int newRep = data.getReputation(player.getUUID(), villagePos);
+        checkAndNotifyReputationChange(player, oldRep, newRep);
+
+        player.sendSystemMessage(net.minecraft.network.chat.Component.translatable("villagediplomacy.sys.guard_killed", guardName, newRep, com.cesoti2006.villagediplomacy.util.ModLang.repStatus(newRep)));
+
+        checkReputationLevelChange(player, level, newRep);
+
+        // Trigger golem crime system if guards are killed near golems
+        java.util.List<net.minecraft.world.entity.animal.IronGolem> nearbyGolems = level.getEntitiesOfClass(net.minecraft.world.entity.animal.IronGolem.class,
+                player.getBoundingBox().inflate(24.0D),
+                golem -> !golem.isPlayerCreated());
+
+        if (!nearbyGolems.isEmpty()) {
+            UUID playerId = player.getUUID();
+            long currentTime = System.currentTimeMillis();
+            long existingCrimeEnd = crimeCommittedTime.getOrDefault(playerId, 0L);
+            long newCrimeEnd = currentTime + MAJOR_CRIME_DURATION_MS;
+
+            if (existingCrimeEnd > currentTime) {
+                newCrimeEnd = existingCrimeEnd + MAJOR_CRIME_DURATION_MS;
+                int totalSeconds = (int) ((newCrimeEnd - currentTime) / 1000);
+                player.sendSystemMessage(net.minecraft.network.chat.Component.translatable("villagediplomacy.sys.crime_extended", totalSeconds));
+            } else {
+                player.sendSystemMessage(net.minecraft.network.chat.Component.translatable("villagediplomacy.sys.crime_golems"));
+            }
+
+            crimeCommittedTime.put(playerId, newCrimeEnd);
+            villagerAttackTimes.remove(playerId);
+        }
+    }
+
     @SubscribeEvent
     public void onGolemAttack(LivingAttackEvent event) {
         if (!(event.getEntity() instanceof IronGolem golem))
@@ -321,7 +394,7 @@ public class VillagerEventHandler {
         UUID golemId = golem.getUUID();
         long currentTime = System.currentTimeMillis();
 
-        // Cooldown para el mensaje: solo 1 vez cada 5 segundos
+        
         golemLastHitTime.putIfAbsent(player.getUUID(), new HashMap<>());
         Map<UUID, Long> playerGolemHitTimes = golemLastHitTime.get(player.getUUID());
         
@@ -329,7 +402,7 @@ public class VillagerEventHandler {
         if (lastHit == null || currentTime - lastHit > 5000) {
             playerGolemHitTimes.put(golemId, currentTime);
             
-            // Obtener personalidad del golem
+            
             GolemPersonalityData personalityData = GolemPersonalityData.get(level);
             GolemPersonality personality = personalityData.getPersonality(golemId);
             
@@ -348,7 +421,7 @@ public class VillagerEventHandler {
             }
         }
         
-        // NO CANCELAR - comportamiento vanilla completo
+        
     }
 
     @SubscribeEvent
@@ -373,7 +446,7 @@ public class VillagerEventHandler {
         int oldRep = data.getReputation(player.getUUID(), villagePos);
         data.addReputation(player.getUUID(), villagePos, -10);
         
-        // Feedback visual negativo (partículas + sonido)
+        
         spawnNegativeFeedback(level, villager);
 
         int newRep = data.getReputation(player.getUUID(), villagePos);
@@ -403,7 +476,7 @@ public class VillagerEventHandler {
         if (!(event.getEntity().level() instanceof ServerLevel level))
             return;
 
-        // Detectar tipo específico de animal (Camel ANTES de AbstractHorse porque Camel extends AbstractHorse)
+        
         String animalType = null;
         if (event.getEntity() instanceof Cow) animalType = "cow";
         else if (event.getEntity() instanceof Sheep) animalType = "sheep";
@@ -478,13 +551,18 @@ public class VillagerEventHandler {
 
         BlockPos villagePos = nearestVillage.get();
 
+        
+        
+        
         List<AbstractVillager> nearbyVillagers = level.getEntitiesOfClass(
                 AbstractVillager.class, AABB.ofSize(Vec3.atCenterOf(deathPos), 32, 32, 32));
-        boolean witnessed = false;
-        for (AbstractVillager v : nearbyVillagers) {
-            if (hasLineOfSight(v, player, level)) { witnessed = true; break; }
+        if (com.cesoti2006.villagediplomacy.config.VillageDiplomacyConfig.INSTANCE.hostileKillRequireWitness.get()) {
+            boolean witnessed = false;
+            for (AbstractVillager v : nearbyVillagers) {
+                if (hasLineOfSight(v, player, level)) { witnessed = true; break; }
+            }
+            if (!witnessed) return;
         }
-        if (!witnessed) return;
 
         HostileKillKind kind = hostileKillKindFor(killed);
         VillageReputationData data = VillageReputationData.get(level);
@@ -497,14 +575,36 @@ public class VillagerEventHandler {
                 .filter(v -> hasLineOfSight(v, player, level)).findFirst().orElse(null);
         if (hostileWitness != null) {
             ModLang.sendDialogRandom(player, level.getRandom(), hostileWitness,
-                    "villagediplomacy.react.hostilekill." + kind.key() + "." + ModLang.repTier(newRep), kind.lineCount());
+                    "villagediplomacy.react.hostilekill." + kind.dialogKey() + "." + ModLang.repTier(newRep), kind.lineCount());
         } else {
             ModLang.sendRandom(player, level.getRandom(),
-                    "villagediplomacy.react.hostilekill." + kind.key() + "." + ModLang.repTier(newRep), kind.lineCount());
+                    "villagediplomacy.react.hostilekill." + kind.dialogKey() + "." + ModLang.repTier(newRep), kind.lineCount());
         }
-        player.sendSystemMessage(Component.translatable("villagediplomacy.sys.hostile_killed",
+        player.sendSystemMessage(Component.translatable("villagediplomacy.sys.hostile_killed." + kind.key(),
                 Component.translatable(killed.getType().getDescriptionId()).getString(),
                 kind.repBonus(), newRep, ModLang.repStatus(newRep)));
+        
+        com.cesoti2006.villagediplomacy.integration.guardvillagers.GuardVillagersCompat.getGuardKillReaction(level, player, 
+                Component.translatable(killed.getType().getDescriptionId()).getString(), newRep).ifPresent(msg -> {
+            player.sendSystemMessage(msg);
+        });
+
+        // Guard witness bonus: if guards saw the kill, they "speak well of you"
+        if (com.cesoti2006.villagediplomacy.integration.guardvillagers.GuardVillagersCompat.isLoaded()) {
+            int witnessBonus = com.cesoti2006.villagediplomacy.config.VillageDiplomacyConfig.INSTANCE.repGuardWitness.get();
+            if (witnessBonus > 0) {
+                boolean guardsWitnessed = com.cesoti2006.villagediplomacy.integration.guardvillagers.GuardVillagersCompat.hasGuardsNearby(level, deathPos, 48.0);
+                if (guardsWitnessed) {
+                    int postWitnessRep = data.getReputation(player.getUUID(), villagePos);
+                    data.addReputation(player.getUUID(), villagePos, witnessBonus);
+                    int afterWitnessRep = data.getReputation(player.getUUID(), villagePos);
+                    checkAndNotifyReputationChange(player, postWitnessRep, afterWitnessRep);
+                    // Notify player of guard witness bonus
+                    player.sendSystemMessage(Component.translatable(
+                        "villagediplomacy.guard.witness_bonus", witnessBonus));
+                }
+            }
+        }
 
         VillageRelationshipData relationData = VillageRelationshipData.get(level);
         relationData.registerVillage(villagePos, level);
@@ -537,6 +637,10 @@ public class VillagerEventHandler {
         if (event.getEntity() instanceof EnderMan) return;
         if (event.getEntity() instanceof Warden) return;
         if (event.getEntity() instanceof Villager) {
+            return;
+        }
+        // Skip guards (handled by onGuardDeath)
+        if (event.getEntity().getClass().getName().equals("tallestegg.guardvillagers.entities.Guard")) {
             return;
         }
         if (!(event.getSource().getEntity() instanceof ServerPlayer player)) {
@@ -623,18 +727,18 @@ public class VillagerEventHandler {
             pendingTrades.put(playerId, pendingTrades.getOrDefault(playerId, 0) + 1);
         }
         
-        // INCREMENTAR BONIFICACIÓN DE REPUTACIÓN PERSONAL DEL ALDEANO
+        
         com.cesoti2006.villagediplomacy.data.VillagerPersonalityData personalityData = 
             com.cesoti2006.villagediplomacy.data.VillagerPersonalityData.get(level);
         com.cesoti2006.villagediplomacy.personality.VillagerPersonality personality = 
             personalityData.getPersonality(villager.getUUID());
         
         if (personality != null) {
-            // Cada trade aumenta +3 la bonificación personal (máximo 100)
+            
             personality.addPlayerReputationBonus(3);
             personalityData.setDirty();
             
-            // Debug message para testear
+            
             int currentBonus = personality.getPlayerReputationBonus();
             if (currentBonus >= 30 && currentBonus % 10 == 0) {
                 ModLang.send(player, "villagediplomacy.debug.trade_bond", personality.getCustomName(),
@@ -649,6 +753,21 @@ public class VillagerEventHandler {
         UUID id = player.getUUID();
         lastVisitedVillage.remove(id);
         greetingCooldown.remove(id);
+        playerLoginTime.put(id, System.currentTimeMillis());
+        
+        // Guard Villagers compatibility welcome message
+        if (com.cesoti2006.villagediplomacy.config.VillageDiplomacyConfig.INSTANCE.guardWelcomeMessage.get()
+                && com.cesoti2006.villagediplomacy.integration.guardvillagers.GuardVillagersCompat.isLoaded()) {
+            player.sendSystemMessage(net.minecraft.network.chat.Component.translatable(
+                "villagediplomacy.guard.welcome"));
+        }
+    }
+
+    @SubscribeEvent
+    public void onPlayerLogout(net.minecraftforge.event.entity.player.PlayerEvent.PlayerLoggedOutEvent event) {
+        if (event.getEntity() instanceof ServerPlayer player) {
+            playerLoginTime.remove(player.getUUID());
+        }
     }
 
     @SubscribeEvent
@@ -674,11 +793,11 @@ public class VillagerEventHandler {
                     BlockPos villagePos = nearestVillage.get();
                     int oldRep = data.getReputation(playerId, villagePos);
 
-                    data.addReputation(playerId, villagePos, trades * 5);
+                    data.addReputation(playerId, villagePos, trades * com.cesoti2006.villagediplomacy.config.VillageDiplomacyConfig.INSTANCE.repTrade.get());
                     int newRep = data.getReputation(playerId, villagePos);
                     checkAndNotifyReputationChange(player, oldRep, newRep);
                 
-                    // Feedback visual positivo (partículas + sonido)
+                    
                     spawnPositiveFeedback(level, player);
 
                     int ti = level.getRandom().nextInt(6);
@@ -698,8 +817,8 @@ public class VillagerEventHandler {
             makeVillagersFleeFromHostilePlayers(player, level);
             makeGolemsProtectVillageBasedOnReputation(player, level);
             checkForVillagerGreetings(player, level);
-            // ELIMINADO: resetGolemsForPardonedPlayers - causaba bugs
-            // Los golems ahora solo perdonan cuando usas /pardon me (via onGolemAttackPlayer)
+            
+            
         }
     }
 
@@ -716,7 +835,7 @@ public class VillagerEventHandler {
         if (!(clickedBlock instanceof DoorBlock))
             return;
 
-        // FIX: Buscar aldea cercana PRIMERO
+        
         Optional<BlockPos> nearestVillage = VillageDetector.findNearestVillage(level, clickedPos, 200);
         if (nearestVillage.isEmpty())
             return;
@@ -724,26 +843,26 @@ public class VillagerEventHandler {
         UUID playerId = player.getUUID();
         long currentTime = System.currentTimeMillis();
 
-        // FIX: Cooldown más corto para que funcione mejor (reducido de 3s a 1.5s)
+        
         if (doorOpenCooldown.containsKey(playerId) &&
                 currentTime - doorOpenCooldown.get(playerId) < 1500) {
             return;
         }
 
         VillageReputationData data = VillageReputationData.get(level);
-        // FIX CRÍTICO: Usar reputación de LA ALDEA donde está la puerta, no global
+        
         int reputation = data.getReputation(playerId, nearestVillage.get());
 
-        // Detectar si la puerta se está abriendo o cerrando
+        
         boolean doorIsOpen = level.getBlockState(clickedPos).getValue(DoorBlock.OPEN);
         boolean isClosing = doorIsOpen;
 
-        // Hora del día para contexto
+        
         long dayTime = level.getDayTime() % 24000;
         boolean isNight = dayTime >= 13000 && dayTime < 23000;
         boolean isMorning = dayTime >= 0 && dayTime < 6000;
 
-        // FIX: Aumentar radio de detección (de 16 a 20 bloques)
+        
         List<Villager> nearbyVillagers = level.getEntitiesOfClass(
                 Villager.class,
                 player.getBoundingBox().inflate(20.0D));
@@ -857,19 +976,41 @@ public class VillagerEventHandler {
                 }
 
                 if (caughtByVillager) {
-                    int oldRep = data.getReputation(player.getUUID(), villagePos);
-                    data.addReputation(player.getUUID(), villagePos, -10);
-                    int newRep = data.getReputation(player.getUUID(), villagePos);
-                    checkAndNotifyReputationChange(player, oldRep, newRep);
+                    int reputation = data.getReputation(playerId, villagePos);
+                    chestOpenReputation.put(playerId, reputation); 
+                    chestOpenPosition.put(playerId, clickedPos); 
 
-                    if (caughtByBaby) {
-                        ModLang.sendDialogRandom(player, level.getRandom(), spottingVillager, "villagediplomacy.react.theft.chest.baby", THEFT_CHEST_BABY);
+                    if (reputation >= 300) {
+                        int penalty = reputation >= 800 ? -3 : -5;
+                        int oldRepChest = data.getReputation(player.getUUID(), villagePos);
+                        data.addReputation(player.getUUID(), villagePos, penalty);
+                        int newRepChest = data.getReputation(player.getUUID(), villagePos);
+                        checkAndNotifyReputationChange(player, oldRepChest, newRepChest);
+                        
+                        chestOpenPosition.put(playerId, clickedPos);
+                        int idx = level.getRandom().nextInt(4);
+                        player.sendSystemMessage(Component.translatable("villagediplomacy.react.theft.chest.trusted.open." + idx));
+                        player.sendSystemMessage(Component.translatable("villagediplomacy.sys.chest_open",
+                                penalty, newRepChest, com.cesoti2006.villagediplomacy.util.ModLang.repStatus(newRepChest)));
                     } else {
-                        ModLang.sendDialogRandom(player, level.getRandom(), spottingVillager, "villagediplomacy.react.theft.chest.adult", THEFT_CHEST_ADULT);
-                    }
+                        int penalty = reputation >= 800 ? -5 : -10; 
+                        int oldRep = data.getReputation(player.getUUID(), villagePos);
+                        data.addReputation(player.getUUID(), villagePos, penalty);
+                        int newRep = data.getReputation(player.getUUID(), villagePos);
+                        checkAndNotifyReputationChange(player, oldRep, newRep);
 
-                    player.sendSystemMessage(Component.translatable("villagediplomacy.sys.chest_open",
-                            -10, newRep, ModLang.repStatus(newRep)));
+                        if (reputation >= 800) {
+                            int idx = level.getRandom().nextInt(4);
+                            player.sendSystemMessage(Component.translatable("villagediplomacy.react.theft.chest.hero." + idx));
+                        } else if (caughtByBaby) {
+                            ModLang.sendDialogRandom(player, level.getRandom(), spottingVillager, "villagediplomacy.react.theft.chest.baby", THEFT_CHEST_BABY);
+                        } else {
+                            ModLang.sendDialogRandom(player, level.getRandom(), spottingVillager, "villagediplomacy.react.theft.chest.adult", THEFT_CHEST_ADULT);
+                        }
+
+                        player.sendSystemMessage(Component.translatable("villagediplomacy.sys.chest_open",
+                                penalty, newRep, ModLang.repStatus(newRep)));
+                    }
 
                     VillageRelationshipData relationData = VillageRelationshipData.get(level);
                     relationData.registerVillage(villagePos, level);
@@ -879,14 +1020,51 @@ public class VillagerEventHandler {
     }
 
     @SubscribeEvent
+    public void onChestGuiOpen(PlayerContainerEvent.Open event) {
+        if (!(event.getEntity() instanceof ServerPlayer player))
+            return;
+        if (!(player.level() instanceof ServerLevel level))
+            return;
+        if (!(event.getContainer() instanceof ChestMenu chestMenu))
+            return;
+
+        UUID playerId = player.getUUID();
+        if (!chestOpenReputation.containsKey(playerId))
+            return;
+
+        int reputation = chestOpenReputation.get(playerId);
+        if (reputation < 300)
+            return;
+
+        Container container = chestMenu.getContainer();
+        Map<Integer, ItemStack> snapshot = new HashMap<>();
+        for (int i = 0; i < container.getContainerSize(); i++) {
+            ItemStack stack = container.getItem(i);
+            if (!stack.isEmpty()) {
+                snapshot.put(i, stack.copy());
+            }
+        }
+        chestSnapshot.put(playerId, snapshot);
+    }
+
+    @SubscribeEvent
     public void onChestClose(PlayerContainerEvent.Close event) {
         if (!(event.getEntity() instanceof ServerPlayer player))
             return;
-        if (!(event.getContainer() instanceof ChestMenu))
+        if (!(event.getContainer() instanceof ChestMenu chestMenu))
             return;
         if (!(player.level() instanceof ServerLevel level))
             return;
 
+        UUID playerId = player.getUUID();
+
+        
+        if (chestSnapshot.containsKey(playerId) && chestOpenReputation.containsKey(playerId)) {
+            handleTrustedChestClose(player, level, chestMenu, playerId);
+            return;
+        }
+
+        
         BlockPos playerPos = player.blockPosition();
 
         Optional<BlockPos> nearestVillage = VillageDetector.findNearestVillage(level, playerPos, 200);
@@ -896,7 +1074,6 @@ public class VillagerEventHandler {
             BlockPos villagePos = nearestVillage.get();
 
             long currentTime = System.currentTimeMillis();
-            UUID playerId = player.getUUID();
 
             if (chestLootCooldown.containsKey(playerId) &&
                     currentTime - chestLootCooldown.get(playerId) < CHEST_LOOT_COOLDOWN_MS) {
@@ -923,19 +1100,25 @@ public class VillagerEventHandler {
             }
 
             if (caughtByVillager) {
+                int reputation = chestOpenReputation.getOrDefault(playerId, data.getReputation(player.getUUID(), villagePos));
+                chestOpenReputation.remove(playerId);
+                int penalty = reputation >= 800 ? -7 : -15; 
                 int oldRep = data.getReputation(player.getUUID(), villagePos);
-                data.addReputation(player.getUUID(), villagePos, -15);
+                data.addReputation(player.getUUID(), villagePos, penalty);
                 int newRep = data.getReputation(player.getUUID(), villagePos);
                 checkAndNotifyReputationChange(player, oldRep, newRep);
 
-                if (caughtByBaby) {
+                if (reputation >= 800) {
+                    int idx = level.getRandom().nextInt(3);
+                    player.sendSystemMessage(Component.translatable("villagediplomacy.react.theft.loot.hero." + idx));
+                } else if (caughtByBaby) {
                     ModLang.sendDialogRandom(player, level.getRandom(), lootWitness, "villagediplomacy.react.theft.loot.baby", THEFT_LOOT_BABY);
                 } else {
                     ModLang.sendDialogRandom(player, level.getRandom(), lootWitness, "villagediplomacy.react.theft.loot.adult", THEFT_LOOT_ADULT);
                 }
 
                 player.sendSystemMessage(Component.translatable("villagediplomacy.sys.loot_village",
-                        -15, newRep, ModLang.repStatus(newRep)));
+                        penalty, newRep, ModLang.repStatus(newRep)));
 
                 chestLootCooldown.put(playerId, currentTime);
 
@@ -943,6 +1126,129 @@ public class VillagerEventHandler {
                 relationData.registerVillage(villagePos, level);
             }
         }
+    }
+
+    
+    private void handleTrustedChestClose(ServerPlayer player, ServerLevel level, ChestMenu chestMenu, UUID playerId) {
+        Map<Integer, ItemStack> snapshot = chestSnapshot.get(playerId);
+        if (snapshot == null) {
+            cleanupChestState(playerId);
+            return;
+        }
+
+        Container container = chestMenu.getContainer();
+        int slots = Math.min(container.getContainerSize(), 64);
+
+        boolean itemsTaken = false;
+        boolean itemsAdded = false;
+        int totalFoodAdded = 0;
+        int totalOtherAdded = 0;
+
+        for (int i = 0; i < slots; i++) {
+            ItemStack before = snapshot.getOrDefault(i, ItemStack.EMPTY);
+            ItemStack after = container.getItem(i);
+
+            int diff = after.getCount() - before.getCount();
+
+            if (diff < 0) {
+                itemsTaken = true;
+            } else if (diff > 0) {
+                itemsAdded = true;
+                ItemStack addedStack = after.copy();
+                addedStack.setCount(diff);
+                if (addedStack.getItem().isEdible()) {
+                    totalFoodAdded += diff;
+                } else {
+                    totalOtherAdded += diff;
+                }
+            }
+        }
+
+        Optional<BlockPos> nearestVillage = VillageDetector.findNearestVillage(level,
+                chestOpenPosition.getOrDefault(playerId, player.blockPosition()), 200);
+
+        if (nearestVillage.isEmpty()) {
+            cleanupChestState(playerId);
+            return;
+        }
+
+        BlockPos villagePos = nearestVillage.get();
+        VillageReputationData data = VillageReputationData.get(level);
+        UUID playerUUID = player.getUUID();
+
+        if (itemsTaken && !itemsAdded) {
+            
+            int reputation = chestOpenReputation.getOrDefault(playerId, data.getReputation(playerUUID, villagePos));
+            int penalty = reputation >= 800 ? -5 : -10;
+            int oldRep = data.getReputation(playerUUID, villagePos);
+            data.addReputation(playerUUID, villagePos, penalty);
+            int newRep = data.getReputation(playerUUID, villagePos);
+            checkAndNotifyReputationChange(player, oldRep, newRep);
+
+            
+            List<Villager> nearbyVillagers = level.getEntitiesOfClass(
+                    Villager.class,
+                    player.getBoundingBox().inflate(12.0D));
+
+            Villager witness = null;
+            for (Villager v : nearbyVillagers) {
+                if (hasLineOfSight(v, player, level)) {
+                    witness = v;
+                    break;
+                }
+            }
+
+            player.sendSystemMessage(Component.translatable("villagediplomacy.sys.loot_village",
+                    penalty, newRep, ModLang.repStatus(newRep)));
+
+            if (witness != null) {
+                ModLang.sendDialogRandom(player, level.getRandom(), witness,
+                        "villagediplomacy.react.theft.chest.trusted", 4);
+            }
+
+        } else if (itemsAdded && !itemsTaken) {
+            
+            int totalItems = totalFoodAdded + totalOtherAdded;
+            int bonus = Math.min(3, totalItems / 4 + 1);
+
+            int oldRep = data.getReputation(playerUUID, villagePos);
+            data.addReputation(playerUUID, villagePos, bonus);
+            int newRep = data.getReputation(playerUUID, villagePos);
+            checkAndNotifyReputationChange(player, oldRep, newRep);
+
+            player.sendSystemMessage(Component.translatable("villagediplomacy.sys.donate_chest",
+                    bonus));
+
+            
+            List<Villager> nearbyVillagers = level.getEntitiesOfClass(
+                    Villager.class,
+                    player.getBoundingBox().inflate(12.0D));
+
+            Villager thankYou = null;
+            for (Villager v : nearbyVillagers) {
+                if (hasLineOfSight(v, player, level)) {
+                    thankYou = v;
+                    break;
+                }
+            }
+
+            if (thankYou != null) {
+                String dialogKey = totalFoodAdded > 0
+                        ? "villagediplomacy.react.chest.donate.food"
+                        : "villagediplomacy.react.chest.donate.generic";
+                ModLang.sendDialogRandom(player, level.getRandom(), thankYou,
+                        dialogKey, 4);
+            }
+        }
+        
+
+        cleanupChestState(playerId);
+    }
+
+    private void cleanupChestState(UUID playerId) {
+        chestSnapshot.remove(playerId);
+        chestOpenReputation.remove(playerId);
+        chestOpenPosition.remove(playerId);
     }
 
     @SubscribeEvent
@@ -954,6 +1260,9 @@ public class VillagerEventHandler {
 
         ServerLevel level = (ServerLevel) player.level();
         BlockPos brokenPos = event.getPos();
+        
+        PlayerPlacedBlocks placed = PlayerPlacedBlocks.get(level);
+        boolean isOwnedBlock = placed.isPlacedBy(level, brokenPos, player.getUUID());
 
         Optional<BlockPos> nearestVillage = VillageDetector.findNearestVillage(level, brokenPos, 200);
 
@@ -985,14 +1294,33 @@ public class VillagerEventHandler {
                     }
                 }
 
-                if (caughtByVillager) {
-                    int penalty = blockType.penalty;
+                if (caughtByVillager && !isOwnedBlock) {
+                    int reputation = data.getReputation(player.getUUID(), villagePosBreak);
+                    int basePenalty = blockType.penalty;
+                    int penalty;
+                    if (reputation >= 800) {
+                        penalty = -3; 
+                    } else if (reputation >= 500) {
+                        penalty = basePenalty / 2; 
+                    } else if (reputation >= 300) {
+                        penalty = (int)(basePenalty * 0.75); 
+                    } else {
+                        penalty = basePenalty;
+                    }
                     int oldRep = data.getReputation(player.getUUID(), villagePosBreak);
                     data.addReputation(player.getUUID(), villagePosBreak, penalty);
                     int newRep = data.getReputation(player.getUUID(), villagePosBreak);
                     checkAndNotifyReputationChange(player, oldRep, newRep);
 
-                    sendBlockBreakVillagerLine(blockType, caughtByBaby, level, player, spottingVillager);
+                    if (reputation >= 500) {
+                        int idx = level.getRandom().nextInt(4);
+                        player.sendSystemMessage(Component.translatable("villagediplomacy.react.break.trusted." + idx));
+                    } else if (reputation >= 300) {
+                        int idx = level.getRandom().nextInt(4);
+                        player.sendSystemMessage(Component.translatable("villagediplomacy.react.break.friendly." + idx));
+                    } else {
+                        sendBlockBreakVillagerLine(blockType, caughtByBaby, level, player, spottingVillager);
+                    }
 
                     player.sendSystemMessage(Component.translatable(blockType.systemMessageKey,
                             penalty, newRep, ModLang.repStatus(newRep)));
@@ -1015,7 +1343,10 @@ public class VillagerEventHandler {
         BlockPos placedPos = event.getPos();
         Block placedBlock = event.getPlacedBlock().getBlock();
         
-        // Mensajes contextuales cuando colocas bloques en la aldea
+        
+        if (placedBlock == Blocks.TNT || placedBlock == Blocks.LAVA || placedBlock == Blocks.LAVA_CAULDRON || placedBlock == Blocks.FIRE || placedBlock == Blocks.SOUL_FIRE) return;
+        
+        
         Optional<BlockPos> nearestVillage = VillageDetector.findNearestVillage(level, placedPos, 200);
         if (nearestVillage.isPresent()) {
             List<Villager> nearbyVillagers = level.getEntitiesOfClass(
@@ -1085,6 +1416,24 @@ public class VillagerEventHandler {
                 }
             }
         }
+        
+        
+        PlayerPlacedBlocks placed = PlayerPlacedBlocks.get(level);
+        placed.recordPlace(level, placedPos, player.getUUID());
+        
+        
+        
+        
+        
+        
+        
+        if (placedBlock instanceof BellBlock) {
+            BlockPos finalPlacedPos = placedPos.immutable();
+            level.getServer().execute(() -> {
+                level.getPoiManager().remove(finalPlacedPos);
+                VillageDetector.clearCache();
+            });
+        }
     }
 
     @SubscribeEvent
@@ -1095,13 +1444,13 @@ public class VillagerEventHandler {
         BlockPos blockPos = event.getPos();
         Block block = event.getState().getBlock();
         
-        // Check if in village
+        
         Optional<BlockPos> nearestVillage = VillageDetector.findNearestVillage(level, blockPos, 100);
         if (nearestVillage.isEmpty()) return;
         
-        // Village structure blocks - LISTA COMPLETA de bloques de aldeas
+        
         boolean isVillageBlock = 
-            // Piedras
+            
             block == Blocks.COBBLESTONE ||
             block == Blocks.MOSSY_COBBLESTONE ||
             block == Blocks.STONE ||
@@ -1117,7 +1466,7 @@ public class VillagerEventHandler {
             block == Blocks.GRANITE ||
             block == Blocks.POLISHED_GRANITE ||
             
-            // Maderas - Planks
+            
             block == Blocks.OAK_PLANKS ||
             block == Blocks.SPRUCE_PLANKS ||
             block == Blocks.BIRCH_PLANKS ||
@@ -1125,7 +1474,7 @@ public class VillagerEventHandler {
             block == Blocks.DARK_OAK_PLANKS ||
             block == Blocks.JUNGLE_PLANKS ||
             
-            // Logs
+            
             block == Blocks.OAK_LOG ||
             block == Blocks.SPRUCE_LOG ||
             block == Blocks.BIRCH_LOG ||
@@ -1136,7 +1485,7 @@ public class VillagerEventHandler {
             block == Blocks.STRIPPED_SPRUCE_LOG ||
             block == Blocks.STRIPPED_BIRCH_LOG ||
             
-            // Stairs
+            
             block == Blocks.COBBLESTONE_STAIRS ||
             block == Blocks.STONE_BRICK_STAIRS ||
             block == Blocks.MOSSY_COBBLESTONE_STAIRS ||
@@ -1153,7 +1502,7 @@ public class VillagerEventHandler {
             block == Blocks.ACACIA_STAIRS ||
             block == Blocks.DARK_OAK_STAIRS ||
             
-            // Slabs
+            
             block == Blocks.COBBLESTONE_SLAB ||
             block == Blocks.STONE_SLAB ||
             block == Blocks.SMOOTH_STONE_SLAB ||
@@ -1172,7 +1521,7 @@ public class VillagerEventHandler {
             block == Blocks.ACACIA_SLAB ||
             block == Blocks.DARK_OAK_SLAB ||
             
-            // Fences y Gates
+            
             block == Blocks.OAK_FENCE ||
             block == Blocks.SPRUCE_FENCE ||
             block == Blocks.BIRCH_FENCE ||
@@ -1184,7 +1533,7 @@ public class VillagerEventHandler {
             block == Blocks.ACACIA_FENCE_GATE ||
             block == Blocks.DARK_OAK_FENCE_GATE ||
             
-            // Doors
+            
             block == Blocks.OAK_DOOR ||
             block == Blocks.SPRUCE_DOOR ||
             block == Blocks.BIRCH_DOOR ||
@@ -1192,7 +1541,7 @@ public class VillagerEventHandler {
             block == Blocks.DARK_OAK_DOOR ||
             block == Blocks.IRON_DOOR ||
             
-            // Glass
+            
             block == Blocks.GLASS_PANE ||
             block == Blocks.GLASS ||
             block == Blocks.WHITE_STAINED_GLASS ||
@@ -1200,31 +1549,61 @@ public class VillagerEventHandler {
             block == Blocks.YELLOW_STAINED_GLASS ||
             block == Blocks.YELLOW_STAINED_GLASS_PANE ||
             
-            // Iluminación
-            block == Blocks.TORCH ||
-            block == Blocks.WALL_TORCH ||
-            block == Blocks.LANTERN ||
-            block == Blocks.SOUL_LANTERN ||
             
-            // Otros bloques comunes de aldeas
             block == Blocks.HAY_BLOCK ||
             block == Blocks.DIRT_PATH ||
             block == Blocks.COBBLESTONE_WALL ||
             block == Blocks.MOSSY_COBBLESTONE_WALL ||
             block == Blocks.TERRACOTTA ||
             block == Blocks.WHITE_TERRACOTTA ||
-            block == Blocks.BELL ||
             block == Blocks.DIRT ||
             block == Blocks.GRASS_BLOCK ||
             block == Blocks.GRAVEL ||
-            block == Blocks.SAND;
+            block == Blocks.SAND ||
+            // Stripped wood variants (bark on all sides)
+            block == Blocks.STRIPPED_SPRUCE_WOOD ||
+            block == Blocks.STRIPPED_OAK_WOOD ||
+            block == Blocks.STRIPPED_BIRCH_WOOD ||
+            block == Blocks.STRIPPED_JUNGLE_WOOD ||
+            block == Blocks.STRIPPED_ACACIA_WOOD ||
+            block == Blocks.STRIPPED_DARK_OAK_WOOD ||
+            // Full wood variants
+            block == Blocks.OAK_WOOD ||
+            block == Blocks.SPRUCE_WOOD ||
+            block == Blocks.BIRCH_WOOD ||
+            block == Blocks.JUNGLE_WOOD ||
+            block == Blocks.ACACIA_WOOD ||
+            block == Blocks.DARK_OAK_WOOD ||
+            // Snow & ice (common in snowy villages)
+            block == Blocks.SNOW_BLOCK ||
+            block == Blocks.SNOW ||
+            block == Blocks.PACKED_ICE ||
+            block == Blocks.BLUE_ICE ||
+            // Other common village blocks
+            block == Blocks.LANTERN ||
+            block == Blocks.SOUL_LANTERN ||
+            block == Blocks.TORCH ||
+            block == Blocks.WALL_TORCH ||
+            block == Blocks.LADDER ||
+            block == Blocks.SPRUCE_TRAPDOOR ||
+            block == Blocks.OAK_TRAPDOOR ||
+            block == Blocks.DARK_OAK_TRAPDOOR ||
+            block == Blocks.BIRCH_TRAPDOOR ||
+            block == Blocks.ACACIA_TRAPDOOR ||
+            block == Blocks.JUNGLE_TRAPDOOR;
         
         if (!isVillageBlock) return;
         
-        // Excluir job site blocks (el jugador puede romper sus propios bloques de trabajo sin penalización)
+        
         if (isJobSiteBlock(block)) return;
         
-        // Buscar aldeanos cercanos
+        
+        PlayerPlacedBlocks placedCheck = PlayerPlacedBlocks.get(level);
+        if (placedCheck.isPlacedBy(level, blockPos, player.getUUID())) {
+            return;
+        }
+        
+        
         VillageReputationData data = VillageReputationData.get(level);
         BlockPos villagePos = nearestVillage.get();
         List<Villager> nearbyVillagers = level.getEntitiesOfClass(
@@ -1240,14 +1619,27 @@ public class VillagerEventHandler {
         }
         
         if (caughtByVillager) {
+            int reputation = data.getReputation(player.getUUID(), villagePos);
+            int penalty;
+            if (reputation >= 800) {
+                penalty = -3; 
+            } else if (reputation >= 500) {
+                penalty = -5; 
+            } else if (reputation >= 300) {
+                penalty = -7; 
+            } else {
+                penalty = -10;
+            }
             int oldRep = data.getReputation(player.getUUID(), villagePos);
-            data.addReputation(player.getUUID(), villagePos, -10);
+            data.addReputation(player.getUUID(), villagePos, penalty);
             int newRep = data.getReputation(player.getUUID(), villagePos);
             checkAndNotifyReputationChange(player, oldRep, newRep);
-            // Mensajes según reputación
-            int reputation = data.getReputation(player.getUUID(), villagePos);
+            
             Component structureMsg;
-            if (reputation >= 100) {
+            if (reputation >= 500) {
+                int i = level.getRandom().nextInt(4);
+                structureMsg = Component.translatable("villagediplomacy.react.structure.trusted." + i);
+            } else if (reputation >= 100) {
                 int i = level.getRandom().nextInt(4);
                 structureMsg = Component.translatable("villagediplomacy.react.structure.friendly." + i);
             } else if (reputation >= 0) {
@@ -1259,7 +1651,7 @@ public class VillagerEventHandler {
             }
             player.sendSystemMessage(structureMsg);
             player.sendSystemMessage(Component.translatable("villagediplomacy.sys.structure_break"));
-            ModLang.sendReputationSummary(player, -10, newRep);
+            ModLang.sendReputationSummary(player, penalty, newRep);
         }
     }
 
@@ -1274,12 +1666,12 @@ public class VillagerEventHandler {
         Optional<BlockPos> nearestVillage = VillageDetector.findNearestVillage(level, bedPos, 200);
 
         if (nearestVillage.isPresent()) {
-            // BLOQUEO DE CAMAS CON MALA REPUTACIÓN
+            
             VillageReputationData data = VillageReputationData.get(level);
             int reputation = data.getReputation(player.getUUID(), nearestVillage.get());
             
             if (reputation < -400) {
-                // Cancelar el intento de dormir
+                
                 event.setResult(net.minecraft.world.entity.player.Player.BedSleepingProblem.OTHER_PROBLEM);
                 
                 Component bedDenied;
@@ -1293,13 +1685,13 @@ public class VillagerEventHandler {
                 player.sendSystemMessage(bedDenied);
                 player.sendSystemMessage(Component.translatable("villagediplomacy.sys.bed_denied"));
                 
-                return; // Salir sin procesar más
+                return; 
             }
         }
 
-        // Only penalize if player actually sleeps, not just right-click
+        
         if (event.getResultStatus() != null && event.getResultStatus() != net.minecraft.world.entity.player.Player.BedSleepingProblem.NOT_POSSIBLE_HERE) {
-            return; // Player can't sleep here, don't penalize
+            return; 
         }
 
         if (nearestVillage.isPresent()) {
@@ -1366,9 +1758,34 @@ public class VillagerEventHandler {
         Block clickedBlock = level.getBlockState(clickedPos).getBlock();
 
         if (clickedBlock instanceof BellBlock) {
-            // Verificar que realmente tocó la campana (no el aire alrededor)
+            
+            PlayerPlacedBlocks placedCheck = PlayerPlacedBlocks.get(level);
+            if (placedCheck.isPlacedBy(level, clickedPos, player.getUUID())) {
+                
+                event.setCanceled(true);
+
+                
+                int bellDir = event.getHitVec().getDirection().getOpposite().get3DDataValue();
+
+                
+                
+                
+                
+                
+                ClientboundBlockEventPacket packet = new ClientboundBlockEventPacket(clickedPos, clickedBlock, 1, bellDir);
+                for (ServerPlayer p : level.players()) {
+                    p.connection.send(packet);
+                }
+
+                
+                level.playSound(null, clickedPos, SoundEvents.BELL_BLOCK, SoundSource.BLOCKS, 1.0F, 1.0F);
+
+                return;
+            }
+            
+            
             if (event.getHitVec().getLocation().y < clickedPos.getY() + 0.1) {
-                return; // Click en la base, no en la campana
+                return; 
             }
             
             Optional<BlockPos> nearestVillage = VillageDetector.findNearestVillage(level, clickedPos, 200);
@@ -1536,10 +1953,19 @@ public class VillagerEventHandler {
         BlockPos clickedPos = event.getPos();
         Block clickedBlock = level.getBlockState(clickedPos).getBlock();
         
-        // Detectar uso de hornos, mesas de trabajo y brewing stands
-        if (clickedBlock instanceof CraftingTableBlock || clickedBlock instanceof FurnaceBlock || 
+        
+        PlayerPlacedBlocks placedCheck = PlayerPlacedBlocks.get(level);
+        if (placedCheck.isPlacedBy(level, clickedPos, player.getUUID())) {
+            return;
+        }
+        
+        
+        if (clickedBlock instanceof FurnaceBlock || 
             clickedBlock instanceof BlastFurnaceBlock || clickedBlock instanceof SmokerBlock ||
-            clickedBlock instanceof net.minecraft.world.level.block.BrewingStandBlock) {
+            clickedBlock instanceof BrewingStandBlock || clickedBlock instanceof LoomBlock ||
+            clickedBlock instanceof SmithingTableBlock || clickedBlock instanceof CartographyTableBlock ||
+            clickedBlock instanceof FletchingTableBlock || clickedBlock instanceof GrindstoneBlock ||
+            clickedBlock instanceof StonecutterBlock || clickedBlock instanceof ComposterBlock) {
             
             Optional<BlockPos> nearestVillage = VillageDetector.findNearestVillage(level, clickedPos, 200);
             if (nearestVillage.isPresent()) {
@@ -1548,7 +1974,7 @@ public class VillagerEventHandler {
                 BlockPos villagePos = nearestVillage.get();
                 int reputation = data.getReputation(playerId, villagePos);
                 
-                // Penalización por usar bloques de trabajo de la aldea
+                
                 List<Villager> nearbyVillagers = level.getEntitiesOfClass(
                         Villager.class,
                         player.getBoundingBox().inflate(16.0D));
@@ -1563,7 +1989,17 @@ public class VillagerEventHandler {
                 }
 
                 if (caughtByVillager) {
-                    data.addReputation(playerId, villagePos, -8);
+                    int penalty;
+                    if (reputation >= 500) {
+                        penalty = -2; 
+                    } else if (reputation >= 300) {
+                        penalty = -4; 
+                    } else {
+                        penalty = -8;
+                    }
+                    if (penalty < 0) {
+                        data.addReputation(playerId, villagePos, penalty);
+                    }
                     int newRep = data.getReputation(playerId, villagePos);
 
                     String blockName = "workstation";
@@ -1571,19 +2007,45 @@ public class VillagerEventHandler {
                         blockName = "furnace";
                     } else if (clickedBlock instanceof CraftingTableBlock) {
                         blockName = "crafting table";
-                    } else if (clickedBlock instanceof net.minecraft.world.level.block.BrewingStandBlock) {
+                    } else if (clickedBlock instanceof BrewingStandBlock) {
                         blockName = "brewing stand";
+                    } else if (clickedBlock instanceof LoomBlock) {
+                        blockName = "loom";
+                    } else if (clickedBlock instanceof SmithingTableBlock) {
+                        blockName = "smithing table";
+                    } else if (clickedBlock instanceof CartographyTableBlock) {
+                        blockName = "cartography table";
+                    } else if (clickedBlock instanceof FletchingTableBlock) {
+                        blockName = "fletching table";
+                    } else if (clickedBlock instanceof GrindstoneBlock) {
+                        blockName = "grindstone";
+                    } else if (clickedBlock instanceof StonecutterBlock) {
+                        blockName = "stonecutter";
+                    } else if (clickedBlock instanceof ComposterBlock) {
+                        blockName = "composter";
                     }
 
-                    int wbIdx = level.getRandom().nextInt(5);
-                    if (wbIdx == 0) {
-                        player.sendSystemMessage(Component.translatable("villagediplomacy.react.workblock.0", blockName));
+                    if (reputation >= 500) {
+                        int idx = level.getRandom().nextInt(4);
+                        player.sendSystemMessage(Component.translatable("villagediplomacy.react.workblock.trusted." + idx, blockName));
+                    } else if (reputation >= 300) {
+                        int idx = level.getRandom().nextInt(4);
+                        player.sendSystemMessage(Component.translatable("villagediplomacy.react.workblock.friendly." + idx, blockName));
                     } else {
-                        player.sendSystemMessage(Component.translatable("villagediplomacy.react.workblock." + wbIdx));
+                        int wbIdx = level.getRandom().nextInt(5);
+                        if (wbIdx == 0) {
+                            player.sendSystemMessage(Component.translatable("villagediplomacy.react.workblock.0", blockName));
+                        } else {
+                            player.sendSystemMessage(Component.translatable("villagediplomacy.react.workblock." + wbIdx));
+                        }
                     }
                     player.sendSystemMessage(Component.translatable("villagediplomacy.sys.village_block_use",
                             clickedBlock.getName()));
-                    ModLang.sendReputationSummary(player, -8, newRep);
+                    if (penalty < 0) {
+                        ModLang.sendReputationSummary(player, penalty, newRep);
+                    } else {
+                        player.sendSystemMessage(Component.translatable("villagediplomacy.sys.no_penalty_trusted"));
+                    }
 
                     VillageRelationshipData relationData = VillageRelationshipData.get(level);
                     relationData.registerVillage(nearestVillage.get(), level);
@@ -1592,6 +2054,12 @@ public class VillagerEventHandler {
         }
 
         if (level.getBlockState(clickedPos).getBlock() instanceof CraftingTableBlock) {
+            
+            PlayerPlacedBlocks placedCheckCraft = PlayerPlacedBlocks.get(level);
+            if (placedCheckCraft.isPlacedBy(level, clickedPos, player.getUUID())) {
+                return;
+            }
+            
             Optional<BlockPos> nearestVillage = VillageDetector.findNearestVillage(level, clickedPos, 200);
 
             if (nearestVillage.isPresent()) {
@@ -1633,15 +2101,38 @@ public class VillagerEventHandler {
 
                     if (caughtByVillager) {
                         VillageReputationData data = VillageReputationData.get(level);
+                        int reputation = data.getReputation(player.getUUID());
+                        int penalty;
+                        if (reputation >= 500) {
+                            penalty = -2; 
+                        } else if (reputation >= 300) {
+                            penalty = -4; 
+                        } else {
+                            penalty = -8;
+                        }
                         int oldRep = data.getReputation(player.getUUID());
-                        data.addReputation(player.getUUID(), -8);
+                        if (penalty < 0) {
+                            data.addReputation(player.getUUID(), penalty);
+                        }
                         int newRep = data.getReputation(player.getUUID());
                         checkAndNotifyReputationChange(player, oldRep, newRep);
 
-                        int crIdx = level.getRandom().nextInt(3);
-                        player.sendSystemMessage(Component.translatable("villagediplomacy.react.crafting." + crIdx));
+                        if (reputation >= 500) {
+                            int idx = level.getRandom().nextInt(4);
+                            player.sendSystemMessage(Component.translatable("villagediplomacy.react.crafting.trusted." + idx));
+                        } else if (reputation >= 300) {
+                            int idx = level.getRandom().nextInt(3);
+                            player.sendSystemMessage(Component.translatable("villagediplomacy.react.crafting.friendly." + idx));
+                        } else {
+                            int crIdx = level.getRandom().nextInt(3);
+                            player.sendSystemMessage(Component.translatable("villagediplomacy.react.crafting." + crIdx));
+                        }
                         player.sendSystemMessage(Component.translatable("villagediplomacy.sys.crafting_use"));
-                        ModLang.sendReputationSummary(player, -8, newRep);
+                        if (penalty < 0) {
+                            ModLang.sendReputationSummary(player, penalty, newRep);
+                        } else {
+                            player.sendSystemMessage(Component.translatable("villagediplomacy.sys.no_penalty_trusted"));
+                        }
 
                         craftingTableCooldown.put(playerId, currentTime);
                     }
@@ -1732,7 +2223,7 @@ public class VillagerEventHandler {
         if (nearbyGolems.isEmpty())
             return;
         
-        // PRIMERO: Verificar si algún golem ya está atacando al jugador
+        
         boolean golemAlreadyAngry = false;
         IronGolem angryGolem = null;
         
@@ -1748,7 +2239,7 @@ public class VillagerEventHandler {
             }
         }
         
-        // Si el golem ya está atacando, mostrar mensajes VIOLENTOS en vez de strikes
+        
         if (golemAlreadyAngry) {
             GolemPersonalityData personalityData = GolemPersonalityData.get(level);
             GolemPersonality personality = personalityData.getPersonality(angryGolem.getUUID());
@@ -1757,10 +2248,10 @@ public class VillagerEventHandler {
                 ModLang.sendRandomWithArgs(player, level.getRandom(), "villagediplomacy.golem.strike.violent", 8,
                         nameArg);
             }
-            return; // No procesar sistema de strikes
+            return; 
         }
 
-        // Sistema de strikes normal solo si el golem NO está atacando
+        
         List<Long> strikes = villagerAttackTimes.getOrDefault(playerId, new ArrayList<>());
         strikes.removeIf(time -> currentTime - time > STRIKE_WINDOW_MS);
         strikes.add(currentTime);
@@ -1808,13 +2299,6 @@ public class VillagerEventHandler {
         if ("generic".equals(placeId) && "unwelcome".equals(tier)) {
             return 6;
         }
-        if ("generic".equals(placeId)) {
-            return 5;
-        }
-        if ("bell".equals(placeId) || "lectern".equals(placeId) || "grindstone".equals(placeId)
-                || "loom".equals(placeId) || "composter".equals(placeId) || "cauldron".equals(placeId)) {
-            return 5;
-        }
         return 6;
     }
 
@@ -1835,20 +2319,20 @@ public class VillagerEventHandler {
         long crimeEndTime = crimeCommittedTime.get(playerId);
 
         if (currentTime >= crimeEndTime) {
-            // LIMPIAR COMPLETAMENTE TODOS LOS DATOS
+            
             crimeCommittedTime.remove(playerId);
             golemStrikesPerGolem.remove(playerId);
             golemLastHitTime.remove(playerId);
             lastGolemHitTime.remove(playerId);
 
-            // BUSCAR GOLEMS EN TODO EL MUNDO (sin límite de distancia)
+            
             List<IronGolem> allGolems = level.getEntitiesOfClass(IronGolem.class,
                     new AABB(player.blockPosition()).inflate(1000.0D),
                     golem -> !golem.isPlayerCreated());
 
             int calmadosCount = 0;
             for (IronGolem golem : allGolems) {
-                // Verificar si el golem tenía al jugador como objetivo
+                
                 LivingEntity target = golem.getTarget();
                 UUID angerTarget = golem.getPersistentAngerTarget();
 
@@ -1856,7 +2340,7 @@ public class VillagerEventHandler {
                         (angerTarget != null && angerTarget.equals(playerId));
 
                 if (isAngryAtPlayer) {
-                    // RESETEO EXTREMO: 5 pasadas para asegurar limpieza total
+                    
                     for (int i = 0; i < 5; i++) {
                         golem.setTarget(null);
                         golem.setLastHurtByMob(null);
@@ -1871,7 +2355,7 @@ public class VillagerEventHandler {
                 }
             }
 
-            // Mensaje inmersivo sin información de debug
+            
             if (calmadosCount > 0) {
                 if (calmadosCount == 1) {
                     ModLang.send(player, "villagediplomacy.golem.forgive.one");
@@ -1884,7 +2368,7 @@ public class VillagerEventHandler {
             return;
         }
 
-        // Mantener hostilidad activa mientras dure el timer
+        
         List<IronGolem> nearbyGolems = level.getEntitiesOfClass(IronGolem.class,
                 player.getBoundingBox().inflate(32.0D),
                 golem -> !golem.isPlayerCreated());
@@ -1926,26 +2410,42 @@ public class VillagerEventHandler {
         return new AnimalDeathKind("other", 1, 1);
     }
 
-    private record HostileKillKind(String key, int repBonus, int lineCount) {
+    private record HostileKillKind(String key, int repBonus, int lineCount, String dialogKey) {
+        HostileKillKind(String key, int repBonus, int lineCount) {
+            this(key, repBonus, lineCount, key);
+        }
     }
 
     private static HostileKillKind hostileKillKindFor(LivingEntity killed) {
+        var config = com.cesoti2006.villagediplomacy.config.VillageDiplomacyConfig.INSTANCE;
         if (killed instanceof Pillager || killed instanceof Vindicator
                 || killed instanceof Evoker || killed instanceof Ravager
                 || killed instanceof Witch) {
-            return new HostileKillKind("raid", 15, 5);
+            return new HostileKillKind("raid", config.repKillRaid.get(), 5);
         }
         if (killed instanceof Zombie || killed instanceof Husk
                 || killed instanceof Drowned || killed instanceof AbstractSkeleton) {
-            return new HostileKillKind("undead", 10, 5);
+            return new HostileKillKind("undead", config.repKillUndead.get(), 5);
         }
         if (killed instanceof Creeper) {
-            return new HostileKillKind("creeper", 8, 4);
+            return new HostileKillKind("creeper", config.repKillCreeper.get(), 4);
         }
         if (killed instanceof Spider || killed instanceof CaveSpider) {
-            return new HostileKillKind("spider", 5, 4);
+            return new HostileKillKind("spider", config.repKillSpider.get(), 4);
         }
-        return new HostileKillKind("other", 5, 4);
+        if (killed instanceof EnderMan) {
+            return new HostileKillKind("enderman", config.repKillEnderman.get(), 4, "other");
+        }
+        if (killed instanceof Phantom) {
+            return new HostileKillKind("phantom", config.repKillPhantom.get(), 4, "other");
+        }
+        if (killed instanceof Slime || killed instanceof MagmaCube) {
+            return new HostileKillKind("slime", config.repKillSlime.get(), 4, "other");
+        }
+        if (killed instanceof Guardian || killed instanceof ElderGuardian) {
+            return new HostileKillKind("guardian", config.repKillGuardian.get(), 4, "other");
+        }
+        return new HostileKillKind("other", config.repKillOther.get(), 4);
     }
     private record AnimalAttackKind(String key, int babyCount, int adultCount) {
     }
@@ -2006,32 +2506,51 @@ public class VillagerEventHandler {
         UUID playerId = player.getUUID();
         long currentTime = System.currentTimeMillis();
 
-        Optional<BlockPos> nearestVillage = VillageDetector.findNearestVillage(level, player.blockPosition(), 80);
+        Optional<BlockPos> nearestVillage = VillageDetector.findNearestVillage(level, player.blockPosition(), com.cesoti2006.villagediplomacy.config.VillageDiplomacyConfig.INSTANCE.villageEnterRadius.get());
 
-        // Detectar salida de aldea
+        
+        Long loginTime = playerLoginTime.get(playerId);
+        if (loginTime != null && currentTime - loginTime < 5000) {
+            return;
+        }
+
+        // Skip entry/exit messages if disabled in config (village system still works)
+        if (!com.cesoti2006.villagediplomacy.config.VillageDiplomacyConfig.INSTANCE.enableEntryMessages.get()) {
+            return;
+        }
+
+        
         String lastVillage = lastVisitedVillage.get(playerId);
         if (nearestVillage.isEmpty()) {
             if (lastVillage != null) {
-                // Verificar que realmente estuvo en una aldea (cooldown)
+                
                 if (greetingCooldown.containsKey(playerId)) {
                     long lastGreeting = greetingCooldown.get(playerId);
-                    // Solo mostrar "leaving" si pasaron más de 5 segundos desde entrar
-                    if (currentTime - lastGreeting > 5000) {
-                        VillageRelationshipData relationData = VillageRelationshipData.get(level);
-                        String storedName = relationData.getVillageName(lastVillage);
-                        player.sendSystemMessage(Component.translatable("villagediplomacy.enter.bar"));
-                        player.sendSystemMessage(Component.translatable(
-                                "villagediplomacy.enter.leaving",
-                                VillageDisplayName.asComponent(storedName)));
-                        player.sendSystemMessage(Component.translatable("villagediplomacy.enter.bar"));
+                    
+                    if (currentTime - lastGreeting > 10000) {
+                        
+                        Optional<BlockPos> confirmExit = VillageDetector.findNearestVillage(level, player.blockPosition(), 
+                    Math.max(com.cesoti2006.villagediplomacy.config.VillageDiplomacyConfig.INSTANCE.villageExitConfirmRadius.get(), 
+                             com.cesoti2006.villagediplomacy.config.VillageDiplomacyConfig.INSTANCE.villageEnterRadius.get() + 16));
+                        if (confirmExit.isEmpty()) {
+                            VillageRelationshipData relationData = VillageRelationshipData.get(level);
+                            String storedName = relationData.getVillageName(lastVillage);
+                            player.sendSystemMessage(Component.translatable("villagediplomacy.enter.bar"));
+                            player.sendSystemMessage(Component.translatable(
+                                    "villagediplomacy.enter.leaving",
+                                    VillageDisplayName.asComponent(storedName)));
+                            player.sendSystemMessage(Component.translatable("villagediplomacy.enter.bar"));
+                            
+                            lastVisitedVillage.remove(playerId);
+                            greetingCooldown.remove(playerId);
+                        }
                     }
                 }
-                lastVisitedVillage.remove(playerId);
             }
             return;
         }
 
-        // Detectar entrada a aldea
+        
         BlockPos villagePos = nearestVillage.get();
         VillageRelationshipData relationData = VillageRelationshipData.get(level);
         relationData.registerVillage(villagePos, level);
@@ -2064,10 +2583,14 @@ public class VillagerEventHandler {
                     reputation,
                     ModLang.repStatus(reputation)));
             player.sendSystemMessage(Component.translatable("villagediplomacy.enter.bar"));
-            // Cierra HUD anterior antes de abrir el nuevo
+            
             VillageDiplomacyNetwork.sendCloseHud(player);
             VillageDiplomacyNetwork.sendOpenHud(player, villageNameStored, reputation,
                     ModLang.hudRelationKey(reputation));
+            
+            com.cesoti2006.villagediplomacy.integration.guardvillagers.GuardVillagersCompat.getGuardEntryMessage(level, player, villagePos, reputation).ifPresent(msg -> {
+                player.sendSystemMessage(msg);
+            });
 
             lastVisitedVillage.put(playerId, villageId);
             greetingCooldown.put(playerId, currentTime);
@@ -2082,10 +2605,10 @@ public class VillagerEventHandler {
         VillageReputationData data = VillageReputationData.get(level);
         int reputation = data.getReputation(player.getUUID(), nearestVillage.get());
 
-        // Solo dar regalos con reputación positiva (500+)
+        
         if (reputation < 500) return;
         
-        // Probabilidad base ajustada
+        
         float baseChance = reputation >= 1000 ? 0.002F
                 : reputation >= 800 ? 0.001F
                 : 0.0007F;
@@ -2097,12 +2620,12 @@ public class VillagerEventHandler {
                 player.getBoundingBox().inflate(8.0D));
 
         for (Villager villager : nearbyVillagers) {
-            // Filtrar: solo aldeanos con profesión válida (NO nitwits ni bebés)
+            
             if (villager.isBaby()) continue;
             String profession = villager.getVillagerData().getProfession().toString().toLowerCase();
             if (profession.equals("none") || profession.equals("nitwit")) continue;
             
-            // Items según profesión
+            
             ItemStack gift = null;
             String giftKey = "villagediplomacy.gift.generic";
 
@@ -2199,10 +2722,10 @@ public class VillagerEventHandler {
 
                 player.sendSystemMessage(Component.translatable(giftKey));
                 
-                // Feedback visual positivo
+                
                 spawnPositiveFeedback(level, villager);
                 
-                // Solo un regalo por tick
+                
                 break;
             }
         }
@@ -2234,25 +2757,23 @@ public class VillagerEventHandler {
         if (reputation >= 100)
             return 4;
         if (reputation > -100)
-            return 3; // -99 a 99 = NEUTRAL
+            return 3; 
         if (reputation >= -299)
-            return 2; // -100 a -299 = DISLIKED
+            return 2; 
         if (reputation >= -500)
             return 1;
         return 0;
     }
 
-    /**
-     * Método público para limpiar crímenes de un jugador (usado por comandos)
-     */
+    
     public int clearCrimes(ServerPlayer player, ServerLevel level) {
         UUID playerId = player.getUUID();
         
-        // Limpiar crimen
+        
         boolean hadCrime = crimeCommittedTime.containsKey(playerId);
         crimeCommittedTime.remove(playerId);
         
-        // Resetear todos los golems hostiles
+        
         List<IronGolem> nearbyGolems = level.getEntitiesOfClass(IronGolem.class,
             player.getBoundingBox().inflate(100.0D),
             golem -> !golem.isPlayerCreated());
@@ -2338,7 +2859,7 @@ public class VillagerEventHandler {
     }
 
     private BlockType categorizeBlock(Block block, ServerLevel level, BlockPos pos) {
-        // Excluir job site blocks (los maneja el jugador)
+        
         if (isJobSiteBlock(block)) {
             return BlockType.NONE;
         }
@@ -2356,8 +2877,8 @@ public class VillagerEventHandler {
         } else if (isWell(level, pos)) {
             return BlockType.WELL;
         }
-        // HOUSE y WORKSTATION ya no se procesan aquí
-        // Los bloques genéricos los maneja onBlockBreakInVillage()
+        
+        
         return BlockType.NONE;
     }
 
@@ -2546,20 +3067,20 @@ public class VillagerEventHandler {
     }
 
     private void makeGolemsProtectVillageBasedOnReputation(ServerPlayer player, ServerLevel level) {
-        // No atacar en creative o spectator
+        
         if (player.isCreative() || player.isSpectator())
             return;
         
-        // Encontrar la aldea más cercana donde está el jugador
+        
         Optional<BlockPos> nearestVillage = VillageDetector.findNearestVillage(level, player.blockPosition(), 200);
         if (nearestVillage.isEmpty())
             return;
         
         VillageReputationData reputationData = VillageReputationData.get(level);
-        // FIX CRÍTICO: Usar reputación DE ESTA ALDEA, no el promedio global
+        
         int reputation = reputationData.getReputation(player.getUUID(), nearestVillage.get());
 
-        // Solo atacar si reputación es muy baja en ESTA aldea específica
+        
         if (reputation >= -500)
             return;
 
@@ -2588,87 +3109,85 @@ public class VillagerEventHandler {
         if (entity == null) return;
         
         Vec3 pos = entity.position();
-        // Spawn heart particles around the entity
+        
         level.sendParticles(ParticleTypes.HEART, 
             pos.x, pos.y + 2.0, pos.z,
-            3, // count
-            0.3, 0.3, 0.3, // spread
-            0.0); // speed
+            3, 
+            0.3, 0.3, 0.3, 
+            0.0); 
         
-        // Play experience orb pickup sound
+        
         level.playSound(null, entity.blockPosition(), 
             SoundEvents.EXPERIENCE_ORB_PICKUP, 
             SoundSource.NEUTRAL, 
-            0.6f, // volume
-            1.2f); // pitch
+            0.6f, 
+            1.2f); 
     }
     
-    /**
-     * Spawns angry particles and plays villager "no" sound when reputation decreases
-     */
+    
     private void spawnNegativeFeedback(ServerLevel level, LivingEntity entity) {
         if (entity == null) return;
         
         Vec3 pos = entity.position();
-        // Spawn angry cloud particles
+        
         level.sendParticles(ParticleTypes.ANGRY_VILLAGER, 
             pos.x, pos.y + 2.0, pos.z,
-            5, // count
-            0.4, 0.4, 0.4, // spread
-            0.0); // speed
+            5, 
+            0.4, 0.4, 0.4, 
+            0.0); 
         
-        // Play villager "no" sound
+        
         level.playSound(null, entity.blockPosition(), 
             SoundEvents.VILLAGER_NO, 
             SoundSource.NEUTRAL, 
-            0.8f, // volume
-            0.9f); // pitch (slightly lower = more serious)
+            0.8f, 
+            0.9f); 
     }
 
     private void checkForVillagerGreetings(ServerPlayer player, ServerLevel level) {
         UUID playerId = player.getUUID();
         long currentTime = System.currentTimeMillis();
         
-        // Buscar aldea cercana
+        
         Optional<BlockPos> nearestVillage = VillageDetector.findNearestVillage(level, player.blockPosition(), 200);
         if (nearestVillage.isEmpty()) return;
         
         VillageReputationData data = VillageReputationData.get(level);
         int reputation = data.getReputation(playerId, nearestVillage.get());
         
-        // Solo saludar si eres HERO (500+) o ALLY (200+)
+        
         if (reputation < 200) return;
         
-        // Buscar aldeanos cercanos (8 bloques)
+        
         List<Villager> nearbyVillagers = level.getEntitiesOfClass(
                 Villager.class,
                 player.getBoundingBox().inflate(8.0D));
         
         if (nearbyVillagers.isEmpty()) return;
         
-        // Inicializar mapa de cooldowns si no existe
+        
         if (!villagerGreetingCooldown.containsKey(playerId)) {
             villagerGreetingCooldown.put(playerId, new HashMap<>());
         }
         
         Map<UUID, Long> playerGreetings = villagerGreetingCooldown.get(playerId);
         
-        // Encontrar un aldeano que pueda saludar
+        
         for (Villager villager : nearbyVillagers) {
             UUID villagerId = villager.getUUID();
             
-            // Verificar cooldown (60 segundos por aldeano)
+            
             if (playerGreetings.containsKey(villagerId) &&
                 currentTime - playerGreetings.get(villagerId) < 60000) {
                 continue;
             }
             
-            // Verificar línea de visión
+            
             if (!hasLineOfSight(villager, player, level)) {
                 continue;
             }
             
-            // Este aldeano puede saludar
+            
             VillagerPersonalityData personalityData = VillagerPersonalityData.get(level);
             VillagerPersonality personality = personalityData.getPersonality(villagerId);
             String temperament = personality != null ? personality.getTemperament().name() : "NEUTRAL";
@@ -2678,22 +3197,22 @@ public class VillagerEventHandler {
             String key = greetingKeys[level.getRandom().nextInt(greetingKeys.length)];
             player.sendSystemMessage(Component.translatable(key, villagerName));
             
-            // Efecto visual - corazones
+            
             Vec3 villagerPos = villager.position();
             level.sendParticles(ParticleTypes.HEART,
                 villagerPos.x, villagerPos.y + 2.0, villagerPos.z,
                 2, 0.3, 0.3, 0.3, 0.0);
             
-            // Sonido de aldeano feliz
+            
             level.playSound(null, villager.blockPosition(),
                 SoundEvents.VILLAGER_YES,
                 SoundSource.NEUTRAL,
                 0.6f, 1.0f + level.getRandom().nextFloat() * 0.2f);
             
-            // Registrar cooldown
+            
             playerGreetings.put(villagerId, currentTime);
             
-            // Solo un saludo por tick
+            
             return;
         }
     }
@@ -2792,7 +3311,7 @@ public class VillagerEventHandler {
         if (!(villager.level() instanceof ServerLevel level))
             return;
 
-        // Buscar quién curó a este zombie villager
+        
         UUID curerUUID = zombieVillagerCurers.remove(event.getEntity().getUUID());
         if (curerUUID == null)
             return;
@@ -2801,7 +3320,7 @@ public class VillagerEventHandler {
         if (curer == null)
             return;
 
-        // Dar +100 de reputación por curar
+        
         BlockPos villagerPos = villager.blockPosition();
         Optional<BlockPos> nearestVillage = VillageDetector.findNearestVillage(level, villagerPos, 200);
         
@@ -2827,15 +3346,15 @@ public class VillagerEventHandler {
             
         ItemStack held = player.getItemInHand(event.getHand());
         
-        // Detectar si el player está curando (golden apple + weakness)
+        
         if (held.getItem() == Items.GOLDEN_APPLE && zombieVillager.hasEffect(net.minecraft.world.effect.MobEffects.WEAKNESS)) {
-            // Registrar quién está curando a este zombie
+            
             zombieVillagerCurers.put(zombieVillager.getUUID(), player.getUUID());
         }
     }
 
     private boolean isJobSiteBlock(Block block) {
-        // Lista completa de job site blocks que los aldeanos usan
+        
         return block instanceof net.minecraft.world.level.block.BarrelBlock ||
                block instanceof net.minecraft.world.level.block.BlastFurnaceBlock ||
                block instanceof net.minecraft.world.level.block.BrewingStandBlock ||

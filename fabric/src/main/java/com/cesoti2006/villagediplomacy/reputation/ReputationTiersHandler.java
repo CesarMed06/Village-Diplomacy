@@ -1,26 +1,24 @@
 package com.cesoti2006.villagediplomacy.reputation;
 
-/**
- * Gestiona ventajas/desventajas basadas en nivel de reputación
- */
+
 public final class ReputationTiersHandler {
 
     public enum ReputationTier {
-        // POSITIVOS
+        
         LEGENDARY_HERO(1000, "villagediplomacy.tier.legendary_hero", 0.75f, false, false),
         HERO(800, "villagediplomacy.tier.hero", 0.80f, false, false),
         CHAMPION(500, "villagediplomacy.tier.champion", 0.85f, false, false),
         TRUSTED_FRIEND(300, "villagediplomacy.tier.trusted_friend", 0.90f, false, false),
         FRIENDLY(100, "villagediplomacy.tier.friendly", 0.95f, false, false),
         
-        // NEUTRAL
+        
         NEUTRAL(0, "villagediplomacy.tier.neutral", 1.0f, false, false),
         
-        // NEGATIVOS
-        SUSPICIOUS(-100, "villagediplomacy.tier.suspicious", 1.05f, false, false),
-        DISLIKED(-200, "villagediplomacy.tier.disliked", 1.10f, false, false),
-        UNWELCOME(-400, "villagediplomacy.tier.unwelcome", 1.15f, true, false),
-        UNFRIENDLY(-700, "villagediplomacy.tier.unfriendly", 1.20f, true, false),
+        
+        SUSPICIOUS(-100, "villagediplomacy.tier.suspicious", 1.05f, false, true),
+        DISLIKED(-200, "villagediplomacy.tier.disliked", 1.10f, false, true),
+        UNWELCOME(-400, "villagediplomacy.tier.unwelcome", 1.15f, true, true),
+        UNFRIENDLY(-700, "villagediplomacy.tier.unfriendly", 1.20f, true, true),
         HOSTILE(-900, "villagediplomacy.tier.hostile", 1.25f, true, true),
         WANTED_CRIMINAL(-1000, "villagediplomacy.tier.wanted_criminal", 1.30f, true, true);
 
@@ -83,8 +81,8 @@ public final class ReputationTiersHandler {
         if (reputation >= 300)  return ReputationTier.TRUSTED_FRIEND;
         if (reputation >= 100)  return ReputationTier.FRIENDLY;
         if (reputation >= 0)    return ReputationTier.NEUTRAL;
-        if (reputation > -100)  return ReputationTier.NEUTRAL;
-        if (reputation >= -199) return ReputationTier.SUSPICIOUS;
+        if (reputation >= -100) return ReputationTier.SUSPICIOUS;
+        if (reputation >= -199) return ReputationTier.DISLIKED;
         if (reputation >= -299) return ReputationTier.DISLIKED;
         if (reputation >= -499) return ReputationTier.UNWELCOME;
         if (reputation >= -699) return ReputationTier.UNFRIENDLY;

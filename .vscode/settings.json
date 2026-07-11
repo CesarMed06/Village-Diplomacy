@@ -1,20 +1,6 @@
 {
-  "github.copilot.chat.codeGeneration.useInstructionFiles": true,
-
-  "github.copilot.chat.localeOverride": "es",
-
-  "github.copilot.chat.workspaceContext": {
-    "alwaysInclude": [
-      "src/main/java/com/cesoti2006/villagediplomacy/**/*.java",
-      ".github/copilot-instructions.md",
-      "build.gradle",
-      "gradle.properties"
-    ],
-    "neverInclude": ["**/build/**", "**/.gradle/**", "**/run/**"]
-  },
-
-  "files.exclude": {
-    "**/.gradle": true,
-    "**/build": true
-  }
+  "java.compile.nullAnalysis.mode": "disabled",
+  "java.compile.nullAnalysis.nonnull": "javax.annotation.Nonnull",
+  "java.compile.nullAnalysis.nullable": "javax.annotation.Nullable",
+  "java.configuration.updateBuildConfiguration": "interactive"
 }

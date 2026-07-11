@@ -1,5 +1,6 @@
 package com.cesoti2006.villagediplomacy.personality;
 
+import com.cesoti2006.villagediplomacy.data.PlayerPlacedBlocks;
 import com.cesoti2006.villagediplomacy.data.VillagerPersonalityData;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -21,19 +22,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-/**
- * Aldeanos VALIENTES tocan la campana furiosamente cuando hay peligro
- */
+
 @Mod.EventBusSubscriber
 public class BraveBellRinger {
     
     private static final Map<UUID, Long> lastBellRing = new HashMap<>();
     private static final Map<BlockPos, Long> lastBellAnimation = new HashMap<>();
-    private static final long BELL_COOLDOWN = 15000; // 15 segundos entre tocadas
+    private static final long BELL_COOLDOWN = 15000; 
     
-    /**
-     * Cuando un aldeano es atacado por un monstruo
-     */
+    
     @SubscribeEvent
     public static void onVillagerAttacked(LivingAttackEvent event) {
         if (!(event.getEntity() instanceof Villager victim)) return;
@@ -43,10 +40,10 @@ public class BraveBellRinger {
         ServerLevel level = (ServerLevel) victim.level();
         VillagerPersonalityData data = VillagerPersonalityData.get(level);
         
-        // NO cancelar el ataque - dejar que el aldeano grite naturalmente
-        // (removiendo cualquier event.setCanceled que hubiera)
         
-        // Buscar aldeanos VALIENTES cercanos
+        
+        
+        
         List<Villager> nearbyVillagers = level.getEntitiesOfClass(Villager.class,
             victim.getBoundingBox().inflate(25.0D));
         
@@ -56,27 +53,27 @@ public class BraveBellRinger {
             VillagerPersonality personality = data.getPersonality(villager.getUUID());
             if (personality == null) continue;
             
-            // Solo los VALIENTES/FEARLESS actúan
+            
             PersonalityTrait courage = personality.getCourage();
             if (courage != PersonalityTrait.BRAVE && courage != PersonalityTrait.FEARLESS) continue;
             
-            // Cooldown individual
+            
             Long lastRing = lastBellRing.get(villager.getUUID());
             long currentTime = System.currentTimeMillis();
             if (lastRing != null && currentTime - lastRing < BELL_COOLDOWN) continue;
             
-            // Buscar campana cercana
+            
             BlockPos bellPos = findNearestBell(villager.blockPosition(), level, 30);
             if (bellPos == null) continue;
             
-            // TOCAR LA CAMPANA con animación
+            
             ringBellWithAnimation(bellPos, level, villager);
             lastBellRing.put(villager.getUUID(), currentTime);
             
-            // Emoción: ENOJADO
+            
             personality.setCurrentEmotion(EmotionalState.ANGRY);
             
-            // Mensaje de acción
+            
             String name = personality.getCustomName();
             List<net.minecraft.world.entity.player.Player> nearbyPlayers = level.getEntitiesOfClass(
                 net.minecraft.world.entity.player.Player.class,
@@ -86,20 +83,21 @@ public class BraveBellRinger {
                 player.sendSystemMessage(Component.translatable("villagediplomacy.bell.brave_ring", name));
             }
             
-            // HACER QUE TODOS LOS ALDEANOS CORRAN A LA CAMPANA
+            
             makeVillagersRunToBell(bellPos, level, 40);
             
-            break; // Solo un aldeano toca la campana
+            break; 
         }
     }
     
-    /**
-     * Buscar campana más cercana
-     */
+    
     private static BlockPos findNearestBell(BlockPos center, ServerLevel level, int radius) {
         BlockPos.MutableBlockPos mutablePos = new BlockPos.MutableBlockPos();
         double closestDistance = Double.MAX_VALUE;
         BlockPos closestBell = null;
+        
+        
+        PlayerPlacedBlocks placedBlocks = PlayerPlacedBlocks.get(level);
         
         for (int x = -radius; x <= radius; x++) {
             for (int y = -5; y <= 5; y++) {
@@ -108,6 +106,11 @@ public class BraveBellRinger {
                     BlockState state = level.getBlockState(mutablePos);
                     
                     if (state.is(Blocks.BELL)) {
+                        
+                        
+                        if (placedBlocks.hasOwner(level, mutablePos)) {
+                            continue;
+                        }
                         double distance = center.distSqr(mutablePos);
                         if (distance < closestDistance) {
                             closestDistance = distance;
@@ -121,43 +124,39 @@ public class BraveBellRinger {
         return closestBell;
     }
     
-    /**
-     * Tocar campana con animación completa
-     */
+    
     private static void ringBellWithAnimation(BlockPos bellPos, ServerLevel level, Villager ringer) {
         BlockState bellState = level.getBlockState(bellPos);
         if (!(bellState.getBlock() instanceof BellBlock bellBlock)) return;
         
-        // Determinar dirección desde donde se toca
+        
         Direction direction = Direction.fromYRot(ringer.getYRot());
         
-        // ANIMAR LA CAMPANA (esto hace que se mueva visualmente)
+        
         bellBlock.attemptToRing(level, bellPos, direction);
         
-        // Sonido fuerte
+        
         level.playSound(null, bellPos, SoundEvents.BELL_BLOCK, SoundSource.BLOCKS, 3.0F, 1.0F);
         
-        // Registrar tiempo de animación
+        
         lastBellAnimation.put(bellPos, System.currentTimeMillis());
     }
     
-    /**
-     * Hacer que todos los aldeanos corran hacia la campana
-     */
+    
     private static void makeVillagersRunToBell(BlockPos bellPos, ServerLevel level, int radius) {
         List<Villager> allVillagers = level.getEntitiesOfClass(Villager.class,
             new net.minecraft.world.phys.AABB(bellPos).inflate(radius));
         
         for (Villager villager : allVillagers) {
-            // Navegar rápidamente a la campana
+            
             villager.getNavigation().moveTo(
                 bellPos.getX() + 0.5, 
                 bellPos.getY(), 
                 bellPos.getZ() + 0.5, 
-                1.5D // Velocidad alta
+                1.5D 
             );
             
-            // Emociones según personalidad
+            
             VillagerPersonalityData data = VillagerPersonalityData.get(level);
             VillagerPersonality personality = data.getPersonality(villager.getUUID());
             if (personality != null) {

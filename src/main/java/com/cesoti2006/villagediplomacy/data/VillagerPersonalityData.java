@@ -2,6 +2,7 @@ package com.cesoti2006.villagediplomacy.data;
 
 import com.cesoti2006.villagediplomacy.personality.*;
 import net.minecraft.nbt.CompoundTag;
+import javax.annotation.Nonnull;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerLevel;
@@ -9,15 +10,13 @@ import net.minecraft.world.level.saveddata.SavedData;
 
 import java.util.*;
 
-/**
- * Almacena las personalidades de todos los aldeanos en el mundo
- */
+
 public class VillagerPersonalityData extends SavedData {
     private static final String DATA_NAME = "villagediplomacy_personality";
     
     private final Map<UUID, VillagerPersonality> personalities = new HashMap<>();
-    private final Map<UUID, Long> deathTimes = new HashMap<>(); // UUID aldeano -> tiempo de muerte
-    private final Map<UUID, String> deadVillagerNames = new HashMap<>(); // Para el luto
+    private final Map<UUID, Long> deathTimes = new HashMap<>(); 
+    private final Map<UUID, String> deadVillagerNames = new HashMap<>(); 
     
     public VillagerPersonalityData() {
     }
@@ -27,10 +26,10 @@ public class VillagerPersonalityData extends SavedData {
                 .computeIfAbsent(VillagerPersonalityData::load, VillagerPersonalityData::new, DATA_NAME);
     }
     
-    public static VillagerPersonalityData load(CompoundTag tag) {
+    public static VillagerPersonalityData load(@Nonnull CompoundTag tag) {
         VillagerPersonalityData data = new VillagerPersonalityData();
         
-        // Load personalities
+        
         ListTag personalitiesList = tag.getList("Personalities", Tag.TAG_COMPOUND);
         for (int i = 0; i < personalitiesList.size(); i++) {
             CompoundTag personalityTag = personalitiesList.getCompound(i);
@@ -39,7 +38,7 @@ public class VillagerPersonalityData extends SavedData {
             String name = personalityTag.getString("Name");
             String biome = personalityTag.getString("Biome");
             
-            // Load all 7 personality traits
+            
             PersonalityTrait courage = PersonalityTrait.valueOf(personalityTag.getString("Courage"));
             PersonalityTrait generosity = PersonalityTrait.valueOf(personalityTag.getString("Generosity"));
             PersonalityTrait workEthic = personalityTag.contains("WorkEthic") ? 
@@ -59,7 +58,7 @@ public class VillagerPersonalityData extends SavedData {
                 temperament, honesty, outlook
             );
             
-            // Load additional data
+            
             if (personalityTag.contains("Emotion")) {
                 personality.setCurrentEmotion(EmotionalState.valueOf(personalityTag.getString("Emotion")));
             }
@@ -82,7 +81,7 @@ public class VillagerPersonalityData extends SavedData {
             data.personalities.put(villagerId, personality);
         }
         
-        // Cargar muertes
+        
         ListTag deathsList = tag.getList("Deaths", Tag.TAG_COMPOUND);
         for (int i = 0; i < deathsList.size(); i++) {
             CompoundTag deathTag = deathsList.getCompound(i);
@@ -99,7 +98,7 @@ public class VillagerPersonalityData extends SavedData {
     
     @Override
     public CompoundTag save(CompoundTag tag) {
-        // Save personalities
+        
         ListTag personalitiesList = new ListTag();
         for (VillagerPersonality personality : personalities.values()) {
             CompoundTag personalityTag = new CompoundTag();
@@ -108,7 +107,7 @@ public class VillagerPersonalityData extends SavedData {
             personalityTag.putString("Name", personality.getCustomName());
             personalityTag.putString("Biome", personality.getBiomeType());
             
-            // Save all 7 personality traits
+            
             personalityTag.putString("Courage", personality.getCourage().name());
             personalityTag.putString("Generosity", personality.getGenerosity().name());
             personalityTag.putString("WorkEthic", personality.getWorkEthic().name());
@@ -132,7 +131,7 @@ public class VillagerPersonalityData extends SavedData {
         }
         tag.put("Personalities", personalitiesList);
         
-        // Guardar muertes
+        
         ListTag deathsList = new ListTag();
         for (Map.Entry<UUID, Long> entry : deathTimes.entrySet()) {
             CompoundTag deathTag = new CompoundTag();
@@ -146,7 +145,7 @@ public class VillagerPersonalityData extends SavedData {
         return tag;
     }
     
-    // ========== MÉTODOS PÚBLICOS ==========
+    
     
     public VillagerPersonality getPersonality(UUID villagerId) {
         return personalities.get(villagerId);
@@ -157,7 +156,7 @@ public class VillagerPersonalityData extends SavedData {
             return personalities.get(villagerId);
         }
         
-        // Create new personality with ALL 7 traits
+        
         boolean isMale = random.nextBoolean();
         String name = NameGenerator.generateName(biomeType, isMale, random);
         PersonalityTrait courage = PersonalityTrait.randomCourage(random);
@@ -183,7 +182,7 @@ public class VillagerPersonalityData extends SavedData {
         deathTimes.put(villagerId, System.currentTimeMillis());
         deadVillagerNames.put(villagerId, villagerName);
         
-        // Todos los aldeanos del pueblo entran en luto
+        
         for (VillagerPersonality personality : personalities.values()) {
             if (!personality.getVillagerId().equals(villagerId)) {
                 personality.setCurrentEmotion(EmotionalState.MOURNING);
@@ -197,7 +196,7 @@ public class VillagerPersonalityData extends SavedData {
         if (!deathTimes.containsKey(villagerId)) return false;
         long deathTime = deathTimes.get(villagerId);
         long elapsed = System.currentTimeMillis() - deathTime;
-        return elapsed < 1200000; // 20 minutos
+        return elapsed < 1200000; 
     }
     
     public String getDeadVillagerName(UUID villagerId) {
@@ -211,7 +210,7 @@ public class VillagerPersonalityData extends SavedData {
     public void cleanupOldDeaths() {
         long currentTime = System.currentTimeMillis();
         deathTimes.entrySet().removeIf(entry -> 
-            currentTime - entry.getValue() > 1200000); // 20 minutos
+            currentTime - entry.getValue() > 1200000); 
         setDirty();
     }
 }

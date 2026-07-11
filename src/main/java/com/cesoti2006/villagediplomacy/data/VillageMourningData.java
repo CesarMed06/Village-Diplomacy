@@ -2,6 +2,7 @@ package com.cesoti2006.villagediplomacy.data;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import javax.annotation.Nonnull;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerLevel;
@@ -9,14 +10,11 @@ import net.minecraft.world.level.saveddata.SavedData;
 
 import java.util.*;
 
-/**
- * Rastrea muertes de aldeanos para el sistema de luto
- * Aldeanos cercanos se acercan al puesto de trabajo vacío y lloran
- */
+
 public class VillageMourningData extends SavedData {
     private static final String DATA_NAME = "villagediplomacy_mourning";
     
-    // Estructura: villageId -> lista de muertes recientes
+    
     private final Map<String, List<MourningRecord>> recentDeaths = new HashMap<>();
     
     public VillageMourningData() {
@@ -27,7 +25,7 @@ public class VillageMourningData extends SavedData {
                 .computeIfAbsent(VillageMourningData::load, VillageMourningData::new, DATA_NAME);
     }
     
-    public static VillageMourningData load(CompoundTag tag) {
+    public static VillageMourningData load(@Nonnull CompoundTag tag) {
         VillageMourningData data = new VillageMourningData();
         
         ListTag deathsList = tag.getList("Deaths", Tag.TAG_COMPOUND);
@@ -85,9 +83,7 @@ public class VillageMourningData extends SavedData {
         return tag;
     }
     
-    /**
-     * Registrar muerte de aldeano
-     */
+    
     public void registerDeath(String villageId, String villagerName, String profession, BlockPos jobSite) {
         long currentTime = System.currentTimeMillis();
         MourningRecord record = new MourningRecord(villagerName, profession, currentTime, jobSite);
@@ -96,17 +92,15 @@ public class VillageMourningData extends SavedData {
         setDirty();
     }
     
-    /**
-     * Obtener muertes recientes (últimas 24 horas in-game = 20 min real)
-     */
+    
     public List<MourningRecord> getRecentDeaths(String villageId) {
         long currentTime = System.currentTimeMillis();
-        long mourningPeriod = 20 * 60 * 1000; // 20 minutos reales
+        long mourningPeriod = 20 * 60 * 1000; 
         
         List<MourningRecord> deaths = recentDeaths.get(villageId);
         if (deaths == null) return Collections.emptyList();
         
-        // Filtrar muertes antiguas
+        
         deaths.removeIf(death -> currentTime - death.deathTime > mourningPeriod);
         
         if (deaths.isEmpty()) {
@@ -117,9 +111,7 @@ public class VillageMourningData extends SavedData {
         return new ArrayList<>(deaths);
     }
     
-    /**
-     * Limpiar muertes antiguas
-     */
+    
     public void cleanup() {
         long currentTime = System.currentTimeMillis();
         long mourningPeriod = 20 * 60 * 1000;
@@ -132,9 +124,7 @@ public class VillageMourningData extends SavedData {
         setDirty();
     }
     
-    /**
-     * Registro de muerte
-     */
+    
     public static class MourningRecord {
         public final String villagerName;
         public final String profession;

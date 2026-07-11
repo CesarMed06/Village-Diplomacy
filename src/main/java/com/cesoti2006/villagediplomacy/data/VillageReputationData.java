@@ -2,6 +2,7 @@ package com.cesoti2006.villagediplomacy.data;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import javax.annotation.Nonnull;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerLevel;
@@ -17,13 +18,13 @@ public class VillageReputationData extends SavedData {
 
     private static final String DATA_NAME = "village_diplomacy_reputation";
 
-    // Mapa: PlayerID -> (VillagePos -> Reputation)
+    
     private final Map<UUID, Map<String, Integer>> playerVillageReputations = new HashMap<>();
 
     public VillageReputationData() {
     }
 
-    public static VillageReputationData load(CompoundTag tag) {
+    public static VillageReputationData load(@Nonnull CompoundTag tag) {
         VillageReputationData data = new VillageReputationData();
 
         ListTag playerList = tag.getList("PlayerReputations", Tag.TAG_COMPOUND);
@@ -98,16 +99,16 @@ public class VillageReputationData extends SavedData {
         setDirty();
     }
 
-    // Para comandos: obtener reputación en la aldea más cercana
+    
     public int getReputation(UUID playerId) {
         Map<String, Integer> villageReps = playerVillageReputations.get(playerId);
         if (villageReps == null || villageReps.isEmpty()) return 0;
-        // Retornar el promedio de todas las aldeas como fallback
+        
         return (int) villageReps.values().stream().mapToInt(Integer::intValue).average().orElse(0);
     }
 
     public void addReputation(UUID playerId, int amount) {
-        // Método legacy para compatibilidad - aplicar a TODAS las aldeas conocidas
+        
         Map<String, Integer> villageReps = playerVillageReputations.get(playerId);
         if (villageReps != null && !villageReps.isEmpty()) {
             for (String villageKey : villageReps.keySet()) {
@@ -119,8 +120,8 @@ public class VillageReputationData extends SavedData {
     }
 
     public void setReputation(UUID playerId, int reputation) {
-        // Método legacy para compatibilidad con comandos
-        // Establecer la misma reputación en todas las aldeas conocidas
+        
+        
         Map<String, Integer> villageReps = playerVillageReputations.computeIfAbsent(playerId, k -> new HashMap<>());
         for (String villageKey : villageReps.keySet()) {
             villageReps.put(villageKey, reputation);
@@ -128,7 +129,7 @@ public class VillageReputationData extends SavedData {
         setDirty();
     }
 
-    // Helper method: añadir/obtener reputación detectando aldea automáticamente
+    
     public int getReputationNearby(UUID playerId, net.minecraft.server.level.ServerLevel level, BlockPos pos) {
         Optional<BlockPos> nearestVillage = com.cesoti2006.villagediplomacy.data.VillageDetector.findNearestVillage(level, pos, 200);
         if (nearestVillage.isEmpty()) return 0;
@@ -141,10 +142,7 @@ public class VillageReputationData extends SavedData {
         addReputation(playerId, nearestVillage.get(), amount);
     }
     
-    /**
-     * Get all village reputations for a player
-     * Returns map of villageId -> reputation
-     */
+    
     public Map<String, Integer> getPlayerReputations(UUID playerId) {
         return new HashMap<>(playerVillageReputations.getOrDefault(playerId, new HashMap<>()));
     }

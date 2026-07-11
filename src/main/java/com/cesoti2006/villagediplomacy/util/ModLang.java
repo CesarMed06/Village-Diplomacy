@@ -6,13 +6,13 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.npc.AbstractVillager;
-import net.minecraft.world.entity.npc.Villager;
+import net.minecraft.world.entity.npc.WanderingTrader;
 
 public final class ModLang {
 
     private ModLang() {}
 
-    // ── Colores centralizados ──────────────────────────────────────────────────
+    
 
     private static final ChatFormatting COLOR_VILLAGER_NAME  = ChatFormatting.GOLD;
     private static final ChatFormatting COLOR_DIALOG         = ChatFormatting.YELLOW;
@@ -22,7 +22,7 @@ public final class ModLang {
     private static final ChatFormatting COLOR_REP_TIER       = ChatFormatting.AQUA;
     private static final ChatFormatting COLOR_BRACKET        = ChatFormatting.DARK_GRAY;
 
-    // ── Prefijo [Nombre] ───────────────────────────────────────────────────────
+    
 
     private static final java.util.Map<String, String> PROF_ES = java.util.Map.ofEntries(
         java.util.Map.entry("farmer", "Granjero"),
@@ -38,7 +38,8 @@ public final class ModLang {
         java.util.Map.entry("fletcher", "Flechero"),
         java.util.Map.entry("cartographer", "Cartógrafo"),
         java.util.Map.entry("mason", "Cantero"),
-        java.util.Map.entry("nitwit", "Aldeano")
+        java.util.Map.entry("nitwit", "Aldeano"),
+        java.util.Map.entry("none", "Aldeano")
     );
 
     public static MutableComponent villagerPrefix(AbstractVillager villager) {
@@ -49,6 +50,8 @@ public final class ModLang {
             String prof = v.getVillagerData().getProfession().toString().toLowerCase();
             prof = prof.contains(":") ? prof.substring(prof.indexOf(":") + 1) : prof;
             name = PROF_ES.getOrDefault(prof, "Aldeano");
+        } else if (villager instanceof WanderingTrader) {
+            name = "Comerciante Ambulante";
         } else {
             name = "Aldeano";
         }
@@ -68,7 +71,7 @@ public final class ModLang {
             .append(Component.literal(" "));
     }
 
-    // ── Envío básico ──────────────────────────────────────────────────────────
+    
 
     public static void send(ServerPlayer player, String key, Object... args) {
         player.sendSystemMessage(
@@ -80,7 +83,7 @@ public final class ModLang {
         player.sendSystemMessage(component);
     }
 
-    // ── Diálogo de aldeano (con prefijo [Nombre]) ──────────────────────────────
+    
 
     public static void sendDialog(ServerPlayer player, AbstractVillager villager, String key) {
         MutableComponent msg = villagerPrefix(villager)
@@ -118,7 +121,7 @@ public final class ModLang {
         sendDialogNamed(player, name, keyPrefix + "." + i);
     }
 
-    // ── Líneas del sistema (grises, sin prefijo aldeano) ──────────────────────
+    
 
     public static void sendRandom(ServerPlayer player, RandomSource random, String keyPrefix, int count) {
         if (count <= 0) return;
@@ -137,7 +140,7 @@ public final class ModLang {
         );
     }
 
-    // ── Resumen de reputación ──────────────────────────────────────────────────
+    
 
     public static void sendReputationSummary(ServerPlayer player, int delta, int newTotal) {
         MutableComponent deltaC = Component.literal((delta >= 0 ? "+" : "") + delta)
@@ -152,7 +155,7 @@ public final class ModLang {
         );
     }
 
-    // ── Estado de reputación ──────────────────────────────────────────────────
+    
 
     public static String repStatusKey(int reputation) {
         if (reputation >= 1000) return "villagediplomacy.rep.legendary_hero";
@@ -161,12 +164,11 @@ public final class ModLang {
         if (reputation >= 300)  return "villagediplomacy.rep.trusted_friend";
         if (reputation >= 100)  return "villagediplomacy.rep.friendly";
         if (reputation >= 0)    return "villagediplomacy.rep.neutral";
-        if (reputation > -100)  return "villagediplomacy.rep.neutral";
-        if (reputation >= -199) return "villagediplomacy.rep.suspicious";
-        if (reputation >= -299) return "villagediplomacy.rep.disliked";
-        if (reputation >= -499) return "villagediplomacy.rep.unwelcome";
-        if (reputation >= -699) return "villagediplomacy.rep.unfriendly";
-        if (reputation >= -899) return "villagediplomacy.rep.hostile";
+        if (reputation >= -49)  return "villagediplomacy.rep.suspicious";
+        if (reputation >= -99)  return "villagediplomacy.rep.disliked";
+        if (reputation >= -199) return "villagediplomacy.rep.unwelcome";
+        if (reputation >= -399) return "villagediplomacy.rep.unfriendly";
+        if (reputation >= -699) return "villagediplomacy.rep.hostile";
         if (reputation >= -999) return "villagediplomacy.rep.enemy";
         return "villagediplomacy.rep.wanted_criminal";
     }
@@ -184,7 +186,8 @@ public final class ModLang {
     public static String hudRelationKey(int reputation) {
         if (reputation >= 300)  return "ally";
         if (reputation >= 100)  return "friendly";
-        if (reputation >= -99)  return "neutral";
+        if (reputation >= 0)    return "neutral";
+        if (reputation >= -199) return "suspicious";
         if (reputation >= -399) return "hostile";
         return "enemy";
     }

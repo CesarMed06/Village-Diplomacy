@@ -1,14 +1,13 @@
 package com.cesoti2006.villagediplomacy.personality;
 
-import com.cesoti2006.villagediplomacy.data.VillageDetector;
 import com.cesoti2006.villagediplomacy.data.VillagerPersonalityData;
-import com.cesoti2006.villagediplomacy.data.VillageReputationData;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.entity.ai.village.poi.PoiManager;
+import net.minecraft.world.entity.ai.village.poi.PoiTypes;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.event.entity.living.LivingEvent;
@@ -21,21 +20,20 @@ import java.util.Optional;
 import java.util.Random;
 import java.util.UUID;
 
-/**
- * Comportamientos únicos y curiosos para aldeanos según personalidad
- */
+
 @Mod.EventBusSubscriber
 public class VillagerActivityBehavior {
 
     private static final Random RANDOM = new Random();
     private static final Map<UUID, Long> lastActivityTime = new HashMap<>();
-    private static final long ACTIVITY_INTERVAL = 30000; // Reducido de 60000 para más frecuencia
+    private static final long ACTIVITY_INTERVAL = 45000; 
 
     @SubscribeEvent
     public static void onVillagerTick(LivingEvent.LivingTickEvent event) {
         if (!(event.getEntity() instanceof Villager villager)) return;
         if (villager.level().isClientSide()) return;
-        if (villager.tickCount % 100 != 0) return;
+        
+        if (villager.tickCount % 200 != 0) return;
 
         ServerLevel level = (ServerLevel) villager.level();
         UUID villagerId = villager.getUUID();
@@ -44,7 +42,7 @@ public class VillagerActivityBehavior {
         Long lastTime = lastActivityTime.getOrDefault(villagerId, 0L);
         if (currentTime - lastTime < ACTIVITY_INTERVAL) return;
 
-        if (RANDOM.nextDouble() < 0.30) {
+        if (RANDOM.nextDouble() < 0.25) { 
             performActivityBasedOnPersonality(villager, level);
             lastActivityTime.put(villagerId, currentTime);
         }
@@ -110,8 +108,8 @@ public class VillagerActivityBehavior {
             if (target != null) {
                 villager.getNavigation().moveTo(target, 1.0D);
                 if (villager.distanceToSqr(target) < 4.0D) {
-                    // SOLO dar comida a jugadores heridos si tienen reputación POSITIVA
-                    // Por ahora solo compartem comida entre aldeanos, no entre jugadores
+                    
+                    
                     ItemStack food = villager.getMainHandItem().copy();
                     food.setCount(1);
                     villager.spawnAtLocation(food);
@@ -171,54 +169,73 @@ public class VillagerActivityBehavior {
         }
     }
 
-    private static BlockPos findNearestWater(BlockPos center, ServerLevel level, int radius) {
+    
+    private static BlockPos findNearestWater(BlockPos center, ServerLevel level, int maxRadius) {
+        
+        PoiManager poiManager = level.getPoiManager();
+        Optional<BlockPos> fisherPoi = poiManager.findClosest(
+            holder -> holder.is(PoiTypes.FISHERMAN),
+            center,
+            40,
+            PoiManager.Occupancy.ANY
+        );
+        if (fisherPoi.isPresent()) return fisherPoi.get();
+        
+        
+        int r = Math.min(maxRadius, 6);
         BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos();
-        for (int x = -radius; x <= radius; x++) {
-            for (int y = -5; y <= 5; y++) {
-                for (int z = -radius; z <= radius; z++) {
+        for (int x = -r; x <= r; x++) {
+            for (int y = -2; y <= 2; y++) {
+                for (int z = -r; z <= r; z++) {
                     mutable.set(center.getX() + x, center.getY() + y, center.getZ() + z);
-                    if (level.getBlockState(mutable).is(Blocks.WATER)) return mutable.immutable();
-                }
-            }
-        }
-        return null;
-    }
-
-    private static BlockPos findNearestChest(BlockPos center, ServerLevel level, int radius) {
-        BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos();
-        for (int x = -radius; x <= radius; x++) {
-            for (int y = -3; y <= 3; y++) {
-                for (int z = -radius; z <= radius; z++) {
-                    mutable.set(center.getX() + x, center.getY() + y, center.getZ() + z);
-                    BlockState state = level.getBlockState(mutable);
-                    if (state.is(Blocks.CHEST) || state.is(Blocks.BARREL)) return mutable.immutable();
-                }
-            }
-        }
-        return null;
-    }
-
-    private static BlockPos findNearestBed(BlockPos center, ServerLevel level, int radius) {
-        BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos();
-        for (int x = -radius; x <= radius; x++) {
-            for (int y = -3; y <= 3; y++) {
-                for (int z = -radius; z <= radius; z++) {
-                    mutable.set(center.getX() + x, center.getY() + y, center.getZ() + z);
-                    BlockState state = level.getBlockState(mutable);
-                    if (state.is(Blocks.RED_BED) || state.is(Blocks.BLACK_BED) ||
-                        state.is(Blocks.BLUE_BED) || state.is(Blocks.BROWN_BED) ||
-                        state.is(Blocks.CYAN_BED) || state.is(Blocks.GRAY_BED) ||
-                        state.is(Blocks.GREEN_BED) || state.is(Blocks.LIGHT_BLUE_BED) ||
-                        state.is(Blocks.LIGHT_GRAY_BED) || state.is(Blocks.LIME_BED) ||
-                        state.is(Blocks.MAGENTA_BED) || state.is(Blocks.ORANGE_BED) ||
-                        state.is(Blocks.PINK_BED) || state.is(Blocks.PURPLE_BED) ||
-                        state.is(Blocks.WHITE_BED) || state.is(Blocks.YELLOW_BED)) {
+                    if (level.getBlockState(mutable).is(net.minecraft.world.level.block.Blocks.WATER))
                         return mutable.immutable();
-                    }
                 }
             }
         }
         return null;
+    }
+
+    
+    private static BlockPos findNearestChest(BlockPos center, ServerLevel level, int maxRadius) {
+        
+        
+        PoiManager poiManager = level.getPoiManager();
+        Optional<BlockPos> meetingPoi = poiManager.findClosest(
+            holder -> holder.is(PoiTypes.MEETING),
+            center,
+            40,
+            PoiManager.Occupancy.ANY
+        );
+        if (meetingPoi.isPresent()) return meetingPoi.get();
+        
+        
+        int r = Math.min(maxRadius, 5);
+        BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos();
+        for (int x = -r; x <= r; x++) {
+            for (int y = -2; y <= 2; y++) {
+                for (int z = -r; z <= r; z++) {
+                    mutable.set(center.getX() + x, center.getY() + y, center.getZ() + z);
+                    BlockState state = level.getBlockState(mutable);
+                    if (state.is(net.minecraft.world.level.block.Blocks.CHEST) 
+                        || state.is(net.minecraft.world.level.block.Blocks.BARREL))
+                        return mutable.immutable();
+                }
+            }
+        }
+        return null;
+    }
+
+    
+    private static BlockPos findNearestBed(BlockPos center, ServerLevel level, int maxRadius) {
+        PoiManager poiManager = level.getPoiManager();
+        Optional<BlockPos> bedPoi = poiManager.findClosest(
+            holder -> holder.is(PoiTypes.HOME),
+            center,
+            Math.min(maxRadius, 40),
+            PoiManager.Occupancy.ANY
+        );
+        return bedPoi.orElse(null);
     }
 
     private static boolean isValuable(ItemStack item) {

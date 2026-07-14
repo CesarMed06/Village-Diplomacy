@@ -2,12 +2,11 @@
 
 # 🏘️ Village Diplomacy
 
-**A comprehensive Minecraft mod that transforms your relationship with villages.**  
-Dynamic reputation, diplomacy systems, and unique villager personalities — for Forge, Fabric & Quilt.
+**A comprehensive Minecraft mod that transforms your relationship with villages.** Dynamic reputation, diplomacy systems, and unique villager personalities — for Forge, Fabric & Quilt.
 
-[![Modrinth](https://img.shields.io/modrinth/dt/village-diplomacy?logo=modrinth&label=Modrinth&color=00AF5C)](https://modrinth.com/mod/village-diplomacy)
-[![CurseForge](https://img.shields.io/curseforge/dt/village-diplomacy?logo=curseforge&label=CurseForge&color=F16436)](https://www.curseforge.com/minecraft/mc-mods/village-diplomacy)
-[![License](https://img.shields.io/github/license/CesarMed06/Village-Diplomacy)](LICENSE.txt)
+[![Modrinth](https://img.shields.io/modrinth/dt/nL13t6rJ?logo=modrinth&label=Modrinth&color=00AF5C)](https://modrinth.com/project/nL13t6rJ)
+[![CurseForge](https://img.shields.io/badge/CurseForge-Download-F16436?logo=curseforge&logoColor=white)](https://www.curseforge.com/minecraft/mc-mods/village-diplomacy)
+[![License](https://img.shields.io/github/license/CesarMed06/Village-Diplomacy)](LICENSE)
 [![Version](https://img.shields.io/badge/version-1.3.0-blue)](https://github.com/CesarMed06/Village-Diplomacy/releases)
 
 </div>
@@ -41,38 +40,3 @@ Download the mod from the links above and place the `.jar` in your `mods/` folde
 Run the included script after building:
 ```bat
 install-mod.bat
-```
-
-### Requirements
-- Minecraft Java Edition
-- Forge / Fabric / Quilt (compatible loader)
-
----
-
-## 🔨 Building from Source
-
-```bash
-git clone https://github.com/CesarMed06/Village-Diplomacy.git
-cd Village-Diplomacy
-./gradlew build
-```
-
-The compiled `.jar` will be in `build/libs/`.
-
----
-
-## 📋 Changelog
-
-See [changelog.txt](changelog.txt) for the full version history.
-
----
-
-## 📄 License
-
-This project is licensed under the terms found in [LICENSE.txt](LICENSE.txt).
-
----
-
-<div align="center">
-Made with ☕ by <a href="https://github.com/CesarMed06">CesarMed06</a>
-</div>

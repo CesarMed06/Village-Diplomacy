@@ -35,10 +35,6 @@ processResources {
     filesMatching("fabric.mod.json") {
         expand inputs.properties
     }
-
-    filesMatching("assets/villagediplomacy/lang/*.json") {
-        // Don't expand language files
-    }
 }
 
 tasks.withType(JavaCompile).configureEach {

@@ -4,15 +4,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
-
 public class NameGenerator {
-    
-    
+
     private static final Map<String, String[]> MALE_NAMES = new HashMap<>();
     private static final Map<String, String[]> FEMALE_NAMES = new HashMap<>();
-    
+
     static {
-        
+
         MALE_NAMES.put("plains", new String[]{
             "John", "William", "James", "Robert", "Michael", "David",
             "Richard", "Joseph", "Thomas", "Charles", "Daniel", "Matthew",
@@ -31,8 +29,7 @@ public class NameGenerator {
             "Katherine", "Louise", "Martha", "Naomi", "Olivia", "Patricia",
             "Rachel", "Ruth", "Susan", "Violet"
         });
-        
-        
+
         MALE_NAMES.put("desert", new String[]{
             "Rashid", "Omar", "Khalil", "Hassan", "Tariq", "Malik",
             "Samir", "Rahim", "Faisal", "Aziz", "Karim", "Jamal",
@@ -51,8 +48,7 @@ public class NameGenerator {
             "Amani", "Bushra", "Durra", "Fadila", "Halima", "Inaya",
             "Khadija", "Malika", "Najma", "Safiya"
         });
-        
-        
+
         MALE_NAMES.put("taiga", new String[]{
             "Bjorn", "Erik", "Olaf", "Sven", "Thor", "Ragnar",
             "Leif", "Harald", "Magnus", "Ivar", "Ulf", "Gunnar",
@@ -71,8 +67,7 @@ public class NameGenerator {
             "Alva", "Bergit", "Dagmar", "Embla", "Freja", "Gisela",
             "Hedda", "Idun", "Kaia", "Saga"
         });
-        
-        
+
         MALE_NAMES.put("savanna", new String[]{
             "Kofi", "Jabari", "Kwame", "Tau", "Amari", "Zuberi",
             "Sekou", "Juma", "Bakari", "Kito", "Ade", "Nuru",
@@ -91,8 +86,7 @@ public class NameGenerator {
             "Urbi", "Wanja", "Yaa", "Zaina", "Abeni", "Binta",
             "Chipo", "Dalila", "Femi", "Habiba"
         });
-        
-        
+
         MALE_NAMES.put("jungle", new String[]{
             "Mateo", "Diego", "Santiago", "Alejandro", "Javier", "Marco",
             "Paulo", "Leonardo", "Ricardo", "Rodrigo", "Emilio", "Dante",
@@ -111,8 +105,7 @@ public class NameGenerator {
             "Ursula", "Veronica", "Ximena", "Yolanda", "Zoe", "Alicia",
             "Bianca", "Catalina", "Diana", "Emilia"
         });
-        
-        
+
         MALE_NAMES.put("swamp", new String[]{
             "Igor", "Dimitri", "Nikolai", "Boris", "Yuri", "Viktor",
             "Alexei", "Sergei", "Pavel", "Vladimir", "Ivan", "Maxim",
@@ -132,38 +125,32 @@ public class NameGenerator {
             "Nina", "Oxana", "Rimma", "Varvara"
         });
     }
-    
-    
+
     public static String generateName(String biomeType, boolean isMale, Random random) {
-        
+
         String normalizedBiome = normalizeBiome(biomeType);
-        
-        
+
         Map<String, String[]> nameList = isMale ? MALE_NAMES : FEMALE_NAMES;
         String[] names = nameList.getOrDefault(normalizedBiome, nameList.get("plains"));
-        
-        
+
         return names[random.nextInt(names.length)];
     }
-    
-    
+
     private static String normalizeBiome(String biomeId) {
         String lower = biomeId.toLowerCase();
-        
+
         if (lower.contains("desert")) return "desert";
         if (lower.contains("taiga") || lower.contains("snow") || lower.contains("ice")) return "taiga";
         if (lower.contains("savanna")) return "savanna";
         if (lower.contains("jungle")) return "jungle";
         if (lower.contains("swamp") || lower.contains("bog")) return "swamp";
-        
-        
+
         return "plains";
     }
-    
-    
+
     public static String generateNickname(String profession, int level, Random random) {
         if (level < 4) return ""; 
-        
+
         switch (profession.toLowerCase()) {
             case "librarian":
                 return random.nextBoolean() ? "the Wise" : "the Scholar";

@@ -22,14 +22,13 @@ import net.fabricmc.fabric.api.event.player.UseEntityCallback;
 
 import java.util.*;
 
-
 public class FabricGolemBehaviorHandler {
 
     private final Set<UUID> initializedGolems = new HashSet<>();
     private static final long INTERACTION_COOLDOWN_MS = 30000;
 
     public void registerEvents() {
-        
+
         ServerTickEvents.END_SERVER_TICK.register(server -> {
             for (ServerLevel level : server.getAllLevels()) {
                 List<IronGolem> golems = level.getEntitiesOfClass(IronGolem.class,
@@ -46,7 +45,6 @@ public class FabricGolemBehaviorHandler {
             }
         });
 
-        
         UseEntityCallback.EVENT.register(this::onGolemInteract);
     }
 
@@ -72,7 +70,6 @@ public class FabricGolemBehaviorHandler {
         if (!(level instanceof ServerLevel serverLevel)) return InteractionResult.PASS;
         if (golem.isPlayerCreated()) return InteractionResult.PASS;
 
-        
         if (!initializedGolems.contains(golem.getUUID())) {
             initializeGolem(golem, serverLevel);
             initializedGolems.add(golem.getUUID());
@@ -85,7 +82,6 @@ public class FabricGolemBehaviorHandler {
         Optional<BlockPos> village = VillageDetector.findNearestVillage(serverLevel, golem.blockPosition(), 100);
         String villageRef = village.map(VillageDetector::getVillageId).orElse("?");
 
-        
         if (golem.getTarget() == serverPlayer ||
                 (golem.getPersistentAngerTarget() != null && golem.getPersistentAngerTarget().equals(serverPlayer.getUUID()))) {
             ModLang.sendRandomWithArgs(serverPlayer, serverLevel.getRandom(), "villagediplomacy.golem.danger", 5,
@@ -93,13 +89,11 @@ public class FabricGolemBehaviorHandler {
             return InteractionResult.SUCCESS;
         }
 
-        
         if (!data.canInteract(golem.getUUID(), INTERACTION_COOLDOWN_MS)) {
             serverPlayer.sendSystemMessage(Component.translatable("villagediplomacy.golem.busy", personality.getName()));
             return InteractionResult.SUCCESS;
         }
 
-        
         boolean hasEnemies = serverLevel.getEntitiesOfClass(
                 Monster.class,
                 golem.getBoundingBox().inflate(20.0D)).size() > 0;
@@ -109,7 +103,6 @@ public class FabricGolemBehaviorHandler {
             return InteractionResult.SUCCESS;
         }
 
-        
         Component storyLine = Component.literal("[")
                 .withStyle(ChatFormatting.GRAY)
                 .append(Component.literal(personality.getName()).withStyle(personality.getTemperament().chatColor()))
@@ -127,10 +120,8 @@ public class FabricGolemBehaviorHandler {
         int choice = serverLevel.getRandom().nextInt(responses.length);
         serverPlayer.sendSystemMessage(responses[choice]);
 
-        
         golem.getLookControl().setLookAt(serverPlayer, 10.0F, 10.0F);
 
-        
         spawnPersonalityParticles(serverLevel, golem, personality);
 
         return InteractionResult.SUCCESS;

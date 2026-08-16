@@ -14,16 +14,13 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-
 public class FabricVillagerBehaviorHandler {
 
-    
     private static final Map<UUID, Long> effectCooldown = new ConcurrentHashMap<>();
     private static final long EFFECT_DURATION_MS = 20000;
-    
+
     private static final int TICK_INTERVAL = 20;
-    
-    
+
     private static final Map<String, Boolean> hostileCache = new ConcurrentHashMap<>();
     private static final long HOSTILE_CACHE_TTL_MS = 3000;
     private static long lastHostileCacheCleanup = 0;
@@ -31,15 +28,14 @@ public class FabricVillagerBehaviorHandler {
     public void registerEvents() {
         ServerTickEvents.END_SERVER_TICK.register(server -> {
             long now = System.currentTimeMillis();
-            
-            
+
             if (now - lastHostileCacheCleanup > 30000) {
                 hostileCache.clear();
                 lastHostileCacheCleanup = now;
             }
-            
+
             for (ServerLevel level : server.getAllLevels()) {
-                
+
                 for (ServerPlayer player : level.players()) {
                     if (player.tickCount % TICK_INTERVAL != 0) continue;
 
@@ -58,22 +54,20 @@ public class FabricVillagerBehaviorHandler {
                         removeGolemTargets(player, level, villagePos);
                     }
                 }
-                
-                
+
                 for (ServerPlayer player : level.players()) {
                     if (player.tickCount % TICK_INTERVAL != 0) continue;
-                    
+
                     List<Villager> nearbyVillagers = level.getEntitiesOfClass(Villager.class,
                         player.getBoundingBox().inflate(32.0D)); 
-                    
+
                     for (Villager villager : nearbyVillagers) {
                         if (villager.distanceToSqr(player) > 100.0) continue; 
-                        
-                        
+
                         String cacheKey = villager.getUUID() + ":" + player.getUUID();
                         Boolean cached = hostileCache.get(cacheKey);
                         boolean hostile;
-                        
+
                         if (cached != null) {
                             hostile = cached;
                         } else {
@@ -87,7 +81,7 @@ public class FabricVillagerBehaviorHandler {
                             hostile = rep < -100;
                             hostileCache.put(cacheKey, hostile);
                         }
-                        
+
                         if (hostile) {
                             net.minecraft.world.phys.Vec3 away = new net.minecraft.world.phys.Vec3(
                                 villager.position().x - player.position().x,
@@ -122,7 +116,6 @@ public class FabricVillagerBehaviorHandler {
         }
     }
 
-    
     private static void makeGolemsHostile(ServerPlayer player, ServerLevel level, BlockPos playerVillage) {
         List<IronGolem> nearbyGolems = level.getEntitiesOfClass(IronGolem.class,
                 player.getBoundingBox().inflate(24.0D),

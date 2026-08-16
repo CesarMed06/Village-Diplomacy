@@ -14,13 +14,10 @@ public class VillageDiplomacyFabricClient implements ClientModInitializer {
     public void onInitializeClient() {
         VillageDiplomacy.LOGGER.info("Village Diplomacy client initializing!");
 
-        
         HudRenderCallback.EVENT.register(VillageHUDHandler::render);
 
-        
         ClientTickEvents.END_CLIENT_TICK.register(client -> VillageHUDHandler.tick());
 
-        
         ClientPlayNetworking.registerGlobalReceiver(VillageDiplomacyNetwork.OPEN_HUD_PACKET_ID, (client, handler, buf, responseSender) -> {
             String villageName = buf.readUtf();
             int reputation = buf.readInt();

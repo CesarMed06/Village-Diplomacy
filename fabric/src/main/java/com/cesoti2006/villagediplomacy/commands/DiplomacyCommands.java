@@ -94,7 +94,7 @@ public class DiplomacyCommands {
     }
 
     private static int showHelp(CommandContext<CommandSourceStack> context) {
-        context.getSource().sendSuccess(() -> Component.literal("§6===== Village Diplomacy v1.3.0 ====="), false);
+        context.getSource().sendSuccess(() -> Component.literal("§6===== Village Diplomacy v1.4.0 ====="), false);
         context.getSource().sendSuccess(() -> Component.literal("§e/diplomacy info §7- Ver info de la aldea actual"), false);
         context.getSource().sendSuccess(() -> Component.literal("§e/diplomacy name <nombre> §7- Nombrar aldea"), false);
         context.getSource().sendSuccess(() -> Component.literal("§e/diplomacy list §7- Listar aldeas registradas"), false);
@@ -376,7 +376,6 @@ public class DiplomacyCommands {
         ServerLevel level = player.serverLevel();
         BlockPos playerPos = player.blockPosition();
 
-        // Check not too close to an existing vanilla village
         Optional<BlockPos> nearVanilla = VillageDetector.findNearestVillage(level, playerPos, 
             VillageDiplomacyConfig.customVillageRadius + 16);
         if (nearVanilla.isPresent()) {
@@ -386,7 +385,6 @@ public class DiplomacyCommands {
 
         PlayerClaimedVillageData data = PlayerClaimedVillageData.get(level);
 
-        // Check not too close to other custom villages
         int minDist = VillageDiplomacyConfig.customVillageRadius * 2;
         if (data.isTooCloseToAny(playerPos, minDist)) {
             player.sendSystemMessage(Component.translatable("villagediplomacy.cmd.claim_overlap"));
@@ -402,13 +400,11 @@ public class DiplomacyCommands {
             return 0;
         }
 
-        // Register the village in the relationship/reputation system so its name appears in entry/exit messages
         VillageRelationshipData relationData = VillageRelationshipData.get(level);
         relationData.registerVillage(playerPos, level);
         String relationId = relationData.getVillageId(playerPos);
         relationData.setVillageName(relationId, name);
 
-        // Initialize neutral reputation for the owner
         VillageReputationData repData = VillageReputationData.get(level);
         repData.setReputation(player.getUUID(), playerPos, 0);
 
@@ -429,11 +425,10 @@ public class DiplomacyCommands {
         BlockPos playerPos = player.blockPosition();
         PlayerClaimedVillageData data = PlayerClaimedVillageData.get(level);
 
-        // First try exact position
         boolean removed = data.removeVillage(playerPos, player.getUUID());
-        
+
         if (!removed) {
-            // Try nearest custom village within radius
+
             int radius = VillageDiplomacyConfig.customVillageRadius;
             Optional<BlockPos> nearestCustom = data.getNearestVillage(playerPos, radius);
             if (nearestCustom.isPresent()) {

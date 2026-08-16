@@ -2,57 +2,50 @@ package com.cesoti2006.villagediplomacy.personality;
 
 import java.util.Random;
 
-
 public enum PersonalityTrait {
-    
+
     COWARD,
     CAUTIOUS,
     NEUTRAL_COURAGE,
     BRAVE,
     FEARLESS,
-    
-    
+
     GREEDY,
     THRIFTY,
     NEUTRAL_GENEROSITY,
     GENEROUS,
     CHARITABLE,
-    
-    
+
     LAZY,
     RELAXED,
     NEUTRAL_WORK,
     HARDWORKING,
     WORKAHOLIC,
-    
-    
+
     SHY,
     RESERVED,
     NEUTRAL_SOCIAL,
     OUTGOING,
     EXTROVERTED,
-    
-    
+
     CALM,
     PATIENT,
     NEUTRAL,
     IRRITABLE,
     HOTHEADED,
-    
-    
+
     CUNNING,
     SHREWD,
     NEUTRAL_HONESTY,
     HONEST,
     TRUSTWORTHY,
-    
-    
+
     PESSIMISTIC,
     REALISTIC,
     NEUTRAL_OUTLOOK,
     OPTIMISTIC,
     CHEERFUL;
-    
+
     public static PersonalityTrait randomCourage(Random random) {
         int roll = random.nextInt(100);
         if (roll < 10) return COWARD;          
@@ -61,7 +54,7 @@ public enum PersonalityTrait {
         if (roll < 90) return BRAVE;           
         return FEARLESS;                        
     }
-    
+
     public static PersonalityTrait randomGenerosity(Random random) {
         int roll = random.nextInt(100);
         if (roll < 12) return GREEDY;             
@@ -70,7 +63,7 @@ public enum PersonalityTrait {
         if (roll < 88) return GENEROUS;           
         return CHARITABLE;                         
     }
-    
+
     public static PersonalityTrait randomWorkEthic(Random random) {
         int roll = random.nextInt(100);
         if (roll < 15) return LAZY;         
@@ -79,7 +72,7 @@ public enum PersonalityTrait {
         if (roll < 85) return HARDWORKING;  
         return WORKAHOLIC;                   
     }
-    
+
     public static PersonalityTrait randomSocialBehavior(Random random) {
         int roll = random.nextInt(100);
         if (roll < 10) return SHY;            
@@ -88,7 +81,7 @@ public enum PersonalityTrait {
         if (roll < 90) return OUTGOING;       
         return EXTROVERTED;                    
     }
-    
+
     public static PersonalityTrait randomTemperament(Random random) {
         int roll = random.nextInt(100);
         if (roll < 15) return CALM;          
@@ -97,7 +90,7 @@ public enum PersonalityTrait {
         if (roll < 90) return IRRITABLE;     
         return HOTHEADED;                     
     }
-    
+
     public static PersonalityTrait randomHonesty(Random random) {
         int roll = random.nextInt(100);
         if (roll < 10) return CUNNING;          
@@ -106,7 +99,7 @@ public enum PersonalityTrait {
         if (roll < 85) return HONEST;           
         return TRUSTWORTHY;                      
     }
-    
+
     public static PersonalityTrait randomOutlook(Random random) {
         int roll = random.nextInt(100);
         if (roll < 12) return PESSIMISTIC;      

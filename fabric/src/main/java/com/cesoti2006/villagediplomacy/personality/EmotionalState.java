@@ -1,6 +1,5 @@
 package com.cesoti2006.villagediplomacy.personality;
 
-
 public enum EmotionalState {
     NEUTRAL,        
     HAPPY,          
@@ -9,8 +8,7 @@ public enum EmotionalState {
     ANGRY,          
     GRATEFUL,       
     MOURNING;       
-    
-    
+
     public long getDuration() {
         switch (this) {
             case HAPPY: return 60000;      
@@ -22,8 +20,7 @@ public enum EmotionalState {
             default: return 0;
         }
     }
-    
-    
+
     public String getParticleEffect() {
         switch (this) {
             case HAPPY: return "heart";

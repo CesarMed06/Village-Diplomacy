@@ -9,35 +9,32 @@ import net.minecraft.world.level.saveddata.SavedData;
 
 import java.util.*;
 
-
 public class VillagerPersonalityData extends SavedData {
     private static final String DATA_NAME = "villagediplomacy_personality";
-    
+
     private final Map<UUID, VillagerPersonality> personalities = new HashMap<>();
     private final Map<UUID, Long> deathTimes = new HashMap<>(); 
     private final Map<UUID, String> deadVillagerNames = new HashMap<>(); 
-    
+
     public VillagerPersonalityData() {
     }
-    
+
     public static VillagerPersonalityData get(ServerLevel level) {
         return level.getServer().overworld().getDataStorage()
                 .computeIfAbsent(VillagerPersonalityData::load, VillagerPersonalityData::new, DATA_NAME);
     }
-    
+
     public static VillagerPersonalityData load(CompoundTag tag) {
         VillagerPersonalityData data = new VillagerPersonalityData();
-        
-        
+
         ListTag personalitiesList = tag.getList("Personalities", Tag.TAG_COMPOUND);
         for (int i = 0; i < personalitiesList.size(); i++) {
             CompoundTag personalityTag = personalitiesList.getCompound(i);
-            
+
             UUID villagerId = UUID.fromString(personalityTag.getString("VillagerId"));
             String name = personalityTag.getString("Name");
             String biome = personalityTag.getString("Biome");
-            
-            
+
             PersonalityTrait courage = PersonalityTrait.valueOf(personalityTag.getString("Courage"));
             PersonalityTrait generosity = PersonalityTrait.valueOf(personalityTag.getString("Generosity"));
             PersonalityTrait workEthic = personalityTag.contains("WorkEthic") ? 
@@ -50,14 +47,13 @@ public class VillagerPersonalityData extends SavedData {
                 PersonalityTrait.valueOf(personalityTag.getString("Honesty")) : PersonalityTrait.NEUTRAL_HONESTY;
             PersonalityTrait outlook = personalityTag.contains("Outlook") ? 
                 PersonalityTrait.valueOf(personalityTag.getString("Outlook")) : PersonalityTrait.NEUTRAL_OUTLOOK;
-            
+
             VillagerPersonality personality = new VillagerPersonality(
                 villagerId, name, biome, 
                 courage, generosity, workEthic, socialBehavior,
                 temperament, honesty, outlook
             );
-            
-            
+
             if (personalityTag.contains("Emotion")) {
                 personality.setCurrentEmotion(EmotionalState.valueOf(personalityTag.getString("Emotion")));
             }
@@ -76,37 +72,35 @@ public class VillagerPersonalityData extends SavedData {
             if (personalityTag.contains("Level")) {
                 personality.setProfessionalLevel(personalityTag.getInt("Level"));
             }
-            
+
             data.personalities.put(villagerId, personality);
         }
-        
-        
+
         ListTag deathsList = tag.getList("Deaths", Tag.TAG_COMPOUND);
         for (int i = 0; i < deathsList.size(); i++) {
             CompoundTag deathTag = deathsList.getCompound(i);
             UUID villagerId = UUID.fromString(deathTag.getString("VillagerId"));
             long deathTime = deathTag.getLong("DeathTime");
             String name = deathTag.getString("Name");
-            
+
             data.deathTimes.put(villagerId, deathTime);
             data.deadVillagerNames.put(villagerId, name);
         }
-        
+
         return data;
     }
-    
+
     @Override
     public CompoundTag save(CompoundTag tag) {
-        
+
         ListTag personalitiesList = new ListTag();
         for (VillagerPersonality personality : personalities.values()) {
             CompoundTag personalityTag = new CompoundTag();
-            
+
             personalityTag.putString("VillagerId", personality.getVillagerId().toString());
             personalityTag.putString("Name", personality.getCustomName());
             personalityTag.putString("Biome", personality.getBiomeType());
-            
-            
+
             personalityTag.putString("Courage", personality.getCourage().name());
             personalityTag.putString("Generosity", personality.getGenerosity().name());
             personalityTag.putString("WorkEthic", personality.getWorkEthic().name());
@@ -114,10 +108,10 @@ public class VillagerPersonalityData extends SavedData {
             personalityTag.putString("Temperament", personality.getTemperament().name());
             personalityTag.putString("Honesty", personality.getHonesty().name());
             personalityTag.putString("Outlook", personality.getOutlook().name());
-            
+
             personalityTag.putString("Emotion", personality.getCurrentEmotion().name());
             personalityTag.putInt("ReputationBonus", personality.getPlayerReputationBonus());
-            
+
             if (personality.getSavedByPlayer() != null) {
                 personalityTag.putString("SavedBy", personality.getSavedByPlayer().toString());
             }
@@ -125,12 +119,11 @@ public class VillagerPersonalityData extends SavedData {
                 personalityTag.putString("Profession", personality.getProfession());
             }
             personalityTag.putInt("Level", personality.getProfessionalLevel());
-            
+
             personalitiesList.add(personalityTag);
         }
         tag.put("Personalities", personalitiesList);
-        
-        
+
         ListTag deathsList = new ListTag();
         for (Map.Entry<UUID, Long> entry : deathTimes.entrySet()) {
             CompoundTag deathTag = new CompoundTag();
@@ -140,22 +133,19 @@ public class VillagerPersonalityData extends SavedData {
             deathsList.add(deathTag);
         }
         tag.put("Deaths", deathsList);
-        
+
         return tag;
     }
-    
-    
-    
+
     public VillagerPersonality getPersonality(UUID villagerId) {
         return personalities.get(villagerId);
     }
-    
+
     public VillagerPersonality getOrCreatePersonality(UUID villagerId, String biomeType, Random random) {
         if (personalities.containsKey(villagerId)) {
             return personalities.get(villagerId);
         }
-        
-        
+
         boolean isMale = random.nextBoolean();
         String name = NameGenerator.generateName(biomeType, isMale, random);
         PersonalityTrait courage = PersonalityTrait.randomCourage(random);
@@ -165,7 +155,7 @@ public class VillagerPersonalityData extends SavedData {
         PersonalityTrait temperament = PersonalityTrait.randomTemperament(random);
         PersonalityTrait honesty = PersonalityTrait.randomHonesty(random);
         PersonalityTrait outlook = PersonalityTrait.randomOutlook(random);
-        
+
         VillagerPersonality personality = new VillagerPersonality(
             villagerId, name, biomeType, 
             courage, generosity, workEthic, socialBehavior,
@@ -173,39 +163,38 @@ public class VillagerPersonalityData extends SavedData {
         );
         personalities.put(villagerId, personality);
         setDirty();
-        
+
         return personality;
     }
-    
+
     public void registerDeath(UUID villagerId, String villagerName) {
         deathTimes.put(villagerId, System.currentTimeMillis());
         deadVillagerNames.put(villagerId, villagerName);
-        
-        
+
         for (VillagerPersonality personality : personalities.values()) {
             if (!personality.getVillagerId().equals(villagerId)) {
                 personality.setCurrentEmotion(EmotionalState.MOURNING);
             }
         }
-        
+
         setDirty();
     }
-    
+
     public boolean isRecentDeath(UUID villagerId) {
         if (!deathTimes.containsKey(villagerId)) return false;
         long deathTime = deathTimes.get(villagerId);
         long elapsed = System.currentTimeMillis() - deathTime;
         return elapsed < 1200000; 
     }
-    
+
     public String getDeadVillagerName(UUID villagerId) {
         return deadVillagerNames.get(villagerId);
     }
-    
+
     public List<VillagerPersonality> getAllPersonalities() {
         return new ArrayList<>(personalities.values());
     }
-    
+
     public void cleanupOldDeaths() {
         long currentTime = System.currentTimeMillis();
         deathTimes.entrySet().removeIf(entry -> 

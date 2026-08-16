@@ -83,9 +83,9 @@ public class PlayerClaimedVillageData extends SavedData {
         double nearestDistSq = Double.MAX_VALUE;
         for (ClaimedVillage v : villages.values()) {
             double distSq = playerPos.distSqr(v.center);
-            // Only consider villages within the search range (don't check villages far away)
+
             if (distSq > (double)(searchRadius * searchRadius)) continue;
-            // Player is "in" the village if within the village's configured radius
+
             if (distSq <= (double)(v.radius * v.radius) && distSq < nearestDistSq) {
                 nearest = v.center;
                 nearestDistSq = distSq;

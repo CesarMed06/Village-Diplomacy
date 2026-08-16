@@ -1,20 +1,17 @@
 package com.cesoti2006.villagediplomacy.reputation;
 
-
 public final class ReputationTiersHandler {
 
     public enum ReputationTier {
-        
+
         LEGENDARY_HERO(1000, "villagediplomacy.tier.legendary_hero", 0.75f, false, false),
         HERO(800, "villagediplomacy.tier.hero", 0.80f, false, false),
         CHAMPION(500, "villagediplomacy.tier.champion", 0.85f, false, false),
         TRUSTED_FRIEND(300, "villagediplomacy.tier.trusted_friend", 0.90f, false, false),
         FRIENDLY(100, "villagediplomacy.tier.friendly", 0.95f, false, false),
-        
-        
+
         NEUTRAL(0, "villagediplomacy.tier.neutral", 1.0f, false, false),
-        
-        
+
         SUSPICIOUS(-100, "villagediplomacy.tier.suspicious", 1.05f, false, true),
         DISLIKED(-200, "villagediplomacy.tier.disliked", 1.10f, false, true),
         UNWELCOME(-400, "villagediplomacy.tier.unwelcome", 1.15f, true, true),

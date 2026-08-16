@@ -22,31 +22,24 @@ public class VillageDiplomacyFabric implements ModInitializer {
         VillageDiplomacyConfig.loadConfig();
         VillageDiplomacy.LOGGER.info("Village Diplomacy initializing on Fabric!");
 
-        
         FabricEventHandler eventHandler = new FabricEventHandler();
         eventHandler.registerEvents();
 
-        
         TradeModifierHandler tradeHandler = new TradeModifierHandler();
         tradeHandler.registerEvents();
 
-        
         FabricReputationRestrictionsHandler repRestrictions = new FabricReputationRestrictionsHandler();
         repRestrictions.registerEvents();
 
-        
         FabricPersonalityBehaviorHandler personalityHandler = new FabricPersonalityBehaviorHandler();
         personalityHandler.registerEvents();
 
-        
         FabricVillagerBehaviorHandler villagerBehavior = new FabricVillagerBehaviorHandler();
         villagerBehavior.registerEvents();
 
-        
         PlacementRestrictionsHandler placementHandler = new PlacementRestrictionsHandler();
         placementHandler.registerEvents();
 
-        
         FabricGolemBehaviorHandler golemHandler = new FabricGolemBehaviorHandler();
         golemHandler.registerEvents();
 

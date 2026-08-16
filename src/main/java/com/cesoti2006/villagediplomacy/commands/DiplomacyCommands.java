@@ -14,8 +14,10 @@ import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.ItemStack;
 
 import java.util.Map;
 import java.util.Optional;
@@ -23,6 +25,8 @@ import java.util.UUID;
 
 import com.cesoti2006.villagediplomacy.data.PlayerClaimedVillageData;
 import com.cesoti2006.villagediplomacy.data.PlayerClaimedVillageData.ClaimedVillage;
+import com.cesoti2006.villagediplomacy.reputation.ReputationTiersHandler;
+import com.cesoti2006.villagediplomacy.reputation.ReputationTiersHandler.ReputationTier;
 
 public class DiplomacyCommands {
 
@@ -47,6 +51,11 @@ public class DiplomacyCommands {
                                         .then(Commands.argument("amount", IntegerArgumentType.integer(-1000, 1000))
                                                 .executes(context -> addReputation(context, EntityArgument.getPlayer(context, "player"),
                                                         IntegerArgumentType.getInteger(context, "amount")))))))
+                .then(Commands.literal("setrep")
+                        .then(Commands.argument("player", EntityArgument.player())
+                                .then(Commands.argument("amount", IntegerArgumentType.integer(-1000, 1000))
+                                        .executes(context -> setReputation(context, EntityArgument.getPlayer(context, "player"),
+                                                IntegerArgumentType.getInteger(context, "amount"))))))
                 .then(Commands.literal("getrep")
                         .executes(context -> {
                             ServerPlayer player = context.getSource().getPlayerOrException();
@@ -54,7 +63,7 @@ public class DiplomacyCommands {
                         }))
                 .then(Commands.literal("villages")
                         .then(Commands.literal("list")
-                                .executes(DiplomacyCommands::listVillages))
+                        .executes(DiplomacyCommands::listPlayerReputations))
                         .then(Commands.literal("relations")
                                 .then(Commands.argument("villageId", StringArgumentType.string())
                                         .executes(context -> showRelations(context, StringArgumentType.getString(context, "villageId")))))
@@ -81,7 +90,13 @@ public class DiplomacyCommands {
                         .then(Commands.literal("caravan")
                                 .executes(DiplomacyCommands::testCaravan))
                         .then(Commands.literal("raid")
-                                .executes(DiplomacyCommands::testRaid))));
+                                .executes(DiplomacyCommands::testRaid)))
+                .then(Commands.literal("list")
+                        .executes(DiplomacyCommands::listPlayerReputations))
+                .then(Commands.literal("gift")
+                        .executes(DiplomacyCommands::giftToVillage)
+                        .then(Commands.argument("amount", IntegerArgumentType.integer(1, 2304))
+                                .executes(context -> giftToVillage(context, IntegerArgumentType.getInteger(context, "amount"))))));
     }
 
     private static int getReputation(CommandContext<CommandSourceStack> context, ServerPlayer player) {
@@ -170,31 +185,69 @@ public class DiplomacyCommands {
         return 1;
     }
 
-    private static int listVillages(CommandContext<CommandSourceStack> context) {
-        ServerLevel level = context.getSource().getLevel();
-        VillageRelationshipData data = VillageRelationshipData.get(level);
-
-        Map<String, BlockPos> villages = data.getAllVillages();
-
-        if (villages.isEmpty()) {
-            context.getSource().sendSuccess(() -> Component.translatable("villagediplomacy.cmd.list_empty"), false);
+    private static int listPlayerReputations(CommandContext<CommandSourceStack> context) {
+        if (!(context.getSource().getEntity() instanceof ServerPlayer player)) {
+            context.getSource().sendFailure(Component.translatable("villagediplomacy.cmd.players_only"));
             return 0;
         }
 
-        context.getSource().sendSuccess(() -> Component.translatable("villagediplomacy.cmd.list_header"), false);
-        for (Map.Entry<String, BlockPos> entry : villages.entrySet()) {
-            BlockPos pos = entry.getValue();
-            String villageId = entry.getKey();
-            String villageStored = data.getVillageName(villageId);
-            context.getSource().sendSuccess(() -> Component.translatable("villagediplomacy.cmd.list_line",
-                    VillageDisplayName.asComponent(villageStored),
-                    villageId,
-                    pos.getX(),
-                    pos.getY(),
-                    pos.getZ()), false);
+        ServerLevel level = player.serverLevel();
+        VillageReputationData repData = VillageReputationData.get(level);
+        Map<String, Integer> allReps = repData.getPlayerReputations(player.getUUID());
+
+        if (allReps.isEmpty()) {
+            player.sendSystemMessage(Component.translatable("villagediplomacy.cmd.replist_empty"));
+            return 0;
         }
 
-        return villages.size();
+        VillageRelationshipData relData = VillageRelationshipData.get(level);
+
+        player.sendSystemMessage(Component.translatable("villagediplomacy.cmd.replist_header"));
+
+        allReps.entrySet().stream()
+                .filter(e -> e.getValue() != 0)
+                .sorted((a, b) -> Integer.compare(b.getValue(), a.getValue()))
+                .forEach(entry -> {
+                    String villageKey = entry.getKey();
+                    int rep = entry.getValue();
+                    ReputationTier tier = ReputationTiersHandler.getTierByReputation(rep);
+
+                    String villageName = relData.getVillageName(villageKey);
+                    if (villageName.equals(villageKey)) {
+                        try {
+                            String[] parts = villageKey.split("_");
+                            int snapX = Integer.parseInt(parts[0]);
+                            int snapZ = Integer.parseInt(parts[1]);
+                            String foundName = null;
+                            for (Map.Entry<String, BlockPos> vEntry : relData.getAllVillages().entrySet()) {
+                                BlockPos vPos = vEntry.getValue();
+                                int vSnapX = (vPos.getX() >> 7) << 7;
+                                int vSnapZ = (vPos.getZ() >> 7) << 7;
+                                if (vSnapX == snapX && vSnapZ == snapZ) {
+                                    foundName = relData.getVillageName(vEntry.getKey());
+                                    break;
+                                }
+                            }
+                            if (foundName == null) {
+                                BlockPos approxPos = new BlockPos(snapX + 64, 80, snapZ + 64);
+                                relData.registerVillage(approxPos, level);
+                                foundName = relData.getVillageName(relData.getVillageId(approxPos));
+                            }
+                            villageName = foundName;
+                        } catch (NumberFormatException | ArrayIndexOutOfBoundsException ignored) {}
+                    }
+
+                    MutableComponent tierName = Component.translatable(tier.getTranslationKey());
+                    int discount = tier.getDiscountPercent();
+                    String discountStr = discount > 0 ? " §a(-" + discount + "%)" : (discount < 0 ? " §c(+" + Math.abs(discount) + "%)" : "");
+                    player.sendSystemMessage(Component.translatable("villagediplomacy.cmd.replist_line",
+                            VillageDisplayName.asComponent(villageName),
+                            rep,
+                            tierName,
+                            Component.literal(discountStr)));
+                });
+
+        return allReps.size();
     }
 
     private static int showRelations(CommandContext<CommandSourceStack> context, String villageId) {
@@ -267,8 +320,9 @@ public class DiplomacyCommands {
         }
 
         ServerLevel level = player.serverLevel();
+        BlockPos playerPos = player.blockPosition();
 
-        Optional<BlockPos> nearestVillage = VillageDetector.findNearestVillage(level, player.blockPosition(), 100);
+        Optional<BlockPos> nearestVillage = VillageDetector.findNearestVillage(level, playerPos, 100);
         if (nearestVillage.isEmpty()) {
             player.sendSystemMessage(Component.translatable("villagediplomacy.cmd.info_not_in_village"));
             return 0;
@@ -283,12 +337,33 @@ public class DiplomacyCommands {
         String villageId = relationData.getVillageId(villagePos);
         String villageStored = relationData.getVillageName(villageId);
 
+        int distance = (int) Math.sqrt(playerPos.distSqr(villagePos));
+        ReputationTier tier = ReputationTiersHandler.getTierByReputation(reputation);
+        MutableComponent tierName = Component.translatable(tier.getTranslationKey());
+        int discount = tier.getDiscountPercent();
+        String tradeInfo = discount > 0 ? " (-" + discount + "%)" : "";
+
+        int villagerCount = level.getEntitiesOfClass(
+            net.minecraft.world.entity.npc.Villager.class,
+            new net.minecraft.world.phys.AABB(
+                villagePos.getX() - 48, playerPos.getY() - 16,
+                villagePos.getZ() - 48,
+                villagePos.getX() + 48, playerPos.getY() + 16,
+                villagePos.getZ() + 48
+            )
+        ).size();
+
         player.sendSystemMessage(Component.translatable("villagediplomacy.enter.bar"));
         player.sendSystemMessage(Component.translatable("villagediplomacy.cmd.info_village",
                 VillageDisplayName.asComponent(villageStored)));
         player.sendSystemMessage(Component.translatable("villagediplomacy.cmd.info_reputation",
                 reputation,
                 ModLang.repStatus(reputation)));
+        player.sendSystemMessage(Component.translatable("villagediplomacy.cmd.info_tier", tierName));
+        player.sendSystemMessage(Component.translatable("villagediplomacy.cmd.info_trades",
+                tradeInfo.isEmpty() ? "§7100%" : "§a" + (100 - discount) + "%" + tradeInfo));
+        player.sendSystemMessage(Component.translatable("villagediplomacy.cmd.info_distance", distance));
+        player.sendSystemMessage(Component.translatable("villagediplomacy.cmd.info_villagers", villagerCount));
         player.sendSystemMessage(Component.translatable("villagediplomacy.cmd.info_pos",
                 villagePos.getX(), villagePos.getY(), villagePos.getZ()));
         player.sendSystemMessage(Component.translatable("villagediplomacy.enter.bar"));
@@ -334,7 +409,6 @@ public class DiplomacyCommands {
         ServerLevel level = player.serverLevel();
         BlockPos playerPos = player.blockPosition();
 
-        // Check not too close to an existing vanilla village
         Optional<BlockPos> nearVanilla = VillageDetector.findNearestVillage(level, playerPos, 
             com.cesoti2006.villagediplomacy.config.VillageDiplomacyConfig.INSTANCE.customVillageRadius.get() + 16);
         if (nearVanilla.isPresent()) {
@@ -344,7 +418,6 @@ public class DiplomacyCommands {
 
         PlayerClaimedVillageData data = PlayerClaimedVillageData.get(level);
 
-        // Check not too close to other custom villages
         int minDist = com.cesoti2006.villagediplomacy.config.VillageDiplomacyConfig.INSTANCE.customVillageRadius.get() * 2;
         if (data.isTooCloseToAny(playerPos, minDist)) {
             player.sendSystemMessage(Component.translatable("villagediplomacy.cmd.claim_overlap"));
@@ -360,13 +433,11 @@ public class DiplomacyCommands {
             return 0;
         }
 
-        // Register the village in the relationship/reputation system so its name appears in entry/exit messages
         VillageRelationshipData relationData = VillageRelationshipData.get(level);
         relationData.registerVillage(playerPos, level);
         String relationId = relationData.getVillageId(playerPos);
         relationData.setVillageName(relationId, name);
 
-        // Initialize neutral reputation for the owner
         VillageReputationData repData = VillageReputationData.get(level);
         repData.setReputation(player.getUUID(), playerPos, 0);
 
@@ -387,11 +458,10 @@ public class DiplomacyCommands {
         BlockPos playerPos = player.blockPosition();
         PlayerClaimedVillageData data = PlayerClaimedVillageData.get(level);
 
-        // First try exact position
         boolean removed = data.removeVillage(playerPos, player.getUUID());
-        
+
         if (!removed) {
-            // Try nearest custom village within radius
+
             int radius = com.cesoti2006.villagediplomacy.config.VillageDiplomacyConfig.INSTANCE.customVillageRadius.get();
             Optional<BlockPos> nearestCustom = data.getNearestVillage(playerPos, radius);
             if (nearestCustom.isPresent()) {
@@ -420,5 +490,64 @@ public class DiplomacyCommands {
     private static int testRaid(CommandContext<CommandSourceStack> context) {
         context.getSource().sendFailure(Component.translatable("villagediplomacy.cmd.test_disabled"));
         return 0;
+    }
+
+    private static int giftToVillage(CommandContext<CommandSourceStack> context) {
+        return giftToVillage(context, 0);
+    }
+
+    private static int giftToVillage(CommandContext<CommandSourceStack> context, int amount) {
+        if (!(context.getSource().getEntity() instanceof ServerPlayer player)) {
+            context.getSource().sendFailure(Component.translatable("villagediplomacy.cmd.players_only"));
+            return 0;
+        }
+
+        ServerLevel level = player.serverLevel();
+        ItemStack held = player.getMainHandItem();
+        if (held.isEmpty()) {
+            player.sendSystemMessage(Component.translatable("villagediplomacy.cmd.gift_empty_hand"));
+            return 0;
+        }
+
+        int maxGive = held.getCount();
+        if (amount <= 0 || amount > maxGive) amount = maxGive;
+
+        Optional<BlockPos> nearestVillage = VillageDetector.findNearestVillage(level, player.blockPosition(), 100);
+        if (nearestVillage.isEmpty()) {
+            player.sendSystemMessage(Component.translatable("villagediplomacy.cmd.gift_no_village"));
+            return 0;
+        }
+
+        BlockPos villagePos = nearestVillage.get();
+        VillageRelationshipData relationData = VillageRelationshipData.get(level);
+        relationData.registerVillage(villagePos, level);
+        String villageId = relationData.getVillageId(villagePos);
+        String villageStored = relationData.getVillageName(villageId);
+
+        int giftValue = 5;
+        String itemName = held.getHoverName().getString();
+        if (itemName.contains("emerald")) giftValue = 15;
+        else if (itemName.contains("diamond")) giftValue = 12;
+        else if (itemName.contains("golden_apple") || itemName.contains("enchanted_golden_apple")) giftValue = 20;
+        else if (itemName.contains("iron_ingot") || itemName.contains("gold_ingot")) giftValue = 8;
+        else if (itemName.contains("bread") || itemName.contains("carrot") || itemName.contains("potato")) giftValue = 6;
+        else if (itemName.contains("book")) giftValue = 8;
+        else if (itemName.contains("coal")) giftValue = 5;
+
+        int totalGift = giftValue * amount;
+
+        VillageReputationData repData = VillageReputationData.get(level);
+        repData.addReputation(player.getUUID(), villagePos, totalGift);
+        int newRep = repData.getReputation(player.getUUID(), villagePos);
+
+        held.shrink(amount);
+
+        player.sendSystemMessage(Component.translatable("villagediplomacy.enter.bar"));
+        player.sendSystemMessage(Component.translatable("villagediplomacy.cmd.gift_done",
+                amount, itemName, VillageDisplayName.asComponent(villageStored)));
+        ModLang.sendReputationSummary(player, totalGift, newRep);
+        player.sendSystemMessage(Component.translatable("villagediplomacy.enter.bar"));
+
+        return 1;
     }
 }

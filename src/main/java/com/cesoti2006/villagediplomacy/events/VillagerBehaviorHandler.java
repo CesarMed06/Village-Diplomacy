@@ -24,8 +24,7 @@ public class VillagerBehaviorHandler {
 
     private static final Map<UUID, Long> effectCooldown = new ConcurrentHashMap<>();
     private static final Set<UUID> processedVillagers = ConcurrentHashMap.newKeySet();
-    
-    
+
     private static final Map<UUID, Map<UUID, Boolean>> hostilePlayerCache = new ConcurrentHashMap<>();
     private static final Map<UUID, Long> hostileCacheTimestamps = new ConcurrentHashMap<>();
     private static final long HOSTILE_CACHE_TTL_MS = 2000;
@@ -33,7 +32,7 @@ public class VillagerBehaviorHandler {
     private static final long HOSTILE_CLEANUP_INTERVAL_MS = 30000; 
 
     private static final long EFFECT_DURATION_MS = 20000;
-    
+
     private static final int PLAYER_TICK_INTERVAL = 20;
 
     @SubscribeEvent
@@ -51,7 +50,7 @@ public class VillagerBehaviorHandler {
             0.6D,
             0.6D,
             (LivingEntity livingEntity) -> {
-                
+
                 if (!(livingEntity instanceof ServerPlayer player)) return false;
                 return isPlayerHostileToVillager(villager, player);
             }
@@ -59,14 +58,12 @@ public class VillagerBehaviorHandler {
 
         processedVillagers.add(villagerId);
     }
-    
-    
+
     private static boolean isPlayerHostileToVillager(Villager villager, ServerPlayer player) {
         UUID villagerId = villager.getUUID();
         UUID playerId = player.getUUID();
         long now = System.currentTimeMillis();
-        
-        
+
         Long lastUpdate = hostileCacheTimestamps.get(villagerId);
         if (lastUpdate != null && (now - lastUpdate) < HOSTILE_CACHE_TTL_MS) {
             Map<UUID, Boolean> playerCache = hostilePlayerCache.get(villagerId);
@@ -75,13 +72,12 @@ public class VillagerBehaviorHandler {
                 if (cached != null) return cached;
             }
         }
-        
-        
+
         if (!(villager.level() instanceof ServerLevel level)) return false;
-        
+
         Optional<BlockPos> nearestVillage = VillageDetector.findNearestVillage(level, villager.blockPosition(), 200);
         if (nearestVillage.isEmpty()) {
-            
+
             cacheHostileStatus(villagerId, playerId, false, now);
             return false;
         }
@@ -89,16 +85,15 @@ public class VillagerBehaviorHandler {
         VillageReputationData data = VillageReputationData.get(level);
         int reputation = data.getReputation(playerId, nearestVillage.get());
         boolean hostile = reputation < -100;
-        
+
         cacheHostileStatus(villagerId, playerId, hostile, now);
         return hostile;
     }
-    
+
     private static void cacheHostileStatus(UUID villagerId, UUID playerId, boolean hostile, long timestamp) {
         hostilePlayerCache.computeIfAbsent(villagerId, k -> new HashMap<>()).put(playerId, hostile);
         hostileCacheTimestamps.put(villagerId, timestamp);
-        
-        
+
         if (timestamp - lastHostileCacheCleanup > HOSTILE_CLEANUP_INTERVAL_MS) {
             long now = System.currentTimeMillis();
             hostileCacheTimestamps.entrySet().removeIf(e -> (now - e.getValue()) > HOSTILE_CACHE_TTL_MS * 3);
@@ -111,7 +106,7 @@ public class VillagerBehaviorHandler {
     public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
         if (!(event.player instanceof ServerPlayer player)) return;
         if (event.phase != TickEvent.Phase.END) return;
-        
+
         if (player.tickCount % PLAYER_TICK_INTERVAL != 0) return;
 
         ServerLevel level = (ServerLevel) player.level();
@@ -153,32 +148,30 @@ public class VillagerBehaviorHandler {
         }
     }
 
-    
     private static void makeGolemsHostile(ServerPlayer player, ServerLevel level, BlockPos playerVillage) {
         List<IronGolem> nearbyGolems = level.getEntitiesOfClass(IronGolem.class,
                 player.getBoundingBox().inflate(24.0D),
                 golem -> !golem.isPlayerCreated());
 
         for (IronGolem golem : nearbyGolems) {
-            
+
             if (golem.blockPosition().distSqr(playerVillage) > 32400) continue; 
-            
+
             if (golem.getTarget() != player) {
                 golem.setTarget(player);
             }
         }
     }
 
-    
     private static void removeGolemTargets(ServerPlayer player, ServerLevel level, BlockPos playerVillage) {
         List<IronGolem> nearbyGolems = level.getEntitiesOfClass(IronGolem.class,
                 player.getBoundingBox().inflate(24.0D),
                 golem -> !golem.isPlayerCreated());
 
         for (IronGolem golem : nearbyGolems) {
-            
+
             if (golem.blockPosition().distSqr(playerVillage) > 32400) continue;
-            
+
             if (golem.getTarget() == player) {
                 golem.setTarget(null);
             }

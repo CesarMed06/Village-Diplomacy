@@ -38,12 +38,8 @@ public class FireDamageHandler {
     private static final Map<UUID, Long> playerCooldown = new HashMap<>();
     private static final Map<BlockPos, PlacedTntInfo> trackedTnt = new HashMap<>();
 
-    
-    private static final Map<BlockPos, Map<BlockPos, BlockState>> preExplosionStates = new HashMap<>();
-
     private record PlacedTntInfo(UUID playerId, long time) {}
 
-    
     private static final Set<Block> VALUABLE_BLOCKS = Set.of(
         Blocks.CRAFTING_TABLE, Blocks.FURNACE, Blocks.BLAST_FURNACE, Blocks.SMOKER,
         Blocks.BREWING_STAND, Blocks.CHEST, Blocks.BARREL, Blocks.ANVIL,
@@ -55,7 +51,6 @@ public class FireDamageHandler {
         Blocks.JUKEBOX, Blocks.NOTE_BLOCK
     );
 
-    
     private static final Set<Block> BED_BLOCKS = Set.of(
         Blocks.RED_BED, Blocks.WHITE_BED, Blocks.ORANGE_BED, Blocks.MAGENTA_BED,
         Blocks.LIGHT_BLUE_BED, Blocks.YELLOW_BED, Blocks.LIME_BED, Blocks.PINK_BED,
@@ -63,7 +58,6 @@ public class FireDamageHandler {
         Blocks.BLUE_BED, Blocks.BROWN_BED, Blocks.GREEN_BED, Blocks.BLACK_BED
     );
 
-    
     private static final Set<Block> CROP_BLOCKS = Set.of(
         Blocks.WHEAT, Blocks.CARROTS, Blocks.POTATOES, Blocks.BEETROOTS,
         Blocks.MELON_STEM, Blocks.PUMPKIN_STEM, Blocks.MELON, Blocks.PUMPKIN,
@@ -72,7 +66,6 @@ public class FireDamageHandler {
         Blocks.PITCHER_CROP
     );
 
-    
     private static final Set<Block> ENTRY_BLOCKS = Set.of(
         Blocks.OAK_DOOR, Blocks.SPRUCE_DOOR, Blocks.BIRCH_DOOR, Blocks.JUNGLE_DOOR,
         Blocks.ACACIA_DOOR, Blocks.DARK_OAK_DOOR, Blocks.MANGROVE_DOOR,
@@ -85,10 +78,6 @@ public class FireDamageHandler {
         Blocks.DARK_OAK_FENCE_GATE, Blocks.MANGROVE_FENCE_GATE, Blocks.CHERRY_FENCE_GATE,
         Blocks.BAMBOO_FENCE_GATE
     );
-
-    
-    
-    
 
     @SubscribeEvent
     public static void onBlockPlaced(BlockEvent.EntityPlaceEvent event) {
@@ -110,7 +99,6 @@ public class FireDamageHandler {
         BlockPos village = villagePos.get();
         UUID playerId = player.getUUID();
 
-        
         if (block == Blocks.TNT) {
             data.addReputation(playerId, village, -10);
             int newRep = data.getReputation(playerId, village);
@@ -122,11 +110,9 @@ public class FireDamageHandler {
             }
             ModLang.sendReputationSummary(player, -10, newRep);
 
-            
             trackedTnt.put(pos.immutable(), new PlacedTntInfo(playerId, System.currentTimeMillis()));
         }
 
-        
         if (block == Blocks.LAVA || block == Blocks.LAVA_CAULDRON) {
             data.addReputation(playerId, village, -25);
             int newRep = data.getReputation(playerId, village);
@@ -139,10 +125,6 @@ public class FireDamageHandler {
             ModLang.sendReputationSummary(player, -25, newRep);
         }
     }
-
-    
-    
-    
 
     @SubscribeEvent
     public static void onRightClickBlock(PlayerInteractEvent.RightClickBlock event) {
@@ -165,47 +147,40 @@ public class FireDamageHandler {
         Optional<BlockPos> villagePos = VillageDetector.findNearestVillage(level, clickedPos, 200);
         if (villagePos.isEmpty()) return;
 
-        if (!isPlayerObserved(level, player, clickedPos)) return;
-        if (isOnCooldown(player)) return;
-
         VillageReputationData data = VillageReputationData.get(level);
         BlockPos village = villagePos.get();
         UUID playerId = player.getUUID();
 
-        
         if (clickedBlock == Blocks.TNT && holdingFlintSteel) {
-            data.addReputation(playerId, village, -20);
-            int newRep = data.getReputation(playerId, village);
-
             AbstractVillager witness = findNearestVillager(level, clickedPos);
             if (witness != null) {
+                data.addReputation(playerId, village, -20);
+                int newRep = data.getReputation(playerId, village);
                 ModLang.sendDialogRandom(player, level.getRandom(), witness,
                     "villagediplomacy.react.tnt_ignite", 3);
-                
                 makeVillagersPanic(level, clickedPos, player);
+                ModLang.sendReputationSummary(player, -20, newRep);
             }
-            ModLang.sendReputationSummary(player, -20, newRep);
             return;
         }
 
-        
         if (holdingLavaBucket) {
-            data.addReputation(playerId, village, -25);
-            int newRep = data.getReputation(playerId, village);
-
             AbstractVillager witness = findNearestVillager(level, clickedPos);
             if (witness != null) {
+                data.addReputation(playerId, village, -25);
+                int newRep = data.getReputation(playerId, village);
                 ModLang.sendDialogRandom(player, level.getRandom(), witness,
                     "villagediplomacy.react.lava_place", 3);
+                ModLang.sendReputationSummary(player, -25, newRep);
             }
-            ModLang.sendReputationSummary(player, -25, newRep);
             return;
         }
 
-        
+        if (!isPlayerObserved(level, player, clickedPos)) return;
+        if (isOnCooldown(player)) return;
+
         if (!holdingFlintSteel && !holdingFireCharge) return;
 
-        
         BlockPos firePos = clickedPos.relative(event.getFace());
         if (!level.getBlockState(firePos).isAir()) return; 
         if (event.getFace() == Direction.UP && !clickedState.isCollisionShapeFullBlock(level, clickedPos)) return; 
@@ -226,12 +201,12 @@ public class FireDamageHandler {
             penalty = -10;
             langKey = "villagediplomacy.react.workstation_burn";
         } else {
-            
+
             int flammability = clickedBlock.getFlammability(clickedState, level, clickedPos, Direction.UP);
             boolean isFlammable = flammability > 0;
 
             if (!isFlammable) {
-                
+
                 penalty = -1;
                 langKey = "villagediplomacy.react.fire_innocent";
             } else {
@@ -250,45 +225,6 @@ public class FireDamageHandler {
         ModLang.sendReputationSummary(player, penalty, newRep);
     }
 
-    
-    
-    
-
-    @SubscribeEvent
-    public static void onExplosionStart(ExplosionEvent.Start event) {
-        if (!(event.getLevel() instanceof ServerLevel level)) return;
-
-        Entity exploder = event.getExplosion().getExploder();
-        if (!(exploder instanceof PrimedTnt)) return;
-
-        BlockPos centerPos = BlockPos.containing(event.getExplosion().getPosition());
-
-        Optional<BlockPos> villagePos = VillageDetector.findNearestVillage(level, centerPos, 200);
-        if (villagePos.isEmpty()) return;
-
-        
-        
-        int radius = 12;
-        Map<BlockPos, BlockState> states = new HashMap<>();
-
-        for (int x = -radius; x <= radius; x++) {
-            for (int y = -radius; y <= radius; y++) {
-                for (int z = -radius; z <= radius; z++) {
-                    BlockPos pos = centerPos.offset(x, y, z);
-                    if (pos.distSqr(centerPos) <= radius * radius) {
-                        states.put(pos.immutable(), level.getBlockState(pos));
-                    }
-                }
-            }
-        }
-
-        preExplosionStates.put(centerPos.immutable(), states);
-    }
-
-    
-    
-    
-
     @SubscribeEvent
     public static void onExplosion(ExplosionEvent.Detonate event) {
         if (!(event.getLevel() instanceof ServerLevel level)) return;
@@ -298,124 +234,38 @@ public class FireDamageHandler {
 
         BlockPos centerPos = BlockPos.containing(event.getExplosion().getPosition());
 
-        Optional<BlockPos> villagePos = VillageDetector.findNearestVillage(level, centerPos, 200);
-        if (villagePos.isEmpty()) return;
+        Optional<BlockPos> villageOpt = VillageDetector.findNearestVillage(level, centerPos, 200);
+        if (villageOpt.isEmpty()) return;
+        BlockPos villagePos = villageOpt.get();
 
-        List<BlockPos> affectedBlocks = event.getAffectedBlocks();
-        if (affectedBlocks == null || affectedBlocks.isEmpty()) return;
+        if (level.getEntitiesOfClass(AbstractVillager.class,
+            new AABB(centerPos).inflate(32)).isEmpty()) return;
 
-        
         UUID playerId = findTntPlacer(level, centerPos);
-
-        
         if (playerId == null) {
             ServerPlayer nearest = findNearestPlayer(level, centerPos);
             if (nearest == null) return;
             playerId = nearest.getUUID();
         }
 
-        
-        Map<BlockPos, BlockState> preStates = null;
-        for (Map.Entry<BlockPos, Map<BlockPos, BlockState>> entry : preExplosionStates.entrySet()) {
-            if (entry.getKey().distSqr(centerPos) < 100) {
-                preStates = entry.getValue();
-                break;
-            }
-        }
-        
-        preExplosionStates.clear();
-
-        
-        int valuableCount = 0;
-        int cropCount = 0;
-        int entryCount = 0;
-        int totalBlocks = 0;
-        int totalPenalty = 0;
-
-        for (BlockPos pos : affectedBlocks) {
-            
-            if (pos.distSqr(villagePos.get()) > 40000) continue; 
-
-            totalBlocks++;
-
-            
-            BlockState state = null;
-            if (preStates != null) {
-                state = preStates.get(pos);
-            }
-            
-            if (state == null) {
-                
-                
-                totalPenalty += 2;
-                continue;
-            }
-            
-            if (state.isAir()) {
-                
-                continue;
-            }
-            
-            Block block = state.getBlock();
-
-            if (VALUABLE_BLOCKS.contains(block)) {
-                totalPenalty += 5;
-                valuableCount++;
-            } else if (CROP_BLOCKS.contains(block)) {
-                totalPenalty += 3;
-                cropCount++;
-            } else if (BED_BLOCKS.contains(block)) {
-                totalPenalty += 6;
-                valuableCount++;
-            } else if (ENTRY_BLOCKS.contains(block)) {
-                totalPenalty += 4;
-                entryCount++;
-            } else if (block instanceof DoorBlock || block instanceof FenceGateBlock
-                    || block instanceof TrapDoorBlock) {
-                totalPenalty += 4;
-                entryCount++;
-            } else {
-                
-                totalPenalty += 2;
-            }
-        }
-
-        
-        totalPenalty = Math.min(totalPenalty, 100);
-
-        if (totalPenalty <= 0) return;
-
         ServerPlayer player = level.getServer().getPlayerList().getPlayer(playerId);
         if (player == null) return;
 
-        VillageReputationData data = VillageReputationData.get(level);
-        BlockPos village = villagePos.get();
-        data.addReputation(playerId, village, -totalPenalty);
-        int newRep = data.getReputation(playerId, village);
+        int penalty = 50;
 
-        
-        String severityKey;
-        if (totalPenalty >= 60) {
-            severityKey = "villagediplomacy.react.explosion_massive";
-        } else if (totalPenalty >= 30) {
-            severityKey = "villagediplomacy.react.explosion_severe";
-        } else {
-            severityKey = "villagediplomacy.react.explosion_moderate";
-        }
+        VillageReputationData data = VillageReputationData.get(level);
+        data.addReputation(playerId, villagePos, -penalty);
+        int newRep = data.getReputation(playerId, villagePos);
 
         AbstractVillager witness = findNearestVillager(level, centerPos);
         if (witness != null) {
-            ModLang.sendDialogRandom(player, level.getRandom(), witness, severityKey, 3);
+            ModLang.sendDialogRandom(player, level.getRandom(), witness,
+                "villagediplomacy.react.explosion_massive", 3);
         }
 
-        player.sendSystemMessage(Component.translatable("villagediplomacy.sys.explosion_damage",
-            valuableCount, cropCount, entryCount, totalBlocks, totalPenalty));
-        ModLang.sendReputationSummary(player, -totalPenalty, newRep);
+        player.sendSystemMessage(Component.translatable("villagediplomacy.sys.explosion_damage", penalty));
+        ModLang.sendReputationSummary(player, -penalty, newRep);
     }
-
-    
-    
-    
 
     @SubscribeEvent
     public static void onLeftClickBlock(PlayerInteractEvent.LeftClickBlock event) {
@@ -425,7 +275,6 @@ public class FireDamageHandler {
         BlockPos pos = event.getPos();
         BlockState state = level.getBlockState(pos);
 
-        
         if (state.getBlock() != Blocks.FIRE && state.getBlock() != Blocks.SOUL_FIRE) return;
 
         Optional<BlockPos> villagePos = VillageDetector.findNearestVillage(level, pos, 200);
@@ -449,10 +298,6 @@ public class FireDamageHandler {
         ModLang.sendReputationSummary(player, 3, newRep);
     }
 
-    
-    
-    
-
     @SubscribeEvent
     public static void onServerTick(net.minecraftforge.event.TickEvent.ServerTickEvent event) {
         if (event.phase != net.minecraftforge.event.TickEvent.Phase.END) return;
@@ -462,20 +307,15 @@ public class FireDamageHandler {
             now - entry.getValue().time() > 300000); 
     }
 
-    
     @SubscribeEvent
     public static void onPlayerLogout(PlayerEvent.PlayerLoggedOutEvent event) {
         if (event.getEntity() instanceof ServerPlayer player) {
             playerCooldown.remove(player.getUUID());
-            
+
             trackedTnt.entrySet().removeIf(entry ->
                 entry.getValue().playerId().equals(player.getUUID()));
         }
     }
-
-    
-    
-    
 
     private static boolean isPlayerObserved(ServerLevel level, ServerPlayer player, BlockPos pos) {
         return !level.getEntitiesOfClass(AbstractVillager.class, new AABB(pos).inflate(VILLAGER_RADIUS)).isEmpty();
@@ -512,7 +352,7 @@ public class FireDamageHandler {
     }
 
     private static UUID findTntPlacer(ServerLevel level, BlockPos centerPos) {
-        
+
         for (Map.Entry<BlockPos, PlacedTntInfo> entry : trackedTnt.entrySet()) {
             if (entry.getKey().distSqr(centerPos) < 100) { 
                 return entry.getValue().playerId();
@@ -530,37 +370,31 @@ public class FireDamageHandler {
         return false;
     }
 
-    
     private static void makeVillagersPanic(ServerLevel level, BlockPos tntPos, ServerPlayer player) {
         List<Villager> villagers = level.getEntitiesOfClass(Villager.class,
             new AABB(tntPos).inflate(24));
-        
+
         Vec3 fleeFrom = player.position();
-        
+
         for (Villager v : villagers) {
-            
+
             v.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 400, 3, false, false, true));
-            
-            
+
             Vec3 villagerPos = v.position();
             Vec3 fleeDir = villagerPos.subtract(fleeFrom).normalize();
-            
-            
+
             BlockPos fleeTarget = BlockPos.containing(
                 villagerPos.x + fleeDir.x * 20,
                 villagerPos.y,
                 villagerPos.z + fleeDir.z * 20
             );
-            
-            
+
             v.getNavigation().moveTo(fleeTarget.getX(), fleeTarget.getY(), fleeTarget.getZ(), 1.5);
-            
-            
+
             v.getBrain().eraseMemory(net.minecraft.world.entity.ai.memory.MemoryModuleType.WALK_TARGET);
             v.getBrain().eraseMemory(net.minecraft.world.entity.ai.memory.MemoryModuleType.CANT_REACH_WALK_TARGET_SINCE);
             v.getBrain().setMemory(net.minecraft.world.entity.ai.memory.MemoryModuleType.HURT_BY_ENTITY, player);
-            
-            
+
             v.getNavigation().moveTo(fleeTarget.getX(), fleeTarget.getY(), fleeTarget.getZ(), 1.5);
         }
     }

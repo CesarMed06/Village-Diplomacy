@@ -17,14 +17,13 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-
 public class PlacementRestrictionsHandler {
 
     private static final int REP_BLOCK_PLACEMENT  = -400;  
     private static final int REP_PENALTY_DISLIKED = -200;  
     private static final int REP_PENALTY_SUSPICIOUS = -100; 
     private static final int REP_PENALTY_NEUTRAL  = 0;     
-    
+
     private static final long MSG_COOLDOWN_MS = 8000;
 
     private final Map<UUID, Long> msgCooldown = new HashMap<>();
@@ -42,19 +41,16 @@ public class PlacementRestrictionsHandler {
         VillageReputationData data = VillageReputationData.get(level);
         int rep = data.getReputation(player.getUUID(), nearestVillage.get());
 
-        
         if (rep >= 800) {
             return;
         }
 
-        
         if (rep <= REP_BLOCK_PLACEMENT) {
             event.setCanceled(true);
             sendThrottled(player, level, "villagediplomacy.restrict.placement.blocked", nearestVillage.get());
             return;
         }
 
-        
         int penaltyAmount = 0;
         String messageKey = null;
 
@@ -69,17 +65,15 @@ public class PlacementRestrictionsHandler {
             messageKey = "villagediplomacy.restrict.placement.neutral";
         }
 
-        
         if (penaltyAmount < 0) {
             data.addReputation(player.getUUID(), nearestVillage.get(), penaltyAmount);
-            
-            
+
             List<Villager> nearby = level.getEntitiesOfClass(Villager.class, new AABB(pos).inflate(20));
             if (!nearby.isEmpty()) {
                 sendThrottled(player, level, messageKey, nearestVillage.get());
             }
         }
-        
+
     }
 
     private void sendThrottled(ServerPlayer player, ServerLevel level, String key, BlockPos villagePos) {

@@ -12,17 +12,13 @@ public final class ModLang {
 
     private ModLang() {}
 
-    
-
     private static final ChatFormatting COLOR_VILLAGER_NAME  = ChatFormatting.GOLD;
     private static final ChatFormatting COLOR_DIALOG         = ChatFormatting.YELLOW;
     private static final ChatFormatting COLOR_SYSTEM         = ChatFormatting.GRAY;
     private static final ChatFormatting COLOR_REP_POSITIVE   = ChatFormatting.GREEN;
     private static final ChatFormatting COLOR_REP_NEGATIVE   = ChatFormatting.RED;
     private static final ChatFormatting COLOR_REP_TIER       = ChatFormatting.AQUA;
-    private static final ChatFormatting COLOR_BRACKET        = ChatFormatting.DARK_GRAY;
-
-    
+    private static final ChatFormatting COLOR_BRACKET        = ChatFormatting.GRAY;
 
     private static final java.util.Map<String, String> PROF_ES = java.util.Map.ofEntries(
         java.util.Map.entry("farmer", "Granjero"),
@@ -71,8 +67,6 @@ public final class ModLang {
             .append(Component.literal(" "));
     }
 
-    
-
     public static void send(ServerPlayer player, String key, Object... args) {
         player.sendSystemMessage(
             Component.translatable(key, args).withStyle(COLOR_SYSTEM)
@@ -82,8 +76,6 @@ public final class ModLang {
     public static void sendRaw(ServerPlayer player, MutableComponent component) {
         player.sendSystemMessage(component);
     }
-
-    
 
     public static void sendDialog(ServerPlayer player, AbstractVillager villager, String key) {
         MutableComponent msg = villagerPrefix(villager)
@@ -121,8 +113,6 @@ public final class ModLang {
         sendDialogNamed(player, name, keyPrefix + "." + i);
     }
 
-    
-
     public static void sendRandom(ServerPlayer player, RandomSource random, String keyPrefix, int count) {
         if (count <= 0) return;
         int i = random.nextInt(count);
@@ -140,8 +130,6 @@ public final class ModLang {
         );
     }
 
-    
-
     public static void sendReputationSummary(ServerPlayer player, int delta, int newTotal) {
         MutableComponent deltaC = Component.literal((delta >= 0 ? "+" : "") + delta)
             .withStyle(delta < 0 ? COLOR_REP_NEGATIVE : COLOR_REP_POSITIVE);
@@ -151,11 +139,9 @@ public final class ModLang {
 
         player.sendSystemMessage(
             Component.translatable("villagediplomacy.sys.reputation_summary", deltaC, totalC, tierC)
-                .withStyle(COLOR_SYSTEM)
+                .withStyle(ChatFormatting.GRAY)
         );
     }
-
-    
 
     public static String repStatusKey(int reputation) {
         if (reputation >= 1000) return "villagediplomacy.rep.legendary_hero";

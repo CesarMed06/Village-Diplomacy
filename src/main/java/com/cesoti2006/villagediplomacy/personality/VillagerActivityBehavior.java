@@ -20,7 +20,6 @@ import java.util.Optional;
 import java.util.Random;
 import java.util.UUID;
 
-
 @Mod.EventBusSubscriber
 public class VillagerActivityBehavior {
 
@@ -32,7 +31,7 @@ public class VillagerActivityBehavior {
     public static void onVillagerTick(LivingEvent.LivingTickEvent event) {
         if (!(event.getEntity() instanceof Villager villager)) return;
         if (villager.level().isClientSide()) return;
-        
+
         if (villager.tickCount % 200 != 0) return;
 
         ServerLevel level = (ServerLevel) villager.level();
@@ -108,8 +107,7 @@ public class VillagerActivityBehavior {
             if (target != null) {
                 villager.getNavigation().moveTo(target, 1.0D);
                 if (villager.distanceToSqr(target) < 4.0D) {
-                    
-                    
+
                     ItemStack food = villager.getMainHandItem().copy();
                     food.setCount(1);
                     villager.spawnAtLocation(food);
@@ -169,9 +167,8 @@ public class VillagerActivityBehavior {
         }
     }
 
-    
     private static BlockPos findNearestWater(BlockPos center, ServerLevel level, int maxRadius) {
-        
+
         PoiManager poiManager = level.getPoiManager();
         Optional<BlockPos> fisherPoi = poiManager.findClosest(
             holder -> holder.is(PoiTypes.FISHERMAN),
@@ -180,8 +177,7 @@ public class VillagerActivityBehavior {
             PoiManager.Occupancy.ANY
         );
         if (fisherPoi.isPresent()) return fisherPoi.get();
-        
-        
+
         int r = Math.min(maxRadius, 6);
         BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos();
         for (int x = -r; x <= r; x++) {
@@ -196,10 +192,8 @@ public class VillagerActivityBehavior {
         return null;
     }
 
-    
     private static BlockPos findNearestChest(BlockPos center, ServerLevel level, int maxRadius) {
-        
-        
+
         PoiManager poiManager = level.getPoiManager();
         Optional<BlockPos> meetingPoi = poiManager.findClosest(
             holder -> holder.is(PoiTypes.MEETING),
@@ -208,8 +202,7 @@ public class VillagerActivityBehavior {
             PoiManager.Occupancy.ANY
         );
         if (meetingPoi.isPresent()) return meetingPoi.get();
-        
-        
+
         int r = Math.min(maxRadius, 5);
         BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos();
         for (int x = -r; x <= r; x++) {
@@ -226,7 +219,6 @@ public class VillagerActivityBehavior {
         return null;
     }
 
-    
     private static BlockPos findNearestBed(BlockPos center, ServerLevel level, int maxRadius) {
         PoiManager poiManager = level.getPoiManager();
         Optional<BlockPos> bedPoi = poiManager.findClosest(

@@ -37,3 +37,7 @@ Thumbs.db
 *.zip
 nul
 .vscode/
+
+# Compiled jars and publish output
+*.jar
+mcmodsrepo/

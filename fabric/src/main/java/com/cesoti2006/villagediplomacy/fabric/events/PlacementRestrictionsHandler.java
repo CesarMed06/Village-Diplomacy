@@ -13,16 +13,13 @@ import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
 
 import java.util.*;
 
-
 public class PlacementRestrictionsHandler {
 
     private static final long MSG_COOLDOWN_MS = 8000;
     private final Map<UUID, Long> msgCooldown = new HashMap<>();
 
     public void registerEvents() {
-        
-        
-        
+
     }
 
     private void sendThrottled(ServerPlayer player, ServerLevel level, String key, BlockPos villagePos) {

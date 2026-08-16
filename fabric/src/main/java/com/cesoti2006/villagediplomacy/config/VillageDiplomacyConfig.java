@@ -5,14 +5,8 @@ import java.io.*;
 import java.nio.file.*;
 import java.util.Properties;
 
-/**
- * Fabric-compatible configuration for Village Diplomacy.
- * Reads config/villagediplomacy.properties on startup.
- * Same options as the Forge version.
- */
 public class VillageDiplomacyConfig {
 
-    // ---- Hostile Kills ----
     public static int repUndead = 50;
     public static int repRaid = 15;
     public static int repWitch = 10;
@@ -25,7 +19,6 @@ public class VillageDiplomacyConfig {
     public static int repBoss = 50;
     public static boolean hostileKillRequireWitness = true;
 
-    // ---- Penalties ----
     public static int repAttackVillager = -10;
     public static int repKillVillager = -100;
     public static int repKillBabyVillager = -200;
@@ -41,13 +34,11 @@ public class VillageDiplomacyConfig {
     public static int repDoorOpen = -5;
     public static int repAnimalAttack = -5;
 
-    // ---- Behavior ----
     public static int villageEnterRadius = 80;
     public static int villageExitConfirmRadius = 120;
     public static int customVillageRadius = 48;
     public static boolean enableEntryMessages = true;
 
-    // ---- Guard Villagers ----
     public static int repGuardAttack = -5;
     public static int repGuardKill = -100;
     public static int repGuardWitness = 3;
@@ -59,10 +50,6 @@ public class VillageDiplomacyConfig {
 
     private static boolean loaded = false;
 
-    /**
-     * Load config from config/villagediplomacy.properties.
-     * Call this once during mod initialization.
-     */
     public static void loadConfig() {
         if (loaded) return;
         loaded = true;
@@ -70,21 +57,18 @@ public class VillageDiplomacyConfig {
         Path configDir = Paths.get("config");
         Path configFile = configDir.resolve("villagediplomacy.properties");
 
-        // Create config dir if it doesn't exist
         try {
             Files.createDirectories(configDir);
         } catch (IOException e) {
             VillageDiplomacy.LOGGER.warn("Could not create config directory: " + e.getMessage());
         }
 
-        // Create default config file if it doesn't exist
         if (!Files.exists(configFile)) {
             writeDefaultConfig(configFile);
             VillageDiplomacy.LOGGER.info("Created default config: " + configFile.toAbsolutePath());
             return;
         }
 
-        // Load from file
         Properties props = new Properties();
         try (Reader reader = Files.newBufferedReader(configFile)) {
             props.load(reader);
@@ -93,7 +77,6 @@ public class VillageDiplomacyConfig {
             return;
         }
 
-        // Read all values, using defaults if missing
         repUndead = getInt(props, "hostile_kills.repUndead", 50);
         repRaid = getInt(props, "hostile_kills.repRaid", 15);
         repWitch = getInt(props, "hostile_kills.repWitch", 10);

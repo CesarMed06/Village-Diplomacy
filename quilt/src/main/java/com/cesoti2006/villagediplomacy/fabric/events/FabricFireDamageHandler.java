@@ -102,54 +102,52 @@ public class FabricFireDamageHandler {
 
         Optional<BlockPos> villagePos = VillageDetector.findNearestVillage(serverLevel, clickedPos, 200);
         if (villagePos.isEmpty()) return InteractionResult.PASS;
-        if (!isPlayerObserved(serverLevel, clickedPos)) return InteractionResult.PASS;
-        if (isOnCooldown(serverPlayer)) return InteractionResult.PASS;
 
         VillageReputationData data = VillageReputationData.get(serverLevel);
         BlockPos village = villagePos.get();
         UUID playerId = serverPlayer.getUUID();
 
-        // TNT placement
         if (holdingTNT) {
-            data.addReputation(playerId, village, -10);
-            int newRep = data.getReputation(playerId, village);
             AbstractVillager witness = findNearestVillager(serverLevel, clickedPos);
             if (witness != null) {
+                data.addReputation(playerId, village, -10);
+                int newRep = data.getReputation(playerId, village);
                 ModLang.sendDialogRandom(serverPlayer, serverLevel.getRandom(), witness,
                     "villagediplomacy.react.tnt_place", 3);
+                ModLang.sendReputationSummary(serverPlayer, -10, newRep);
             }
-            ModLang.sendReputationSummary(serverPlayer, -10, newRep);
             trackedTnt.put(clickedPos.relative(hitResult.getDirection()).immutable(),
                 new PlacedTntInfo(playerId, System.currentTimeMillis()));
             return InteractionResult.PASS;
         }
 
-        // TNT ignition with flint & steel
         if (clickedBlock == Blocks.TNT && holdingFlintSteel) {
-            data.addReputation(playerId, village, -20);
-            int newRep = data.getReputation(playerId, village);
             AbstractVillager witness = findNearestVillager(serverLevel, clickedPos);
             if (witness != null) {
+                data.addReputation(playerId, village, -20);
+                int newRep = data.getReputation(playerId, village);
                 ModLang.sendDialogRandom(serverPlayer, serverLevel.getRandom(), witness,
                     "villagediplomacy.react.tnt_ignite", 3);
                 makeVillagersPanic(serverLevel, clickedPos, serverPlayer);
+                ModLang.sendReputationSummary(serverPlayer, -20, newRep);
             }
-            ModLang.sendReputationSummary(serverPlayer, -20, newRep);
             return InteractionResult.PASS;
         }
 
-        // Lava bucket
         if (holdingLavaBucket) {
-            data.addReputation(playerId, village, -25);
-            int newRep = data.getReputation(playerId, village);
             AbstractVillager witness = findNearestVillager(serverLevel, clickedPos);
             if (witness != null) {
+                data.addReputation(playerId, village, -25);
+                int newRep = data.getReputation(playerId, village);
                 ModLang.sendDialogRandom(serverPlayer, serverLevel.getRandom(), witness,
                     "villagediplomacy.react.lava_place", 3);
+                ModLang.sendReputationSummary(serverPlayer, -25, newRep);
             }
-            ModLang.sendReputationSummary(serverPlayer, -25, newRep);
             return InteractionResult.PASS;
         }
+
+        if (!isPlayerObserved(serverLevel, clickedPos)) return InteractionResult.PASS;
+        if (isOnCooldown(serverPlayer)) return InteractionResult.PASS;
 
         if (!holdingFlintSteel && !holdingFireCharge) return InteractionResult.PASS;
 
@@ -212,7 +210,6 @@ public class FabricFireDamageHandler {
 
         return InteractionResult.PASS;
     }
-
 
     private void onPlayerLogout(net.minecraft.server.network.ServerGamePacketListenerImpl handler, net.minecraft.server.MinecraftServer server) {
         UUID id = handler.player.getUUID();

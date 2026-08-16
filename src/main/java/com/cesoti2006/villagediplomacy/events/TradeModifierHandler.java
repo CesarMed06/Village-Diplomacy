@@ -7,7 +7,7 @@ import com.cesoti2006.villagediplomacy.reputation.ReputationTiersHandler;
 import com.cesoti2006.villagediplomacy.util.ModLang;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -63,7 +63,6 @@ public class TradeModifierHandler {
         VillageReputationData data = VillageReputationData.get(level);
         int reputation = data.getReputation(player.getUUID(), villagePos);
 
-        
         if (!ReputationTiersHandler.canTrade(reputation)) {
             event.setCanceled(true);
 
@@ -106,25 +105,12 @@ public class TradeModifierHandler {
 
     private int calculatePriceModifier(int reputation) {
         float multiplier = ReputationTiersHandler.getTradeMultiplier(reputation);
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
+
         if (multiplier < 1.0f) {
-            
+
             return Math.round((multiplier - 1.0f) * 5);
         } else if (multiplier > 1.0f) {
-            
+
             return Math.round((multiplier - 1.0f) * 5);
         }
         return 0;
@@ -170,7 +156,7 @@ public class TradeModifierHandler {
 
         if (hasJob) {
             VillagerProfession prof = villager.getVillagerData().getProfession();
-            ResourceLocation profKey = BuiltInRegistries.VILLAGER_PROFESSION.getKey(prof);
+            ResourceLocation profKey = ForgeRegistries.VILLAGER_PROFESSIONS.getKey(prof);
             java.util.Map<String, String> profEs = java.util.Map.ofEntries(
                 java.util.Map.entry("farmer", "Granjero"),
                 java.util.Map.entry("librarian", "Bibliotecario"),

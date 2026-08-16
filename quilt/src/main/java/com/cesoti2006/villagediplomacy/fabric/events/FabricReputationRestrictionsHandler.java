@@ -22,7 +22,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-
 public class FabricReputationRestrictionsHandler {
 
     private static final int REP_BLOCK_BELLS        = -100;
@@ -70,7 +69,6 @@ public class FabricReputationRestrictionsHandler {
             VillageReputationData data = VillageReputationData.get(level);
             int rep = data.getReputation(serverPlayer.getUUID(), villagePos);
 
-            
             if (isChest) {
                 if (rep <= REP_BLOCK_CHESTS) {
                     sendThrottled(serverPlayer, level, "villagediplomacy.restrict.chest", nearby, villagePos);
@@ -80,21 +78,21 @@ public class FabricReputationRestrictionsHandler {
                     return net.minecraft.world.InteractionResult.FAIL;
                 }
             }
-            
+
             else if (isDoor) {
                 if (!ReputationTiersHandler.canAccessDoors(rep)) {
                     sendThrottled(serverPlayer, level, "villagediplomacy.restrict.door", nearby, villagePos);
                     return net.minecraft.world.InteractionResult.FAIL;
                 }
             }
-            
+
             else if (isBell) {
                 if (rep <= REP_BLOCK_BELLS) {
                     sendThrottled(serverPlayer, level, "villagediplomacy.restrict.bell", nearby, villagePos);
                     return net.minecraft.world.InteractionResult.FAIL;
                 }
             }
-            
+
             else if (isBed) {
                 if (rep <= REP_BLOCK_BEDS) {
                     sendThrottled(serverPlayer, level, "villagediplomacy.restrict.bed", nearby, villagePos);
@@ -104,7 +102,7 @@ public class FabricReputationRestrictionsHandler {
                     return net.minecraft.world.InteractionResult.FAIL;
                 }
             }
-            
+
             else if (isCrafting) {
                 if (rep <= REP_BLOCK_CRAFTING) {
                     sendThrottled(serverPlayer, level, "villagediplomacy.restrict.crafting", nearby, villagePos);

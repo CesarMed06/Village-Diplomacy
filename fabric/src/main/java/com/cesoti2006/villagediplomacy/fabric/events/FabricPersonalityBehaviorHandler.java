@@ -34,7 +34,6 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import java.util.*;
 import java.util.Optional;
 
-
 public class FabricPersonalityBehaviorHandler {
 
     private static final Random RANDOM = new Random();
@@ -56,67 +55,56 @@ public class FabricPersonalityBehaviorHandler {
     private final Map<UUID, Long> lastGiftTime = new HashMap<>();
     private final Map<UUID, Long> lastActivityTime = new HashMap<>();
 
-    
     private static final Map<UUID, Long> lastBellRing = new HashMap<>();
     private static final long BELL_COOLDOWN = 15000;
 
     public void registerEvents() {
-        
+
         ServerLivingEntityEvents.AFTER_DEATH.register(this::onVillagerDeath);
 
-        
         ServerLivingEntityEvents.ALLOW_DAMAGE.register(this::onVillagerAttackedByMonster);
 
         ServerTickEvents.END_SERVER_TICK.register(server -> {
             for (ServerLevel level : server.getAllLevels()) {
-                
+
                 List<Villager> villagers = level.getEntitiesOfClass(Villager.class, 
                     new net.minecraft.world.phys.AABB(level.getSharedSpawnPos()).inflate(10000));
 
                 for (Villager villager : villagers) {
                     UUID villagerId = villager.getUUID();
-                    
-                    
+
                     if (!initializedVillagers.contains(villagerId)) {
                         initializeVillager(villager, level);
                         initializedVillagers.add(villagerId);
                     }
 
-                    
                     if (villager.tickCount % 40 != 0) continue;
 
                     VillagerPersonalityData data = VillagerPersonalityData.get(level);
                     VillagerPersonality personality = data.getPersonality(villagerId);
                     if (personality == null) continue;
 
-                    
                     PersonalityTrait courage = personality.getCourage();
                     if (courage == PersonalityTrait.COWARD || courage == PersonalityTrait.CAUTIOUS) {
                         checkCowardFlee(villager, personality, level);
                     }
 
-                    
                     checkBadReputationFlee(villager, personality, level);
 
-                    
                     updateToolInHand(villager, level, data);
 
-                    
                     PersonalityTrait generosity = personality.getGenerosity();
                     if (generosity == PersonalityTrait.GENEROUS || generosity == PersonalityTrait.CHARITABLE) {
                         checkGenerousGift(villager, level);
                     }
 
-                    
                     updateEmotionalState(villager, personality, level);
 
-                    
                     if (personality.getCurrentEmotion() == EmotionalState.MOURNING) {
                         checkMourningBehavior(villager, level, data);
                     }
                 }
 
-                
                 if (tickCounter++ % 7 == 0) {
                     for (Villager villager : villagers) {
                         UUID villagerId = villager.getUUID();
@@ -153,20 +141,16 @@ public class FabricPersonalityBehaviorHandler {
         villager.setCustomName(Component.literal(displayName));
         villager.setCustomNameVisible(true);
 
-        
-        
     }
 
     private void checkCowardFlee(Villager villager, VillagerPersonality personality, ServerLevel level) {
         if (villager.getDeltaMovement().horizontalDistanceSqr() < 0.01) return;
 
-        
         boolean isFleeingFromZombie = !level.getEntitiesOfClass(
             Zombie.class,
             villager.getBoundingBox().inflate(10.0D)
         ).isEmpty();
 
-        
         boolean isFleeingFromPlayer = level.getEntitiesOfClass(
             Player.class,
             villager.getBoundingBox().inflate(8.0D),
@@ -240,11 +224,11 @@ public class FabricPersonalityBehaviorHandler {
         ItemStack newTool = ItemStack.EMPTY;
 
         if (timeOfDay >= 0 && timeOfDay < 6000) {
-            
+
             activity = "working";
             newTool = getWorkTool(villager);
         } else if (timeOfDay >= 6000 && timeOfDay < 12000) {
-            
+
             Long lastEat = lastEatingTime.get(villagerId);
             long currentTime = System.currentTimeMillis();
             if (lastEat == null || currentTime - lastEat > EATING_COOLDOWN_MS) {
@@ -256,11 +240,11 @@ public class FabricPersonalityBehaviorHandler {
                 newTool = getWorkTool(villager);
             }
         } else if (timeOfDay >= 12000 && timeOfDay < 18000) {
-            
+
             activity = "lighting";
             newTool = new ItemStack(Items.TORCH);
         } else {
-            
+
             activity = "sleeping";
             if (!currentTool.isEmpty()) {
                 villager.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
@@ -268,7 +252,6 @@ public class FabricPersonalityBehaviorHandler {
             return;
         }
 
-        
         boolean toolChanged = false;
         if (newTool.isEmpty() != currentTool.isEmpty()) {
             toolChanged = true;
@@ -385,7 +368,6 @@ public class FabricPersonalityBehaviorHandler {
             if (currentTime - lastGiftTime.get(villagerId) < GIFT_COOLDOWN_MS) return;
         }
 
-        
         List<Player> nearbyPlayers = level.getEntitiesOfClass(Player.class,
             villager.getBoundingBox().inflate(8.0D));
 
@@ -469,7 +451,6 @@ public class FabricPersonalityBehaviorHandler {
     private void checkMourningBehavior(Villager villager, ServerLevel level, VillagerPersonalityData data) {
         data.cleanupOldDeaths();
 
-        // Advanced mourning: check for recent deaths in the village
         com.cesoti2006.villagediplomacy.data.VillageMourningData mourningData =
             com.cesoti2006.villagediplomacy.data.VillageMourningData.get(level);
 
@@ -488,11 +469,10 @@ public class FabricPersonalityBehaviorHandler {
                 BlockPos jobSite = death.jobSitePos;
                 double distance = villager.blockPosition().distSqr(jobSite);
 
-                // Close to job site: show full mourning reaction
                 if (distance < 25.0) {
                     showFullMourningReaction(villager, level, death);
                 }
-                // Further away: look toward the job site
+
                 else if (distance < 225.0) {
                     villager.getLookControl().setLookAt(
                         jobSite.getX() + 0.5,
@@ -502,7 +482,6 @@ public class FabricPersonalityBehaviorHandler {
             }
         }
 
-        // Also look at own job site as fallback
         var jobSiteOptional = villager.getBrain().getMemory(net.minecraft.world.entity.ai.memory.MemoryModuleType.JOB_SITE);
         if (jobSiteOptional.isPresent()) {
             BlockPos jobSite = jobSiteOptional.get().pos();
@@ -520,27 +499,22 @@ public class FabricPersonalityBehaviorHandler {
         VillagerPersonality personality = personalityData.getPersonality(villager.getUUID());
         if (personality == null) return;
 
-        // Rain particle effect above villager (tears)
         if (RANDOM.nextInt(100) < 30) {
             level.sendParticles(ParticleTypes.RAIN,
                 villager.getX(), villager.getY() + 2.0, villager.getZ(),
                 1, 0.3, 0.1, 0.3, 0.0);
         }
 
-        // Sad villager sound
         if (RANDOM.nextInt(200) < 20) {
             villager.playSound(net.minecraft.sounds.SoundEvents.VILLAGER_NO, 0.3f, 0.7f);
         }
 
-        // Look at the deceased villager's job site
         BlockPos jobSite = death.jobSitePos;
         villager.getLookControl().setLookAt(
             jobSite.getX() + 0.5,
             jobSite.getY() + 0.5,
             jobSite.getZ() + 0.5);
     }
-
-    
 
     private void performActivityBasedOnPersonality(Villager villager, ServerLevel level) {
         VillagerPersonalityData data = VillagerPersonalityData.get(level);
@@ -644,16 +618,14 @@ public class FabricPersonalityBehaviorHandler {
         }
     }
 
-    
     private static BlockPos findNearestWater(BlockPos center, ServerLevel level, int maxRadius) {
-        
+
         var poiManager = level.getPoiManager();
         var fisherPoi = poiManager.findClosest(
             holder -> holder.is(net.minecraft.world.entity.ai.village.poi.PoiTypes.FISHERMAN),
             center, 40, net.minecraft.world.entity.ai.village.poi.PoiManager.Occupancy.ANY);
         if (fisherPoi.isPresent()) return fisherPoi.get();
-        
-        
+
         int r = Math.min(maxRadius, 6);
         BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos();
         for (int x = -r; x <= r; x++) {
@@ -668,14 +640,13 @@ public class FabricPersonalityBehaviorHandler {
         return null;
     }
 
-    
     private static BlockPos findNearestChest(BlockPos center, ServerLevel level, int maxRadius) {
         var poiManager = level.getPoiManager();
         var meetingPoi = poiManager.findClosest(
             holder -> holder.is(net.minecraft.world.entity.ai.village.poi.PoiTypes.MEETING),
             center, 40, net.minecraft.world.entity.ai.village.poi.PoiManager.Occupancy.ANY);
         if (meetingPoi.isPresent()) return meetingPoi.get();
-        
+
         int r = Math.min(maxRadius, 5);
         BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos();
         for (int x = -r; x <= r; x++) {
@@ -691,7 +662,6 @@ public class FabricPersonalityBehaviorHandler {
         return null;
     }
 
-    
     private static BlockPos findNearestBed(BlockPos center, ServerLevel level, int maxRadius) {
         var poiManager = level.getPoiManager();
         var bedPoi = poiManager.findClosest(
@@ -706,8 +676,6 @@ public class FabricPersonalityBehaviorHandler {
                item.is(Items.AMETHYST_SHARD);
     }
 
-    
-    
     private boolean onVillagerAttackedByMonster(net.minecraft.world.entity.LivingEntity entity, net.minecraft.world.damagesource.DamageSource source, float amount) {
         if (!(entity instanceof Villager victim)) return true;
         if (victim.level().isClientSide()) return true;
@@ -716,7 +684,6 @@ public class FabricPersonalityBehaviorHandler {
 
         VillagerPersonalityData data = VillagerPersonalityData.get(level);
 
-        
         List<Villager> nearbyVillagers = level.getEntitiesOfClass(Villager.class,
             victim.getBoundingBox().inflate(25.0D));
 
@@ -726,27 +693,21 @@ public class FabricPersonalityBehaviorHandler {
             VillagerPersonality personality = data.getPersonality(villager.getUUID());
             if (personality == null) continue;
 
-            
             PersonalityTrait courage = personality.getCourage();
             if (courage != PersonalityTrait.BRAVE && courage != PersonalityTrait.FEARLESS) continue;
 
-            
             long currentTime = System.currentTimeMillis();
             Long lastRing = lastBellRing.get(villager.getUUID());
             if (lastRing != null && currentTime - lastRing < BELL_COOLDOWN) continue;
 
-            
             BlockPos bellPos = findNearestBell(villager.blockPosition(), level, 30);
             if (bellPos == null) continue;
 
-            
             ringBellWithAnimation(bellPos, level, villager);
             lastBellRing.put(villager.getUUID(), currentTime);
 
-            
             personality.setCurrentEmotion(EmotionalState.ANGRY);
 
-            
             String name = personality.getCustomName();
             List<net.minecraft.world.entity.player.Player> nearbyPlayers = level.getEntitiesOfClass(
                 net.minecraft.world.entity.player.Player.class,
@@ -755,7 +716,6 @@ public class FabricPersonalityBehaviorHandler {
                 player.sendSystemMessage(Component.translatable("villagediplomacy.bell.brave_ring", name));
             }
 
-            
             makeVillagersRunToBell(bellPos, level, 40);
             break; 
         }
@@ -790,13 +750,10 @@ public class FabricPersonalityBehaviorHandler {
         var bellState = level.getBlockState(bellPos);
         if (!(bellState.getBlock() instanceof net.minecraft.world.level.block.BellBlock bellBlock)) return;
 
-        
         net.minecraft.core.Direction direction = net.minecraft.core.Direction.fromYRot(ringer.getYRot());
 
-        
         bellBlock.attemptToRing(level, bellPos, direction);
 
-        
         level.playSound(null, bellPos, net.minecraft.sounds.SoundEvents.BELL_BLOCK, net.minecraft.sounds.SoundSource.BLOCKS, 3.0F, 1.0F);
     }
 
@@ -811,7 +768,6 @@ public class FabricPersonalityBehaviorHandler {
                 bellPos.getZ() + 0.5,
                 1.5D);
 
-            
             VillagerPersonalityData data = VillagerPersonalityData.get(level);
             VillagerPersonality personality = data.getPersonality(villager.getUUID());
             if (personality != null) {
@@ -824,8 +780,6 @@ public class FabricPersonalityBehaviorHandler {
             }
         }
     }
-
-    
 
     public void onVillagerDeath(net.minecraft.world.entity.LivingEntity entity, net.minecraft.world.damagesource.DamageSource source) {
         if (!(entity instanceof Villager villager)) return;
@@ -866,7 +820,6 @@ public class FabricPersonalityBehaviorHandler {
         display.put("Lore", loreList);
         testament.getOrCreateTag().put("display", display);
 
-        
         ListTag enchantments = new ListTag();
         CompoundTag enchantment = new CompoundTag();
         enchantment.putString("id", "minecraft:unbreaking");

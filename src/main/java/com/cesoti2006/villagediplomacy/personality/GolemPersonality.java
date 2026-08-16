@@ -6,14 +6,13 @@ import net.minecraft.network.chat.MutableComponent;
 
 import java.util.Random;
 
-
 public class GolemPersonality {
     private final String name;
     private final GolemTrait temperament;
     private final GolemTrait loyalty;
-    
+
     private final String legacyStory;
-    
+
     private final int storyTemplateIndex;
 
     public enum GolemTrait {
@@ -48,7 +47,6 @@ public class GolemPersonality {
         this.storyTemplateIndex = storyTemplateIndex;
     }
 
-    
     public static GolemPersonality generateRandom(String villageName, Random random) {
         String name = generateGolemName(random);
 
@@ -123,7 +121,6 @@ public class GolemPersonality {
         return Component.translatable(k, name);
     }
 
-    
     public Component getCreationStoryComponent(String villageRef) {
         if (storyTemplateIndex >= 0 && storyTemplateIndex < 7) {
             return Component.translatable("villagediplomacy.golem.story." + storyTemplateIndex, villageRef);
@@ -137,13 +134,6 @@ public class GolemPersonality {
         return Component.translatable("villagediplomacy.golem.title", nameC, traitC);
     }
 
-    
-    @Deprecated
-    public String getFullTitle() {
-        return getFullTitleComponent().getString();
-    }
-
-    
     public Component getFriendlyHitResponseComponent(int strikes) {
         if (strikes == 1) {
             String k = switch (temperament) {
@@ -167,11 +157,6 @@ public class GolemPersonality {
         }
     }
 
-    @Deprecated
-    public String getFriendlyHitResponse(int strikes) {
-        return getFriendlyHitResponseComponent(strikes).getString();
-    }
-
     public String getName() {
         return name;
     }
@@ -192,9 +177,4 @@ public class GolemPersonality {
         return legacyStory;
     }
 
-    
-    @Deprecated
-    public String getCreationStory() {
-        return legacyStory;
-    }
 }

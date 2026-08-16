@@ -5,7 +5,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.client.gui.GuiGraphics;
 
-
 public class VillageHUDHandler {
 
     private static int hudDisplayTimer = 0;

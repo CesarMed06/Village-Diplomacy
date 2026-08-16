@@ -2,7 +2,6 @@ package com.cesoti2006.villagediplomacy.data;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
-import javax.annotation.Nonnull;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerLevel;
@@ -13,12 +12,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-
 public class PlayerPlacedBlocks extends SavedData {
 
     private static final String DATA_NAME = "village_diplomacy_placed_blocks";
 
-    
     private final Map<String, UUID> placedBlocks = new HashMap<>();
 
     public PlayerPlacedBlocks() {
@@ -82,5 +79,38 @@ public class PlayerPlacedBlocks extends SavedData {
 
     public boolean hasOwner(ServerLevel level, BlockPos pos) {
         return placedBlocks.containsKey(makeKey(level, pos));
+    }
+
+    public void removeAllForPlayer(UUID playerId) {
+        placedBlocks.entrySet().removeIf(e -> e.getValue().equals(playerId));
+        setDirty();
+    }
+
+    public boolean isPlayerBuiltZone(ServerLevel level, BlockPos pos, UUID playerId) {
+        if (isPlacedBy(level, pos, playerId)) return true;
+        if (isPlacedBy(level, pos.below(), playerId)) return true;
+        int owned = 0;
+        int floorY = pos.getY() - 1;
+        for (int dx = -3; dx <= 3; dx++) {
+            for (int dz = -3; dz <= 3; dz++) {
+                BlockPos floorPos = new BlockPos(pos.getX() + dx, floorY, pos.getZ() + dz);
+                if (!level.isLoaded(floorPos)) continue;
+                if (isPlacedBy(level, floorPos, playerId)) {
+                    owned++;
+                    if (owned >= 2) return true;
+                }
+            }
+        }
+        for (int dx = -4; dx <= 4; dx++) {
+            for (int dy = -2; dy <= 4; dy++) {
+                for (int dz = -4; dz <= 4; dz++) {
+                    if (dx == 0 && dy == 0 && dz == 0) continue;
+                    BlockPos near = pos.offset(dx, dy, dz);
+                    if (!level.isLoaded(near)) continue;
+                    if (isPlacedBy(level, near, playerId)) return true;
+                }
+            }
+        }
+        return false;
     }
 }

@@ -36,7 +36,6 @@ public class TradeModifierHandler {
             if (!(world instanceof ServerLevel level)) return net.minecraft.world.InteractionResult.PASS;
             if (hand != InteractionHand.MAIN_HAND) return net.minecraft.world.InteractionResult.PASS;
 
-            
             if (player.isShiftKeyDown()) {
                 showVillagerPersonality(villager, serverPlayer, level);
                 return net.minecraft.world.InteractionResult.SUCCESS;

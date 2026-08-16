@@ -10,8 +10,10 @@ import net.minecraftforge.network.simple.SimpleChannel;
 public final class VillageDiplomacyNetwork {
 
     private static final String PROTOCOL = "2";
+
+    @SuppressWarnings("removal")
     public static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
-            ResourceLocation.fromNamespaceAndPath("villagediplomacy", "main"),
+            new ResourceLocation("villagediplomacy", "main"),
             () -> PROTOCOL,
             PROTOCOL::equals,
             PROTOCOL::equals);

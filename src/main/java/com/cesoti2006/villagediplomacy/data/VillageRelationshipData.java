@@ -19,6 +19,7 @@ public class VillageRelationshipData extends SavedData {
     private final Map<String, Map<String, Integer>> relationships = new HashMap<>();
     private final Map<String, BlockPos> villagePositions = new HashMap<>();
     private final Map<String, String> villageNames = new HashMap<>();
+    private final Map<String, UUID> innkeeperUUIDs = new HashMap<>();
 
     public VillageRelationshipData() {
     }
@@ -53,6 +54,16 @@ public class VillageRelationshipData extends SavedData {
             String villageId = nameTag.getString("Id");
             String name = nameTag.getString("Name");
             data.villageNames.put(villageId, name);
+        }
+
+        ListTag innkeepersList = tag.getList("Innkeepers", Tag.TAG_COMPOUND);
+        for (int i = 0; i < innkeepersList.size(); i++) {
+            CompoundTag innTag = innkeepersList.getCompound(i);
+            String villageId = innTag.getString("Id");
+            try {
+                UUID uuid = UUID.fromString(innTag.getString("UUID"));
+                data.innkeeperUUIDs.put(villageId, uuid);
+            } catch (IllegalArgumentException ignored) { }
         }
 
         return data;
@@ -102,6 +113,15 @@ public class VillageRelationshipData extends SavedData {
             namesList.add(nameTag);
         }
         tag.put("VillageNames", namesList);
+
+        ListTag innkeepersList = new ListTag();
+        for (Map.Entry<String, UUID> entry : innkeeperUUIDs.entrySet()) {
+            CompoundTag innTag = new CompoundTag();
+            innTag.putString("Id", entry.getKey());
+            innTag.putString("UUID", entry.getValue().toString());
+            innkeepersList.add(innTag);
+        }
+        tag.put("Innkeepers", innkeepersList);
 
         return tag;
     }
@@ -174,6 +194,17 @@ public class VillageRelationshipData extends SavedData {
         return villagePositions.get(villageId);
     }
 
+    public UUID getInnkeeperUUID(String villageId) {
+        return innkeeperUUIDs.get(villageId);
+    }
+
+    public void setInnkeeperUUID(String villageId, UUID uuid) {
+        if (uuid != null) {
+            innkeeperUUIDs.put(villageId, uuid);
+            setDirty();
+        }
+    }
+
     public enum RelationshipStatus {
         ALLIED("villagediplomacy.rel.allied"),
         NEUTRAL("villagediplomacy.rel.neutral_village"),
@@ -189,10 +220,5 @@ public class VillageRelationshipData extends SavedData {
             return translationKey;
         }
 
-        
-        @Deprecated
-        public String getDisplay() {
-            return translationKey;
-        }
     }
 }

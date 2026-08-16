@@ -30,39 +30,34 @@ import java.util.UUID;
 
 @Mod.EventBusSubscriber
 public class PersonalityBehaviorHandler {
-    
+
     private static final Random RANDOM = new Random();
-    
-    
+
     @SubscribeEvent
     public static void onVillagerSpawn(EntityJoinLevelEvent event) {
         if (!(event.getEntity() instanceof Villager villager)) return;
         if (event.getLevel().isClientSide()) return;
-        
+
         ServerLevel level = (ServerLevel) event.getLevel();
         VillagerPersonalityData data = VillagerPersonalityData.get(level);
-        
-        
+
         String biome = level.getBiome(villager.blockPosition()).toString();
         VillagerPersonality personality = data.getOrCreatePersonality(
             villager.getUUID(), 
             biome,
             RANDOM
         );
-        
-        
+
         personality.setProfession(villager.getVillagerData().getProfession().toString());
         personality.setProfessionalLevel(villager.getVillagerData().getLevel());
-        
-        
+
         String displayName = personality.getTitle().isEmpty() 
             ? personality.getCustomName()
             : personality.getCustomName() + " " + personality.getTitle();
-            
+
         villager.setCustomName(net.minecraft.network.chat.Component.literal(displayName));
         villager.setCustomNameVisible(true);
-        
-        
+
         PersonalityTrait courage = personality.getCourage();
         if (courage == PersonalityTrait.COWARD || courage == PersonalityTrait.CAUTIOUS) {
             float distance = courage == PersonalityTrait.COWARD ? 20.0F : 15.0F;
@@ -73,122 +68,102 @@ public class PersonalityBehaviorHandler {
                 1.0D, 
                 1.2D
             ));
-            
-            
-            
+
         }
-        
-        
+
         if (courage == PersonalityTrait.BRAVE || courage == PersonalityTrait.FEARLESS) {
             villager.goalSelector.addGoal(9, new LookAtPlayerGoal(villager, Player.class, 15.0F, 1.0F));
         }
     }
-    
-    
+
     @SubscribeEvent
     public static void onVillagerTick(LivingEvent.LivingTickEvent event) {
         if (!(event.getEntity() instanceof Villager villager)) return;
         if (villager.level().isClientSide()) return;
-        
+
         ServerLevel level = (ServerLevel) villager.level();
         VillagerPersonalityData data = VillagerPersonalityData.get(level);
         VillagerPersonality personality = data.getPersonality(villager.getUUID());
-        
+
         if (personality == null) return;
-        
-        
+
         if (villager.tickCount % 40 != 0) return;
-        
-        
+
         PersonalityTrait courage = personality.getCourage();
         if (courage == PersonalityTrait.COWARD || courage == PersonalityTrait.CAUTIOUS) {
             checkCowardFlee(villager, personality, level);
         }
-        
-        
-        
+
         if (villager.tickCount % 80 == 0) {
             checkBadReputationFlee(villager, personality, level);
         }
-        
-        
+
         updateToolInHand(villager, level);
-        
-        
+
         PersonalityTrait generosity = personality.getGenerosity();
         if (generosity == PersonalityTrait.GENEROUS || generosity == PersonalityTrait.CHARITABLE) {
             checkGenerousGift(villager, level);
         }
-        
-        
+
         updateEmotionalState(villager, personality, level);
-        
-        
+
         if (personality.getCurrentEmotion() == EmotionalState.MOURNING) {
             checkMourningBehavior(villager, level, data);
         }
     }
-    
-    
+
     private static final Map<UUID, Long> lastBadRepFleeMessage = new HashMap<>();
     private static void checkBadReputationFlee(Villager villager, VillagerPersonality personality, ServerLevel level) {
-        
+
         List<net.minecraft.world.entity.player.Player> nearbyPlayers = level.getEntitiesOfClass(
             net.minecraft.world.entity.player.Player.class,
             villager.getBoundingBox().inflate(16.0D));
-        
+
         if (nearbyPlayers.isEmpty()) return;
-        
-        
+
         if (villager.getDeltaMovement().horizontalDistanceSqr() < 0.01) return;
-        
+
         long currentTime = System.currentTimeMillis();
         UUID villagerId = villager.getUUID();
         Long lastMessage = lastBadRepFleeMessage.getOrDefault(villagerId, 0L);
-        
-        
+
         if (currentTime - lastMessage < 15000) return;
-        
-        
+
         com.cesoti2006.villagediplomacy.data.VillageReputationData repData = 
             com.cesoti2006.villagediplomacy.data.VillageReputationData.get(level);
-        
+
         java.util.Optional<BlockPos> villagePos = 
             com.cesoti2006.villagediplomacy.data.VillageDetector.findNearestVillage(level, villager.blockPosition(), 200);
-        
+
         if (villagePos.isEmpty()) return;
-        
+
         for (net.minecraft.world.entity.player.Player player : nearbyPlayers) {
             if (!(player instanceof ServerPlayer sp)) continue;
-            
+
             int reputation = repData.getReputation(sp.getUUID(), villagePos.get());
-            
-            
+
             if (reputation < -100) {
                 String name = personality.getCustomName();
-                
+
                 ModLang.sendDialogNamedRandom(sp, level.getRandom(), name, 
                     "villagediplomacy.personality.flee.reputation", 5);
-                
+
                 lastBadRepFleeMessage.put(villagerId, currentTime);
                 return; 
             }
         }
     }
-    
-    
+
     private static final Map<UUID, Long> lastFleeMessage = new HashMap<>();
     private static void checkCowardFlee(Villager villager, VillagerPersonality personality, ServerLevel level) {
-        
+
         if (villager.getDeltaMovement().horizontalDistanceSqr() < 0.01) return;
-        
-        
+
         boolean isFleeingFromZombie = !level.getEntitiesOfClass(
             net.minecraft.world.entity.monster.Zombie.class,
             villager.getBoundingBox().inflate(10.0D)
         ).isEmpty();
-        
-        
+
         boolean isFleeingFromPlayer = level.getEntitiesOfClass(
             net.minecraft.world.entity.player.Player.class,
             villager.getBoundingBox().inflate(8.0D),
@@ -196,10 +171,9 @@ public class PersonalityBehaviorHandler {
                 (p.getMainHandItem().getItem() instanceof net.minecraft.world.item.SwordItem ||
                  p.getMainHandItem().getItem() instanceof net.minecraft.world.item.AxeItem)
         ).size() > 0;
-        
+
         if (!isFleeingFromZombie && !isFleeingFromPlayer) return;
-        
-        
+
         long currentTime = System.currentTimeMillis();
         UUID villagerId = villager.getUUID();
         if (lastFleeMessage.containsKey(villagerId)) {
@@ -207,8 +181,7 @@ public class PersonalityBehaviorHandler {
                 return;
             }
         }
-        
-        
+
         String name = personality.getCustomName();
         boolean coward = personality.getCourage() == PersonalityTrait.COWARD;
         String prefix = coward ? "villagediplomacy.personality.flee.coward"
@@ -224,85 +197,79 @@ public class PersonalityBehaviorHandler {
                 ModLang.sendDialogNamedRandom(sp, level.getRandom(), name, prefix, count);
             }
         }
-        
+
         lastFleeMessage.put(villagerId, currentTime);
     }
-    
-    
+
     private static final long EATING_COOLDOWN_MS = 600000; 
     private static final Map<UUID, Long> lastToolChange = new HashMap<>();
     private static final Map<UUID, String> lastActivity = new HashMap<>();
     private static final Map<UUID, Long> lastEatingTime = new HashMap<>();
-    
+
     private static void updateToolInHand(Villager villager, Level level) {
         long timeOfDay = level.getDayTime() % 24000;
         UUID villagerId = villager.getUUID();
         ItemStack currentTool = villager.getMainHandItem();
-        
-        
+
         String activity = "";
         ItemStack newTool = ItemStack.EMPTY;
-        
+
         if (timeOfDay >= 0 && timeOfDay < 6000) {
-            
+
             activity = "working";
             newTool = getWorkTool(villager);
         } else if (timeOfDay >= 6000 && timeOfDay < 12000) {
-            
+
             Long lastEat = lastEatingTime.get(villagerId);
             long currentTime = System.currentTimeMillis();
-            
-            
+
             if (lastEat == null || currentTime - lastEat > EATING_COOLDOWN_MS) {
                 activity = "eating";
                 newTool = getFoodForVillager(villager, level);
                 lastEatingTime.put(villagerId, currentTime);
             } else {
-                
+
                 activity = "working";
                 newTool = getWorkTool(villager);
             }
         } else if (timeOfDay >= 12000 && timeOfDay < 18000) {
-            
+
             activity = "lighting";
             newTool = new ItemStack(Items.TORCH);
         } else {
-            
+
             activity = "sleeping";
-            
+
             if (!currentTool.isEmpty()) {
                 villager.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND, ItemStack.EMPTY);
             }
             return;
         }
-        
-        
+
         boolean toolChanged = false;
         if (newTool.isEmpty() != currentTool.isEmpty()) {
             toolChanged = true;
         } else if (!newTool.isEmpty() && !ItemStack.isSameItem(currentTool, newTool)) {
             toolChanged = true;
         }
-        
+
         if (toolChanged || currentTool.isEmpty()) {
-            
+
             ItemStack toolCopy = newTool.copy();
             villager.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND, toolCopy);
-            
-            
+
             if (activity.equals("eating") && !newTool.isEmpty()) {
                 villager.startUsingItem(net.minecraft.world.InteractionHand.MAIN_HAND);
             }
-            
-            
+
             String lastAct = lastActivity.get(villagerId);
             Long lastChange = lastToolChange.get(villagerId);
             long currentTime = System.currentTimeMillis();
-            
+
             if (!activity.equals(lastAct) && (lastChange == null || currentTime - lastChange > 60000)) {
                 VillagerPersonalityData data = VillagerPersonalityData.get((ServerLevel) level);
                 VillagerPersonality personality = data.getPersonality(villagerId);
-                
+
                 if (personality != null) {
                     String name = personality.getCustomName();
                     Component message = getActivityMessageComponent(name, activity, villager);
@@ -319,14 +286,13 @@ public class PersonalityBehaviorHandler {
                         }
                     }
                 }
-                
+
                 lastActivity.put(villagerId, activity);
                 lastToolChange.put(villagerId, currentTime);
             }
         }
     }
-    
-    
+
     private static Component getActivityMessageComponent(String name, String activity, Villager villager) {
         String profession = villager.getVillagerData().getProfession().toString();
 
@@ -352,11 +318,10 @@ public class PersonalityBehaviorHandler {
             default -> null;
         };
     }
-    
-    
+
     private static ItemStack getWorkTool(Villager villager) {
         String profession = villager.getVillagerData().getProfession().toString();
-        
+
         return switch (profession) {
             case "farmer" -> new ItemStack(Items.IRON_HOE);
             case "armorer", "weaponsmith", "toolsmith" -> new ItemStack(Items.IRON_INGOT);
@@ -372,12 +337,10 @@ public class PersonalityBehaviorHandler {
             default -> ItemStack.EMPTY;
         };
     }
-    
-    
+
     private static ItemStack getFoodForVillager(Villager villager, Level level) {
         String profession = villager.getVillagerData().getProfession().toString();
-        
-        
+
         return switch (profession) {
             case "farmer" -> level.random.nextBoolean() ? 
                 new ItemStack(Items.BREAD) : 
@@ -391,7 +354,7 @@ public class PersonalityBehaviorHandler {
             case "cleric" -> new ItemStack(Items.GOLDEN_APPLE);
             case "librarian" -> new ItemStack(Items.COOKIE); 
             default -> {
-                
+
                 int choice = level.random.nextInt(6);
                 yield switch (choice) {
                     case 0 -> new ItemStack(Items.BREAD);
@@ -404,11 +367,10 @@ public class PersonalityBehaviorHandler {
             }
         };
     }
-    
-    
+
     private static final Map<UUID, Long> lastGiftTime = new HashMap<>();
     private static void checkGenerousGift(Villager villager, ServerLevel level) {
-        
+
         UUID villagerId = villager.getUUID();
         long currentTime = System.currentTimeMillis();
         if (lastGiftTime.containsKey(villagerId)) {
@@ -416,46 +378,40 @@ public class PersonalityBehaviorHandler {
                 return;
             }
         }
-        
-        
+
         List<Player> nearbyPlayers = level.getEntitiesOfClass(Player.class,
             villager.getBoundingBox().inflate(8.0D));
-        
+
         for (Player player : nearbyPlayers) {
-            
+
             if (player.getHealth() < player.getMaxHealth() * 0.3F) {
-                
+
                 com.cesoti2006.villagediplomacy.data.VillageReputationData repData = 
                     com.cesoti2006.villagediplomacy.data.VillageReputationData.get(level);
-                
+
                 java.util.Optional<BlockPos> villagePos = 
                     com.cesoti2006.villagediplomacy.data.VillageDetector.findNearestVillage(level, villager.blockPosition(), 200);
-                
+
                 if (villagePos.isPresent()) {
                     int reputation = repData.getReputation(player.getUUID(), villagePos.get());
-                    
-                    
+
                     if (reputation < -50) {
                         return; 
                     }
                 }
-                
-                
+
                 ItemStack bread = new ItemStack(Items.BREAD, 1);
-                
-                
+
                 double spawnX = villager.getX();
                 double spawnY = villager.getEyeY() - 0.3D; 
                 double spawnZ = villager.getZ();
-                
-                
+
                 Vec3 direction = new Vec3(
                     player.getX() - villager.getX(),
                     player.getEyeY() - villager.getEyeY() + 0.2, 
                     player.getZ() - villager.getZ()
                 ).normalize();
-                
-                
+
                 ItemEntity itemEntity = new ItemEntity(
                     level,
                     spawnX + direction.x * 0.5, 
@@ -463,8 +419,7 @@ public class PersonalityBehaviorHandler {
                     spawnZ + direction.z * 0.5,
                     bread
                 );
-                
-                
+
                 itemEntity.setDeltaMovement(
                     direction.x * 0.5,
                     direction.y * 0.4 + 0.3, 
@@ -472,41 +427,37 @@ public class PersonalityBehaviorHandler {
                 );
                 itemEntity.setPickUpDelay(10); 
                 itemEntity.setDefaultPickUpDelay();
-                
-                
+
                 boolean spawned = level.addFreshEntity(itemEntity);
-                
+
                 if (spawned) {
-                    
+
                     level.sendParticles(ParticleTypes.HEART,
                         villager.getX(), villager.getY() + 2.0, villager.getZ(),
                         5, 0.5, 0.5, 0.5, 0.0);
-                    
-                    
+
                     VillagerPersonalityData data = VillagerPersonalityData.get(level);
                     VillagerPersonality personality = data.getPersonality(villagerId);
                     String name = personality != null ? personality.getCustomName() : "Villager";
-                    
+
                     player.sendSystemMessage(Component.translatable("villagediplomacy.personality.gift_bread", name));
-                    
+
                     lastGiftTime.put(villagerId, currentTime);
                 }
-                
+
                 return; 
             }
         }
     }
-    
-    
+
     private static void updateEmotionalState(Villager villager, VillagerPersonality personality, ServerLevel level) {
         personality.updateEmotion();
-        
-        
+
         EmotionalState emotion = personality.getCurrentEmotion();
         if (emotion == EmotionalState.NEUTRAL) return;
-        
+
         String particleType = emotion.getParticleEffect();
-        
+
         switch (particleType) {
             case "heart":
                 level.sendParticles(ParticleTypes.HEART,
@@ -530,18 +481,16 @@ public class PersonalityBehaviorHandler {
                 break;
         }
     }
-    
-    
+
     private static void checkMourningBehavior(Villager villager, ServerLevel level, VillagerPersonalityData data) {
-        
+
         data.cleanupOldDeaths();
-        
-        
+
         var jobSiteOptional = villager.getBrain().getMemory(net.minecraft.world.entity.ai.memory.MemoryModuleType.JOB_SITE);
-        
+
         if (jobSiteOptional.isPresent()) {
             BlockPos jobSite = jobSiteOptional.get().pos();
-            
+
             villager.getLookControl().setLookAt(
                 jobSite.getX() + 0.5,
                 jobSite.getY() + 0.5,
@@ -549,29 +498,25 @@ public class PersonalityBehaviorHandler {
             );
         }
     }
-    
-    
+
     @SubscribeEvent
     public static void onVillagerDeath(LivingDeathEvent event) {
         if (!(event.getEntity() instanceof Villager villager)) return;
         if (villager.level().isClientSide()) return;
-        
+
         ServerLevel level = (ServerLevel) villager.level();
         VillagerPersonalityData data = VillagerPersonalityData.get(level);
         VillagerPersonality personality = data.getPersonality(villager.getUUID());
-        
+
         if (personality == null) return;
-        
-        
+
         data.registerDeath(villager.getUUID(), personality.getCustomName());
-        
-        
+
         if (personality.getPlayerReputationBonus() >= 30) {
             dropTestament(villager, personality, level);
         }
     }
-    
-    
+
     private static void dropTestament(Villager villager, VillagerPersonality personality, ServerLevel level) {
         ItemStack testament = new ItemStack(Items.PAPER);
 
@@ -590,58 +535,48 @@ public class PersonalityBehaviorHandler {
         addTestamentLoreLine(loreList, Component.translatable("villagediplomacy.testament.lore.died",
                 villager.blockPosition().toShortString()));
         addTestamentLoreLine(loreList, Component.translatable("villagediplomacy.testament.lore.job", personality.getProfession()));
-        
-        
+
         testament.getOrCreateTag().put("display", new net.minecraft.nbt.CompoundTag());
         testament.getTag().getCompound("display").put("Name",
             net.minecraft.nbt.StringTag.valueOf(Component.Serializer.toJson(customName)));
         testament.getTag().getCompound("display").put("Lore", loreList);
-        
-        
+
         net.minecraft.nbt.ListTag enchantments = new net.minecraft.nbt.ListTag();
         net.minecraft.nbt.CompoundTag enchantment = new net.minecraft.nbt.CompoundTag();
         enchantment.putString("id", "minecraft:unbreaking");
         enchantment.putInt("lvl", 1);
         enchantments.add(enchantment);
         testament.getTag().put("Enchantments", enchantments);
-        
-        
+
         testament.getTag().putInt("HideFlags", 1);
-        
+
         ItemEntity itemEntity = new ItemEntity(level, 
             villager.getX(), 
             villager.getY() + 0.5, 
             villager.getZ(), 
             testament);
-        
-        
+
         itemEntity.setDeltaMovement(0, 0.4, 0);
         itemEntity.setGlowingTag(true); 
-        
+
         level.addFreshEntity(itemEntity);
-        
-        
+
         double x = villager.getX();
         double y = villager.getY() + 1.0;
         double z = villager.getZ();
-        
-        
+
         level.sendParticles(net.minecraft.core.particles.ParticleTypes.END_ROD,
             x, y, z, 30, 0.3, 0.5, 0.3, 0.08);
-        
-        
+
         level.sendParticles(net.minecraft.core.particles.ParticleTypes.ENCHANT,
             x, y, z, 40, 0.4, 0.4, 0.4, 1.0);
-        
-        
+
         level.sendParticles(net.minecraft.core.particles.ParticleTypes.SOUL,
             x, y, z, 15, 0.2, 0.2, 0.2, 0.02);
-        
-        
+
         level.sendParticles(net.minecraft.core.particles.ParticleTypes.TOTEM_OF_UNDYING,
             x, y, z, 10, 0.3, 0.3, 0.3, 0.1);
-        
-        
+
         level.playSound(null, x, y, z, 
             net.minecraft.sounds.SoundEvents.PLAYER_LEVELUP,
             net.minecraft.sounds.SoundSource.NEUTRAL,

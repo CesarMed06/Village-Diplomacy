@@ -18,7 +18,6 @@ public class VillageReputationData extends SavedData {
 
     private static final String DATA_NAME = "village_diplomacy_reputation";
 
-    
     private final Map<UUID, Map<String, Integer>> playerVillageReputations = new HashMap<>();
 
     public VillageReputationData() {
@@ -31,14 +30,14 @@ public class VillageReputationData extends SavedData {
         for (int i = 0; i < playerList.size(); i++) {
             CompoundTag playerTag = playerList.getCompound(i);
             UUID playerId = playerTag.getUUID("UUID");
-            
+
             Map<String, Integer> villageReps = new HashMap<>();
             CompoundTag villagesTag = playerTag.getCompound("Villages");
-            
+
             for (String villageKey : villagesTag.getAllKeys()) {
                 villageReps.put(villageKey, villagesTag.getInt(villageKey));
             }
-            
+
             data.playerVillageReputations.put(playerId, villageReps);
         }
 
@@ -52,12 +51,12 @@ public class VillageReputationData extends SavedData {
         for (Map.Entry<UUID, Map<String, Integer>> playerEntry : playerVillageReputations.entrySet()) {
             CompoundTag playerTag = new CompoundTag();
             playerTag.putUUID("UUID", playerEntry.getKey());
-            
+
             CompoundTag villagesTag = new CompoundTag();
             for (Map.Entry<String, Integer> villageEntry : playerEntry.getValue().entrySet()) {
                 villagesTag.putInt(villageEntry.getKey(), villageEntry.getValue());
             }
-            
+
             playerTag.put("Villages", villagesTag);
             playerList.add(playerTag);
         }
@@ -99,16 +98,22 @@ public class VillageReputationData extends SavedData {
         setDirty();
     }
 
-    
+    public void addReputationByKey(UUID playerId, String villageKey, int amount) {
+        Map<String, Integer> villageReps = playerVillageReputations.computeIfAbsent(playerId, k -> new HashMap<>());
+        int current = villageReps.getOrDefault(villageKey, 0);
+        villageReps.put(villageKey, current + amount);
+        setDirty();
+    }
+
     public int getReputation(UUID playerId) {
         Map<String, Integer> villageReps = playerVillageReputations.get(playerId);
         if (villageReps == null || villageReps.isEmpty()) return 0;
-        
+
         return (int) villageReps.values().stream().mapToInt(Integer::intValue).average().orElse(0);
     }
 
     public void addReputation(UUID playerId, int amount) {
-        
+
         Map<String, Integer> villageReps = playerVillageReputations.get(playerId);
         if (villageReps != null && !villageReps.isEmpty()) {
             for (String villageKey : villageReps.keySet()) {
@@ -120,8 +125,7 @@ public class VillageReputationData extends SavedData {
     }
 
     public void setReputation(UUID playerId, int reputation) {
-        
-        
+
         Map<String, Integer> villageReps = playerVillageReputations.computeIfAbsent(playerId, k -> new HashMap<>());
         for (String villageKey : villageReps.keySet()) {
             villageReps.put(villageKey, reputation);
@@ -129,7 +133,6 @@ public class VillageReputationData extends SavedData {
         setDirty();
     }
 
-    
     public int getReputationNearby(UUID playerId, net.minecraft.server.level.ServerLevel level, BlockPos pos) {
         Optional<BlockPos> nearestVillage = com.cesoti2006.villagediplomacy.data.VillageDetector.findNearestVillage(level, pos, 200);
         if (nearestVillage.isEmpty()) return 0;
@@ -141,8 +144,7 @@ public class VillageReputationData extends SavedData {
         if (nearestVillage.isEmpty()) return;
         addReputation(playerId, nearestVillage.get(), amount);
     }
-    
-    
+
     public Map<String, Integer> getPlayerReputations(UUID playerId) {
         return new HashMap<>(playerVillageReputations.getOrDefault(playerId, new HashMap<>()));
     }

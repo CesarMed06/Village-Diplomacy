@@ -1,6 +1,35 @@
 Village Diplomacy — Changelog
 ================================
 
+v1.4.0 — "Innkeeper, Witnesses & NeoForge"
+-------------------------------------------
+
+New Features:
+• Innkeeper & Hostal system
+  - Each village elects an innkeeper with a name and level
+  - Sleep in hostal beds for 1 emerald (free with reputation >= 100)
+  - Proximity messages entering/leaving the hostal area
+• Witness system (line of sight)
+  - Crimes only count if a villager actually sees you
+  - Ignite TNT: -10, arm TNT: -20, explosion: -50, lava: -25
+  - Hostile mob kills also require a witness to grant reputation
+  - Extinguishing village fires: +3 if witnessed
+• Farming is now welcome
+  - Plant crops: +2, harvest/bonemeal: +1 each
+• New commands
+  - /diplomacy setrep <player> <amount>
+  - /diplomacy gift [amount]
+  - /diplomacy list and /diplomacy info improved
+• Dialog colors refreshed across all messages
+• MCA Reborn compatibility (guards react to reputation)
+• NeoForge 1.20.1 support
+• Config overhaul: all reputation values configurable + new sections (decay, notifications, modules)
+
+Fixes:
+• TNT/lava underground without witnesses no longer penalizes
+• Hostile kills underground no longer grant reputation without witnesses
+• Farming no longer lowers reputation (it now raises it)
+
 v1.3.0 — "Guard Villagers & Custom Villages"
 ---------------------------------------------
 

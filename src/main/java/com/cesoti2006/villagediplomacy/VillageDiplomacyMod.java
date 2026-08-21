@@ -15,6 +15,7 @@ import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.config.ModConfig;
 import com.cesoti2006.villagediplomacy.config.VillageDiplomacyConfig;
@@ -25,10 +26,11 @@ public class VillageDiplomacyMod {
     public static VillagerEventHandler eventHandler;
 
     @SuppressWarnings("removal")
-    public VillageDiplomacyMod(IEventBus modEventBus) {
+    public VillageDiplomacyMod(FMLJavaModLoadingContext context) {
 
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, VillageDiplomacyConfig.SPEC);
 
+        IEventBus modEventBus = context.getModEventBus();
         modEventBus.addListener(this::commonSetup);
 
         eventHandler = new VillagerEventHandler();

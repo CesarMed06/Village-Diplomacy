@@ -91,7 +91,7 @@ public class VillageMourningData extends SavedData {
 
     public List<MourningRecord> getRecentDeaths(String villageId) {
         long currentTime = System.currentTimeMillis();
-        long mourningPeriod = 20 * 60 * 1000; 
+        long mourningPeriod = 20 * 60 * 1000;
 
         List<MourningRecord> deaths = recentDeaths.get(villageId);
         if (deaths == null) return Collections.emptyList();

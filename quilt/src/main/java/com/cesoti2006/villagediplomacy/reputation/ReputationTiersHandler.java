@@ -25,7 +25,7 @@ public final class ReputationTiersHandler {
         private final boolean blocksDoors;
         private final boolean blocksTrades;
 
-        ReputationTier(int minReputation, String translationKey, float tradeMultiplier, 
+        ReputationTier(int minReputation, String translationKey, float tradeMultiplier,
                       boolean blocksDoors, boolean blocksTrades) {
             this.minReputation = minReputation;
             this.translationKey = translationKey;

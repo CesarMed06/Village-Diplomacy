@@ -25,7 +25,7 @@ public final class ReputationTiersHandler {
         private final boolean blocksDoors;
         private final boolean blocksTrades;
 
-        ReputationTier(int minReputation, String translationKey, float tradeMultiplier, 
+        ReputationTier(int minReputation, String translationKey, float tradeMultiplier,
                       boolean blocksDoors, boolean blocksTrades) {
             this.minReputation = minReputation;
             this.translationKey = translationKey;
@@ -65,36 +65,20 @@ public final class ReputationTiersHandler {
         public int getDiscountPercent() {
             return Math.round((1.0f - tradeMultiplier) * 100);
         }
-
-        public int getPenaltyPercent() {
-            return Math.round((tradeMultiplier - 1.0f) * 100);
-        }
     }
 
     public static ReputationTier getTierByReputation(int reputation) {
-        if (reputation >= 1000) return ReputationTier.LEGENDARY_HERO;
-        if (reputation >= 800)  return ReputationTier.HERO;
-        if (reputation >= 500)  return ReputationTier.CHAMPION;
-        if (reputation >= 300)  return ReputationTier.TRUSTED_FRIEND;
-        if (reputation >= 100)  return ReputationTier.FRIENDLY;
-        if (reputation >= 0)    return ReputationTier.NEUTRAL;
-        if (reputation >= -100) return ReputationTier.SUSPICIOUS;
-        if (reputation >= -199) return ReputationTier.DISLIKED;
-        if (reputation >= -299) return ReputationTier.DISLIKED;
-        if (reputation >= -499) return ReputationTier.UNWELCOME;
-        if (reputation >= -699) return ReputationTier.UNFRIENDLY;
-        if (reputation >= -899) return ReputationTier.HOSTILE;
-        if (reputation >= -999) return ReputationTier.HOSTILE;
+        for (ReputationTier tier : ReputationTier.values()) {
+            if (reputation >= tier.getMinReputation()) {
+                return tier;
+            }
+        }
         return ReputationTier.WANTED_CRIMINAL;
     }
 
     public static boolean canAccessDoors(int reputation) {
         ReputationTier tier = getTierByReputation(reputation);
         return !tier.blocksDoors();
-    }
-
-    public static boolean canAccessChests(int reputation) {
-        return reputation > -500;
     }
 
     public static boolean canTrade(int reputation) {
@@ -105,10 +89,5 @@ public final class ReputationTiersHandler {
     public static float getTradeMultiplier(int reputation) {
         ReputationTier tier = getTierByReputation(reputation);
         return tier.getTradeMultiplier();
-    }
-
-    public static String getTierDescription(int reputation) {
-        ReputationTier tier = getTierByReputation(reputation);
-        return "villagediplomacy.tier." + tier.name().toLowerCase();
     }
 }

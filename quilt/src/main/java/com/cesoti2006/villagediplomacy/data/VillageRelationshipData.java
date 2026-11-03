@@ -3,6 +3,7 @@ package com.cesoti2006.villagediplomacy.data;
 import com.cesoti2006.villagediplomacy.util.VillageNameGenerator;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import javax.annotation.Nonnull;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerLevel;
@@ -18,13 +19,12 @@ public class VillageRelationshipData extends SavedData {
     private final Map<String, Map<String, Integer>> relationships = new HashMap<>();
     private final Map<String, BlockPos> villagePositions = new HashMap<>();
     private final Map<String, String> villageNames = new HashMap<>();
-
     private final Map<String, UUID> innkeeperUUIDs = new HashMap<>();
 
     public VillageRelationshipData() {
     }
 
-    public static VillageRelationshipData load(CompoundTag tag) {
+    public static VillageRelationshipData load(@Nonnull CompoundTag tag) {
         VillageRelationshipData data = new VillageRelationshipData();
 
         ListTag relationshipsList = tag.getList("Relationships", Tag.TAG_COMPOUND);
@@ -66,7 +66,58 @@ public class VillageRelationshipData extends SavedData {
             } catch (IllegalArgumentException ignored) { }
         }
 
+        data.migrateLegacyKeys();
+
         return data;
+    }
+
+    private void migrateLegacyKeys() {
+        Set<String> legacyKeys = new HashSet<>();
+        for (String id : villagePositions.keySet()) if (VillageId.isLegacy(id)) legacyKeys.add(id);
+        for (String id : villageNames.keySet()) if (VillageId.isLegacy(id)) legacyKeys.add(id);
+        for (String id : innkeeperUUIDs.keySet()) if (VillageId.isLegacy(id)) legacyKeys.add(id);
+        for (String id : relationships.keySet()) if (VillageId.isLegacy(id)) legacyKeys.add(id);
+
+        if (legacyKeys.isEmpty()) return;
+
+        Map<String, String> remap = new HashMap<>();
+        for (String oldId : legacyKeys) {
+
+            BlockPos pos = villagePositions.get(oldId);
+            if (pos == null) pos = VillageId.legacyPos(oldId);
+            remap.put(oldId, pos != null ? VillageId.of(pos) : oldId);
+        }
+
+        remapValues(villagePositions, remap);
+        remapValues(villageNames, remap);
+        remapValues(innkeeperUUIDs, remap);
+        remapRelationships(remap);
+
+        setDirty();
+    }
+
+    private static <V> void remapValues(Map<String, V> map, Map<String, String> remap) {
+        Map<String, V> copy = new HashMap<>(map);
+        for (Map.Entry<String, String> entry : remap.entrySet()) {
+            V value = copy.remove(entry.getKey());
+            if (value != null) copy.putIfAbsent(entry.getValue(), value);
+        }
+        map.clear();
+        map.putAll(copy);
+    }
+
+    private void remapRelationships(Map<String, String> remap) {
+        Map<String, Map<String, Integer>> copy = new HashMap<>();
+        for (Map.Entry<String, Map<String, Integer>> entry : relationships.entrySet()) {
+            String village = remap.getOrDefault(entry.getKey(), entry.getKey());
+            Map<String, Integer> inner = copy.computeIfAbsent(village, k -> new HashMap<>());
+            for (Map.Entry<String, Integer> relation : entry.getValue().entrySet()) {
+                inner.putIfAbsent(remap.getOrDefault(relation.getKey(), relation.getKey()),
+                        relation.getValue());
+            }
+        }
+        relationships.clear();
+        relationships.putAll(copy);
     }
 
     @Override
@@ -133,8 +184,10 @@ public class VillageRelationshipData extends SavedData {
 
     public void registerVillage(BlockPos pos, net.minecraft.server.level.ServerLevel level) {
         String villageId = getVillageId(pos);
-        if (!villagePositions.containsKey(villageId)) {
-            villagePositions.put(villageId, pos);
+        BlockPos known = villagePositions.get(villageId);
+
+        if (known == null) {
+            villagePositions.put(villageId, level != null ? withVillageY(level, pos) : pos);
 
             if (!villageNames.containsKey(villageId)) {
                 String generatedName = (level != null)
@@ -144,15 +197,34 @@ public class VillageRelationshipData extends SavedData {
             }
 
             setDirty();
+            return;
+        }
+
+        if (level != null && known.getY() <= 0) {
+            BlockPos repaired = withVillageY(level, known);
+            if (repaired.getY() > 0) {
+                villagePositions.put(villageId, repaired);
+                setDirty();
+            }
         }
     }
 
+    private static BlockPos withVillageY(net.minecraft.server.level.ServerLevel level, BlockPos pos) {
+        return VillageDetector.getVillageLevelY(level, pos)
+                .map(y -> new BlockPos(pos.getX(), y, pos.getZ()))
+                .orElse(pos);
+    }
+
     public String getVillageId(BlockPos pos) {
-        return "village_" + (pos.getX() >> 4) + "_" + (pos.getZ() >> 4);
+        return VillageId.of(pos);
     }
 
     public String getVillageName(String villageId) {
         return villageNames.getOrDefault(villageId, villageId);
+    }
+
+    public Map<String, String> getAllVillageNames() {
+        return new HashMap<>(villageNames);
     }
 
     public void setVillageName(String villageId, String name) {
@@ -219,5 +291,6 @@ public class VillageRelationshipData extends SavedData {
         public String getTranslationKey() {
             return translationKey;
         }
+
     }
 }

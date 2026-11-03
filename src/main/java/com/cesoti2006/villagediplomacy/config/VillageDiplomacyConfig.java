@@ -38,12 +38,42 @@ public class VillageDiplomacyConfig {
     public final ForgeConfigSpec.IntValue repBedUse;
     public final ForgeConfigSpec.IntValue repTrapdoorFarm;
     public final ForgeConfigSpec.IntValue repFenceGateOpen;
-    public final ForgeConfigSpec.IntValue repBuildLowRep;
+
+    public final ForgeConfigSpec.IntValue repCureVillager;
+
+    public final ForgeConfigSpec.IntValue fireTntPlace;
+    public final ForgeConfigSpec.IntValue fireTntIgnite;
+    public final ForgeConfigSpec.IntValue fireLavaPlace;
+    public final ForgeConfigSpec.IntValue fireExplosion;
+    public final ForgeConfigSpec.IntValue fireCropBurn;
+    public final ForgeConfigSpec.IntValue fireBedBurn;
+    public final ForgeConfigSpec.IntValue fireDoorBurn;
+    public final ForgeConfigSpec.IntValue fireWorkstationBurn;
+    public final ForgeConfigSpec.IntValue fireStart;
+    public final ForgeConfigSpec.IntValue fireInnocent;
+    public final ForgeConfigSpec.IntValue fireExtinguish;
+
+    public final ForgeConfigSpec.IntValue restrictBellThreshold;
+    public final ForgeConfigSpec.IntValue restrictChestThreshold;
+    public final ForgeConfigSpec.IntValue restrictBedThreshold;
+    public final ForgeConfigSpec.IntValue restrictCraftingWarnThreshold;
+    public final ForgeConfigSpec.IntValue restrictCraftingBlockThreshold;
+    public final ForgeConfigSpec.IntValue restrictPlacementBlockThreshold;
+    public final ForgeConfigSpec.IntValue restrictPlacementDislikedThreshold;
+    public final ForgeConfigSpec.IntValue restrictPlacementSuspiciousThreshold;
+
+    public final ForgeConfigSpec.IntValue restrictBedPenalty;
+    public final ForgeConfigSpec.IntValue restrictCraftingWarnPenalty;
+    public final ForgeConfigSpec.IntValue restrictPlacementDislikedPenalty;
+    public final ForgeConfigSpec.IntValue restrictPlacementSuspiciousPenalty;
+    public final ForgeConfigSpec.IntValue restrictPlacementNeutralPenalty;
 
     public final ForgeConfigSpec.IntValue repGuardAttack;
     public final ForgeConfigSpec.IntValue repGuardKill;
     public final ForgeConfigSpec.IntValue repGuardWitness;
     public final ForgeConfigSpec.BooleanValue guardWelcomeMessage;
+    public final ForgeConfigSpec.BooleanValue enableGuardAttacks;
+    public final ForgeConfigSpec.IntValue guardAttackThreshold;
 
     public final ForgeConfigSpec.IntValue villageEnterRadius;
     public final ForgeConfigSpec.IntValue villageExitConfirmRadius;
@@ -58,6 +88,8 @@ public class VillageDiplomacyConfig {
     public final ForgeConfigSpec.BooleanValue enableMourning;
     public final ForgeConfigSpec.BooleanValue enableGolemPersonalities;
     public final ForgeConfigSpec.BooleanValue enableVillageRelations;
+
+    public final ForgeConfigSpec.IntValue placedBlockRetentionDays;
 
     static {
         Pair<VillageDiplomacyConfig, ForgeConfigSpec> pair = new ForgeConfigSpec.Builder()
@@ -212,15 +244,141 @@ public class VillageDiplomacyConfig {
             .comment("Penalty for opening fence gates with animals nearby")
             .defineInRange("fenceGateOpen", -12, -500, 0);
 
-        this.repBuildLowRep = builder
-            .comment("Penalty for placing blocks with negative reputation")
-            .defineInRange("buildLowRep", -5, -500, 0);
+        builder.pop();
+
+        builder.push("bonuses").comment(
+            "Reputation rewards for positive actions near a village.",
+            "",
+            "Positive values = reputation gain.",
+            "",
+            "Requires world restart after changing.");
+
+        this.repCureVillager = builder
+            .comment("Reputation gained for curing a zombie villager with a golden apple",
+                     "Default: 100")
+            .defineInRange("cureVillager", 100, 0, 500);
+
+        builder.pop();
+
+        builder.push("fire").comment(
+            "Reputation values for fire, TNT and lava incidents near a village.",
+            "",
+            "Negative values = reputation loss, positive = reputation gain.",
+            "\"Lava\" covers both placing lava and the lava bucket interaction.",
+            "",
+            "Requires world restart after changing.");
+
+        this.fireTntPlace = builder
+            .comment("Penalty for placing a TNT block near a village")
+            .defineInRange("tntPlace", -10, -500, 0);
+
+        this.fireTntIgnite = builder
+            .comment("Penalty for igniting a TNT block with flint and steel")
+            .defineInRange("tntIgnite", -20, -500, 0);
+
+        this.fireLavaPlace = builder
+            .comment("Penalty for placing lava or a lava cauldron near a village")
+            .defineInRange("lavaPlace", -25, -500, 0);
+
+        this.fireExplosion = builder
+            .comment("Penalty for a TNT explosion near a village")
+            .defineInRange("explosion", -50, -500, 0);
+
+        this.fireCropBurn = builder
+            .comment("Penalty for setting fire to village crops")
+            .defineInRange("cropBurn", -4, -500, 0);
+
+        this.fireBedBurn = builder
+            .comment("Penalty for setting fire to a bed")
+            .defineInRange("bedBurn", -15, -500, 0);
+
+        this.fireDoorBurn = builder
+            .comment("Penalty for setting fire to a door, trapdoor or fence gate")
+            .defineInRange("doorBurn", -8, -500, 0);
+
+        this.fireWorkstationBurn = builder
+            .comment("Penalty for setting fire to a workstation or other valuable block")
+            .defineInRange("workstationBurn", -10, -500, 0);
+
+        this.fireStart = builder
+            .comment("Penalty for starting a fire on a flammable block")
+            .defineInRange("fireStart", -5, -500, 0);
+
+        this.fireInnocent = builder
+            .comment("Penalty for starting a fire on a non-flammable block")
+            .defineInRange("fireInnocent", -1, -500, 0);
+
+        this.fireExtinguish = builder
+            .comment("Reputation gained for putting out a village fire while being seen")
+            .defineInRange("extinguish", 3, 0, 50);
+
+        builder.pop();
+
+        builder.push("restrictions").comment(
+            "Reputation thresholds that unlock or lock village interactions, and the",
+            "penalties applied when a restricted interaction is attempted.",
+            "",
+            "Thresholds are compared with <=, so -400 blocks the interaction at -400 or lower.",
+            "",
+            "Requires world restart after changing.");
+
+        this.restrictBellThreshold = builder
+            .comment("Reputation at or below which villagers stop you from ringing the bell")
+            .defineInRange("bellThreshold", -100, -1000, 0);
+
+        this.restrictChestThreshold = builder
+            .comment("Reputation at or below which villagers stop you from opening chests")
+            .defineInRange("chestThreshold", -400, -1000, 0);
+
+        this.restrictBedThreshold = builder
+            .comment("Reputation at or below which villagers stop you from using beds")
+            .defineInRange("bedThreshold", -500, -1000, 0);
+
+        this.restrictCraftingBlockThreshold = builder
+            .comment("Reputation at or below which villagers stop you from using workstations")
+            .defineInRange("craftingBlockThreshold", -400, -1000, 0);
+
+        this.restrictCraftingWarnThreshold = builder
+            .comment("Reputation at or below which using a workstation gives a warning")
+            .defineInRange("craftingWarnThreshold", -200, -1000, 0);
+
+        this.restrictPlacementBlockThreshold = builder
+            .comment("Reputation at or below which villagers stop you from placing blocks")
+            .defineInRange("placementBlockThreshold", -400, -1000, 0);
+
+        this.restrictPlacementDislikedThreshold = builder
+            .comment("Reputation below which placing blocks is penalised heavily")
+            .defineInRange("placementDislikedThreshold", -200, -1000, 0);
+
+        this.restrictPlacementSuspiciousThreshold = builder
+            .comment("Reputation below which placing blocks is penalised lightly")
+            .defineInRange("placementSuspiciousThreshold", -100, -1000, 0);
+
+        this.restrictBedPenalty = builder
+            .comment("Penalty applied when villagers catch you using a restricted bed")
+            .defineInRange("bedPenalty", -5, -500, 0);
+
+        this.restrictCraftingWarnPenalty = builder
+            .comment("Penalty applied when you use a workstation while only warned")
+            .defineInRange("craftingWarnPenalty", -5, -500, 0);
+
+        this.restrictPlacementDislikedPenalty = builder
+            .comment("Penalty for placing blocks with a reputation below dislikedThreshold")
+            .defineInRange("placementDislikedPenalty", -15, -500, 0);
+
+        this.restrictPlacementSuspiciousPenalty = builder
+            .comment("Penalty for placing blocks with a reputation below suspiciousThreshold")
+            .defineInRange("placementSuspiciousPenalty", -8, -500, 0);
+
+        this.restrictPlacementNeutralPenalty = builder
+            .comment("Penalty for placing blocks with any negative reputation")
+            .defineInRange("placementNeutralPenalty", -3, -500, 0);
 
         builder.pop();
 
         builder.push("guard_villagers").comment(
-            "Guard Villagers integration settings.",
-            "These only take effect if the Guard Villagers mod is installed.",
+            "Guard integration settings: Guard Villagers and MCA Reborn.",
+            "These only take effect if one of those mods is installed.",
             "",
             "Requires world restart after changing.");
 
@@ -241,14 +399,27 @@ public class VillageDiplomacyConfig {
                      "Guards 'speak well of you' to the village.",
                      "Default: 3")
 
-            .defineInRange("witnessBonus", 3, 0, 50);
-
-        this.guardWelcomeMessage = builder
+            .defineInRange("witnessBonus", 3, 0, 50);        this.guardWelcomeMessage = builder
             .comment("Show a welcome message when joining a world with Guard Villagers installed?",
                      "Informs players that guards react to their village reputation.",
                      "Default: true")
-
             .define("welcomeMessage", true);
+
+        this.enableGuardAttacks = builder
+            .comment("Should guards defend the village from players with a very bad reputation?",
+                     "When true, guards inside the village attack on sight once your reputation",
+                     "with that village reaches guardAttackThreshold.",
+                     "Default: true")
+            .worldRestart()
+            .define("guardAttacks", true);
+
+        this.guardAttackThreshold = builder
+            .comment("Reputation at or below which the guards attack you inside their village.",
+                     "Default: -100, the same point where villagers start fleeing and iron golems",
+                     "turn hostile, so the whole village reacts as one.",
+                     "Default: -100")
+            .worldRestart()
+            .defineInRange("guardAttackThreshold", -100, -1000, 0);
 
         builder.pop();
 
@@ -336,6 +507,21 @@ public class VillageDiplomacyConfig {
             .comment("Enable inter-village relationship system?",
                      "Default: true")
             .define("enableVillageRelations", true);
+
+        builder.pop();
+
+        builder.push("maintenance").comment(
+            "Housekeeping for the data the mod stores about the world.",
+            "",
+            "Requires world restart after changing.");
+
+        this.placedBlockRetentionDays = builder
+            .comment("How many real days the mod remembers that a block was placed by a player.",
+                     "This memory is what stops villagers from getting angry about your own builds,",
+                     "so keep it generous. Older entries are purged to keep the world save small.",
+                     "Default: 90")
+            .worldRestart()
+            .defineInRange("placedBlockRetentionDays", 90, 1, 3650);
 
         builder.pop();
     }

@@ -1,43 +1,40 @@
-# Eclipse
-bin/
-*.launch
-.settings
-.metadata
-.classpath
-.project
-
-# IntelliJ IDEA
+# Build output
+build/
 out/
+bin/
+.gradle/
+
+# IDE
+.idea/
+*.iml
 *.ipr
 *.iws
-*.iml
-.idea/
-
-# Gradle / Loom / Build outputs
-build/
-.gradle/
+.classpath
+.project
+.settings
+.metadata
+*.launch
+.vscode/
 
 # Minecraft runtime
 run/
 logs/
 crash-reports/
 
-# IDE
-*.code-workspace
+# Artifacts
+*.jar
+!**/gradle/wrapper/gradle-wrapper.jar
+mcmodsrepo/
+release/
 
-# OS
-.DS_Store
-Thumbs.db
-
-# Python scripts (not part of the mod)
-*.py
+# Development notes
+_internal/
 
 # Misc
 *.log
 *.zip
+*.py
+*.code-workspace
+.DS_Store
+Thumbs.db
 nul
-.vscode/
-
-# Compiled jars and publish output
-*.jar
-mcmodsrepo/

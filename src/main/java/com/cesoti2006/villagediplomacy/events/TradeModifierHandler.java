@@ -2,17 +2,18 @@ package com.cesoti2006.villagediplomacy.events;
 
 import com.cesoti2006.villagediplomacy.data.VillageDetector;
 import com.cesoti2006.villagediplomacy.data.VillageReputationData;
+import com.cesoti2006.villagediplomacy.integration.guardvillagers.GuardVillagersCompat;
+import com.cesoti2006.villagediplomacy.integration.mca.MCARebornCompat;
 import com.cesoti2006.villagediplomacy.personality.PersonalityTrait;
 import com.cesoti2006.villagediplomacy.reputation.ReputationTiersHandler;
 import com.cesoti2006.villagediplomacy.util.ModLang;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.npc.VillagerProfession;
 import net.minecraft.world.item.ItemStack;
@@ -30,10 +31,36 @@ public class TradeModifierHandler {
 
     private final Map<UUID, Long> tradeMessageCooldown = new HashMap<>();
     private static final long TRADE_MESSAGE_COOLDOWN_MS = 10000;
+    private final Map<UUID, Long> tradePitchCooldown = new HashMap<>();
+    private static final long TRADE_PITCH_COOLDOWN_MS = 20000;
+
+    private static final class InteractMemo {
+        private final int entityId;
+        private final long at;
+        private boolean answered;
+        private boolean canceled;
+
+        private InteractMemo(int entityId, long at) {
+            this.entityId = entityId;
+            this.at = at;
+        }
+    }
+
+    private final Map<UUID, InteractMemo> lastClick = new HashMap<>();
+    private static final long CLICK_REPEAT_WINDOW_MS = 150L;
 
     @SubscribeEvent
     public void onVillagerInteract(PlayerInteractEvent.EntityInteract event) {
-        if (!(event.getTarget() instanceof Villager villager)) {
+        handleVillagerInteraction(event.getTarget(), event);
+    }
+
+    @SubscribeEvent
+    public void onVillagerInteractSpecific(PlayerInteractEvent.EntityInteractSpecific event) {
+        handleVillagerInteraction(event.getTarget(), event);
+    }
+
+    private void handleVillagerInteraction(Entity target, PlayerInteractEvent event) {
+        if (!(target instanceof Villager villager)) {
             return;
         }
         if (!(event.getEntity() instanceof ServerPlayer player)) {
@@ -46,14 +73,30 @@ public class TradeModifierHandler {
             return;
         }
 
+        InteractMemo click = click(player, villager);
+        if (click.answered) {
+
+            if (click.canceled) {
+                event.setCanceled(true);
+            }
+            return;
+        }
+        click.answered = true;
+
         if (player.isShiftKeyDown()) {
             showVillagerPersonality(villager, player, level);
-            event.setCanceled(true);
+            cancelInteract(event, click);
             return;
         }
 
+        boolean mcaVillager = MCARebornCompat.isMCAVillager(villager);
+
         BlockPos villagerPos = villager.blockPosition();
         Optional<BlockPos> nearestVillage = VillageDetector.findNearestVillage(level, villagerPos, 200);
+
+        if (nearestVillage.isEmpty() && mcaVillager) {
+            nearestVillage = VillageDetector.findNearestVillage(level, player.blockPosition(), 100);
+        }
 
         if (nearestVillage.isEmpty()) {
             return;
@@ -64,17 +107,43 @@ public class TradeModifierHandler {
         int reputation = data.getReputation(player.getUUID(), villagePos);
 
         if (!ReputationTiersHandler.canTrade(reputation)) {
-            event.setCanceled(true);
+            cancelInteract(event, click);
 
             if (reputation < -800) {
-                ModLang.sendRandom(player, level.getRandom(), "villagediplomacy.trade.reject.criminal", 3);
+                ModLang.sendDialogRandom(player, level.getRandom(), villager,
+                        "villagediplomacy.trade.reject.criminal", 3);
             } else {
-                ModLang.sendRandom(player, level.getRandom(), "villagediplomacy.trade.reject.enemy", 3);
+                ModLang.sendDialogRandom(player, level.getRandom(), villager,
+                        "villagediplomacy.trade.reject.enemy", 3);
             }
 
-            player.sendSystemMessage(Component.translatable(
-                    reputation < -800 ? "villagediplomacy.trade.refuse_wanted" : "villagediplomacy.trade.refuse_enemy"));
+            String refuseKey;
+            if (mcaVillager) {
+                refuseKey = reputation < -800
+                        ? "villagediplomacy.mca.refuse_wanted"
+                        : "villagediplomacy.mca.refuse_enemy";
+            } else {
+                refuseKey = reputation < -800
+                        ? "villagediplomacy.trade.refuse_wanted"
+                        : "villagediplomacy.trade.refuse_enemy";
+            }
+            player.sendSystemMessage(Component.translatable(refuseKey));
+        } else if (isGuard(villager) && reputation < 0) {
+
+            cancelInteract(event, click);
+            ModLang.sendDialogRandom(player, level.getRandom(), villager,
+                    "villagediplomacy.trade.reject.guard", 3);
+            player.sendSystemMessage(Component.translatable("villagediplomacy.trade.refuse_guard"));
+        } else if (mcaVillager) {
+
         } else {
+            long pitchNow = System.currentTimeMillis();
+            if (!tradePitchCooldown.containsKey(player.getUUID())
+                    || pitchNow - tradePitchCooldown.get(player.getUUID()) > TRADE_PITCH_COOLDOWN_MS) {
+                tradePitchCooldown.put(player.getUUID(), pitchNow);
+                ModLang.sendTradePitch(player, level.getRandom(), villager);
+            }
+
             float multiplier = ReputationTiersHandler.getTradeMultiplier(reputation);
             int priceModifier = calculatePriceModifier(reputation);
 
@@ -103,6 +172,26 @@ public class TradeModifierHandler {
         }
     }
 
+    private InteractMemo click(ServerPlayer player, Villager villager) {
+        long now = System.currentTimeMillis();
+        InteractMemo memo = lastClick.get(player.getUUID());
+        if (memo == null || memo.entityId != villager.getId() || now - memo.at > CLICK_REPEAT_WINDOW_MS) {
+            memo = new InteractMemo(villager.getId(), now);
+            lastClick.put(player.getUUID(), memo);
+        }
+        return memo;
+    }
+
+    private static void cancelInteract(PlayerInteractEvent event, InteractMemo click) {
+        event.setCanceled(true);
+        click.canceled = true;
+    }
+
+    private static boolean isGuard(Villager villager) {
+        if (MCARebornCompat.isLoaded() && MCARebornCompat.isMCAGuard(villager)) return true;
+        return GuardVillagersCompat.isLoaded() && GuardVillagersCompat.isGuard(villager);
+    }
+
     private int calculatePriceModifier(int reputation) {
         float multiplier = ReputationTiersHandler.getTradeMultiplier(reputation);
 
@@ -116,15 +205,25 @@ public class TradeModifierHandler {
         return 0;
     }
 
+    private static final Map<MerchantOffer, Integer> VANILLA_BASE_COST = new java.util.WeakHashMap<>();
+
     private void modifyVillagerOffers(Villager villager, int priceModifier) {
         if (villager.getOffers().isEmpty()) {
             return;
         }
 
         for (MerchantOffer offer : villager.getOffers()) {
+            Integer base = VANILLA_BASE_COST.get(offer);
+            if (base == null) {
+                base = offer.getBaseCostA().getCount();
+                VANILLA_BASE_COST.put(offer, base);
+            }
+
             ItemStack costA = offer.getBaseCostA();
-            int newCount = Math.max(1, costA.getCount() + priceModifier);
-            costA.setCount(newCount);
+            int newCount = Math.max(1, base + priceModifier);
+            if (costA.getCount() != newCount) {
+                costA.setCount(newCount);
+            }
         }
     }
 
@@ -152,29 +251,12 @@ public class TradeModifierHandler {
         boolean hasJob = !villager.getVillagerData().getProfession().equals(VillagerProfession.NONE);
 
         player.sendSystemMessage(Component.translatable("villagediplomacy.enter.bar"));
-        player.sendSystemMessage(Component.translatable("villagediplomacy.personality.title", personality.getCustomName()));
+        player.sendSystemMessage(Component.translatable("villagediplomacy.personality.title",
+                ModLang.nameComponent(personality.getCustomName())));
 
         if (hasJob) {
             VillagerProfession prof = villager.getVillagerData().getProfession();
-            ResourceLocation profKey = ForgeRegistries.VILLAGER_PROFESSIONS.getKey(prof);
-            java.util.Map<String, String> profEs = java.util.Map.ofEntries(
-                java.util.Map.entry("farmer", "Granjero"),
-                java.util.Map.entry("librarian", "Bibliotecario"),
-                java.util.Map.entry("cleric", "Clérigo"),
-                java.util.Map.entry("armorer", "Armero"),
-                java.util.Map.entry("weaponsmith", "Herrero"),
-                java.util.Map.entry("toolsmith", "Forjador"),
-                java.util.Map.entry("butcher", "Carnicero"),
-                java.util.Map.entry("leatherworker", "Peletero"),
-                java.util.Map.entry("shepherd", "Pastor"),
-                java.util.Map.entry("fisherman", "Pescador"),
-                java.util.Map.entry("fletcher", "Flechero"),
-                java.util.Map.entry("cartographer", "Cartógrafo"),
-                java.util.Map.entry("mason", "Cantero")
-            );
-            String profPath = profKey != null ? profKey.getPath() : prof.toString().toLowerCase();
-            Component profName = Component.literal(profEs.getOrDefault(profPath, 
-                Character.toUpperCase(profPath.charAt(0)) + profPath.substring(1)));
+            Component profName = ModLang.professionName(prof);
             player.sendSystemMessage(Component.translatable("villagediplomacy.personality.job_line",
                     profName, profLevelName));
         } else {

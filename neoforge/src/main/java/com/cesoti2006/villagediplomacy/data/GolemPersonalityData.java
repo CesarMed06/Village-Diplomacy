@@ -80,9 +80,9 @@ public class GolemPersonalityData extends SavedData {
         return tag;
     }
 
-    public GolemPersonality getOrCreatePersonality(UUID golemId, String villageName, Random random) {
+    public GolemPersonality getOrCreatePersonality(UUID golemId, Random random) {
         if (!golemPersonalities.containsKey(golemId)) {
-            GolemPersonality personality = GolemPersonality.generateRandom(villageName, random);
+            GolemPersonality personality = GolemPersonality.generateRandom(random);
             golemPersonalities.put(golemId, personality);
             setDirty();
         }

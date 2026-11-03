@@ -71,9 +71,7 @@ public class VillageReputationData extends SavedData {
     }
 
     private String getVillageKey(BlockPos villagePos) {
-        int snapX = (villagePos.getX() >> 7) << 7;
-        int snapZ = (villagePos.getZ() >> 7) << 7;
-        return snapX + "_" + snapZ;
+        return VillageId.of(villagePos);
     }
 
     public int getReputation(UUID playerId, BlockPos villagePos) {
@@ -102,34 +100,6 @@ public class VillageReputationData extends SavedData {
         Map<String, Integer> villageReps = playerVillageReputations.computeIfAbsent(playerId, k -> new HashMap<>());
         int current = villageReps.getOrDefault(villageKey, 0);
         villageReps.put(villageKey, current + amount);
-        setDirty();
-    }
-
-    public int getReputation(UUID playerId) {
-        Map<String, Integer> villageReps = playerVillageReputations.get(playerId);
-        if (villageReps == null || villageReps.isEmpty()) return 0;
-
-        return (int) villageReps.values().stream().mapToInt(Integer::intValue).average().orElse(0);
-    }
-
-    public void addReputation(UUID playerId, int amount) {
-
-        Map<String, Integer> villageReps = playerVillageReputations.get(playerId);
-        if (villageReps != null && !villageReps.isEmpty()) {
-            for (String villageKey : villageReps.keySet()) {
-                int current = villageReps.get(villageKey);
-                villageReps.put(villageKey, current + amount);
-            }
-        }
-        setDirty();
-    }
-
-    public void setReputation(UUID playerId, int reputation) {
-
-        Map<String, Integer> villageReps = playerVillageReputations.computeIfAbsent(playerId, k -> new HashMap<>());
-        for (String villageKey : villageReps.keySet()) {
-            villageReps.put(villageKey, reputation);
-        }
         setDirty();
     }
 

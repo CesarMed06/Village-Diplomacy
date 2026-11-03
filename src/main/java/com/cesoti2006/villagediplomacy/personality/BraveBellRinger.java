@@ -2,6 +2,7 @@ package com.cesoti2006.villagediplomacy.personality;
 
 import com.cesoti2006.villagediplomacy.data.PlayerPlacedBlocks;
 import com.cesoti2006.villagediplomacy.data.VillagerPersonalityData;
+import com.cesoti2006.villagediplomacy.util.ModLang;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
@@ -27,7 +28,7 @@ public class BraveBellRinger {
 
     private static final Map<UUID, Long> lastBellRing = new HashMap<>();
     private static final Map<BlockPos, Long> lastBellAnimation = new HashMap<>();
-    private static final long BELL_COOLDOWN = 15000; 
+    private static final long BELL_COOLDOWN = 15000;
 
     @SubscribeEvent
     public static void onVillagerAttacked(LivingAttackEvent event) {
@@ -60,9 +61,9 @@ public class BraveBellRinger {
             ringBellWithAnimation(bellPos, level, villager);
             lastBellRing.put(villager.getUUID(), currentTime);
 
-            personality.setCurrentEmotion(EmotionalState.ANGRY);
+            personality.setCurrentEmotion(EmotionalState.SCARED);
 
-            String name = personality.getCustomName();
+            Component name = ModLang.nameComponent(personality.getCustomName());
             List<net.minecraft.world.entity.player.Player> nearbyPlayers = level.getEntitiesOfClass(
                 net.minecraft.world.entity.player.Player.class,
                 villager.getBoundingBox().inflate(40.0D)
@@ -73,7 +74,7 @@ public class BraveBellRinger {
 
             makeVillagersRunToBell(bellPos, level, 40);
 
-            break; 
+            break;
         }
     }
 
@@ -128,21 +129,17 @@ public class BraveBellRinger {
         for (Villager villager : allVillagers) {
 
             villager.getNavigation().moveTo(
-                bellPos.getX() + 0.5, 
-                bellPos.getY(), 
-                bellPos.getZ() + 0.5, 
-                1.5D 
+                bellPos.getX() + 0.5,
+                bellPos.getY(),
+                bellPos.getZ() + 0.5,
+                1.5D
             );
 
             VillagerPersonalityData data = VillagerPersonalityData.get(level);
             VillagerPersonality personality = data.getPersonality(villager.getUUID());
             if (personality != null) {
-                PersonalityTrait courage = personality.getCourage();
-                if (courage == PersonalityTrait.COWARD || courage == PersonalityTrait.CAUTIOUS) {
-                    personality.setCurrentEmotion(EmotionalState.SCARED);
-                } else {
-                    personality.setCurrentEmotion(EmotionalState.ANGRY);
-                }
+
+                personality.setCurrentEmotion(EmotionalState.SCARED);
             }
         }
     }

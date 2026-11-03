@@ -9,9 +9,12 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.phys.AABB;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
 
 import java.util.*;
 
+@Mod.EventBusSubscriber
 public class MourningBehaviorHandler {
 
     private static final Random RANDOM = new Random();
@@ -19,6 +22,7 @@ public class MourningBehaviorHandler {
 
     private static final Map<UUID, Set<BlockPos>> visitedJobSites = new HashMap<>();
 
+    @SubscribeEvent
     public static void onServerTick(TickEvent.ServerTickEvent event) {
         if (event.phase != TickEvent.Phase.END) return;
 
@@ -60,7 +64,7 @@ public class MourningBehaviorHandler {
         }
     }
 
-    private static void processMourningAtJobSite(ServerLevel level, List<Villager> villagers, 
+    private static void processMourningAtJobSite(ServerLevel level, List<Villager> villagers,
                                                   VillageMourningData.MourningRecord death) {
         BlockPos jobSite = death.jobSitePos;
 
@@ -99,7 +103,7 @@ public class MourningBehaviorHandler {
         }
     }
 
-    private static void showMourningReaction(ServerLevel level, Villager villager, 
+    private static void showMourningReaction(ServerLevel level, Villager villager,
                                             VillageMourningData.MourningRecord death) {
         VillagerPersonalityData personalityData = VillagerPersonalityData.get(level);
         VillagerPersonality personality = personalityData.getPersonality(villager.getUUID());
@@ -108,9 +112,9 @@ public class MourningBehaviorHandler {
 
         PersonalityTrait social = personality.getSocialBehavior();
         int intensity = switch (social) {
-            case EXTROVERTED, OUTGOING -> 3; 
-            case NEUTRAL_SOCIAL -> 2; 
-            case SHY, RESERVED -> 1; 
+            case EXTROVERTED, OUTGOING -> 3;
+            case NEUTRAL_SOCIAL -> 2;
+            case SHY, RESERVED -> 1;
             default -> 1;
         };
 
@@ -133,7 +137,7 @@ public class MourningBehaviorHandler {
             villager.playSound(
                 net.minecraft.sounds.SoundEvents.VILLAGER_NO,
                 0.3f,
-                0.7f 
+                0.7f
             );
         }
 

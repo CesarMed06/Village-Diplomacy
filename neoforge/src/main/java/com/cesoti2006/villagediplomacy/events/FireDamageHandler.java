@@ -1,7 +1,10 @@
 package com.cesoti2006.villagediplomacy.events;
 
+import com.cesoti2006.villagediplomacy.config.VillageDiplomacyConfig;
 import com.cesoti2006.villagediplomacy.data.VillageDetector;
+import com.cesoti2006.villagediplomacy.data.VillageGrievanceData.GrievanceType;
 import com.cesoti2006.villagediplomacy.data.VillageReputationData;
+import com.cesoti2006.villagediplomacy.diplomacy.GrievanceHandler;
 import com.cesoti2006.villagediplomacy.util.ModLang;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -33,6 +36,7 @@ public class FireDamageHandler {
 
     private static final long COOLDOWN_MS = 2000;
     private static final int VILLAGER_RADIUS = 24;
+    private static final int EXPLOSION_WITNESS_RADIUS = 32;
     private static final int EXPLOSION_PLAYER_RADIUS = 50;
 
     private static final Map<UUID, Long> playerCooldown = new HashMap<>();
@@ -100,29 +104,39 @@ public class FireDamageHandler {
         UUID playerId = player.getUUID();
 
         if (block == Blocks.TNT) {
-            data.addReputation(playerId, village, -10);
+            int penalty = VillageDiplomacyConfig.INSTANCE.fireTntPlace.get();
+            int oldRep = data.getReputation(playerId, village);
+            data.addReputation(playerId, village, penalty);
             int newRep = data.getReputation(playerId, village);
+            VillagerEventHandler.checkAndNotifyReputationChange(player, oldRep, newRep);
 
-            AbstractVillager witness = findNearestVillager(level, pos);
+            AbstractVillager witness = findWitness(level, pos, player);
             if (witness != null) {
                 ModLang.sendDialogRandom(player, level.getRandom(), witness,
                     "villagediplomacy.react.tnt_place", 3);
             }
-            ModLang.sendReputationSummary(player, -10, newRep);
+            ModLang.sendReputationSummary(player, penalty, newRep);
+
+            GrievanceHandler.record(level, village, GrievanceType.SABOTAGE, player);
 
             trackedTnt.put(pos.immutable(), new PlacedTntInfo(playerId, System.currentTimeMillis()));
         }
 
         if (block == Blocks.LAVA || block == Blocks.LAVA_CAULDRON) {
-            data.addReputation(playerId, village, -25);
+            int penalty = VillageDiplomacyConfig.INSTANCE.fireLavaPlace.get();
+            int oldRep = data.getReputation(playerId, village);
+            data.addReputation(playerId, village, penalty);
             int newRep = data.getReputation(playerId, village);
+            VillagerEventHandler.checkAndNotifyReputationChange(player, oldRep, newRep);
 
-            AbstractVillager witness = findNearestVillager(level, pos);
+            AbstractVillager witness = findWitness(level, pos, player);
             if (witness != null) {
                 ModLang.sendDialogRandom(player, level.getRandom(), witness,
                     "villagediplomacy.react.lava_place", 3);
             }
-            ModLang.sendReputationSummary(player, -25, newRep);
+            ModLang.sendReputationSummary(player, penalty, newRep);
+
+            GrievanceHandler.record(level, village, GrievanceType.SABOTAGE, player);
         }
     }
 
@@ -152,26 +166,34 @@ public class FireDamageHandler {
         UUID playerId = player.getUUID();
 
         if (clickedBlock == Blocks.TNT && holdingFlintSteel) {
-            AbstractVillager witness = findNearestVillager(level, clickedPos);
+            AbstractVillager witness = findWitness(level, clickedPos, player);
             if (witness != null) {
-                data.addReputation(playerId, village, -20);
+                int penalty = VillageDiplomacyConfig.INSTANCE.fireTntIgnite.get();
+                int oldRep = data.getReputation(playerId, village);
+                data.addReputation(playerId, village, penalty);
                 int newRep = data.getReputation(playerId, village);
+                VillagerEventHandler.checkAndNotifyReputationChange(player, oldRep, newRep);
                 ModLang.sendDialogRandom(player, level.getRandom(), witness,
                     "villagediplomacy.react.tnt_ignite", 3);
                 makeVillagersPanic(level, clickedPos, player);
-                ModLang.sendReputationSummary(player, -20, newRep);
+                ModLang.sendReputationSummary(player, penalty, newRep);
+                GrievanceHandler.record(level, village, GrievanceType.SABOTAGE, player);
             }
             return;
         }
 
         if (holdingLavaBucket) {
-            AbstractVillager witness = findNearestVillager(level, clickedPos);
+            AbstractVillager witness = findWitness(level, clickedPos, player);
             if (witness != null) {
-                data.addReputation(playerId, village, -25);
+                int penalty = VillageDiplomacyConfig.INSTANCE.fireLavaPlace.get();
+                int oldRep = data.getReputation(playerId, village);
+                data.addReputation(playerId, village, penalty);
                 int newRep = data.getReputation(playerId, village);
+                VillagerEventHandler.checkAndNotifyReputationChange(player, oldRep, newRep);
                 ModLang.sendDialogRandom(player, level.getRandom(), witness,
                     "villagediplomacy.react.lava_place", 3);
-                ModLang.sendReputationSummary(player, -25, newRep);
+                ModLang.sendReputationSummary(player, penalty, newRep);
+                GrievanceHandler.record(level, village, GrievanceType.SABOTAGE, player);
             }
             return;
         }
@@ -182,23 +204,25 @@ public class FireDamageHandler {
         if (!holdingFlintSteel && !holdingFireCharge) return;
 
         BlockPos firePos = clickedPos.relative(event.getFace());
-        if (!level.getBlockState(firePos).isAir()) return; 
-        if (event.getFace() == Direction.UP && !clickedState.isCollisionShapeFullBlock(level, clickedPos)) return; 
+        if (!level.getBlockState(firePos).isAir()) return;
+        if (event.getFace() == Direction.UP && !clickedState.isCollisionShapeFullBlock(level, clickedPos)) return;
 
         int penalty;
         String langKey;
 
+        var cfg = VillageDiplomacyConfig.INSTANCE;
+
         if (CROP_BLOCKS.contains(clickedBlock)) {
-            penalty = -4;
+            penalty = cfg.fireCropBurn.get();
             langKey = "villagediplomacy.react.crop_burn";
         } else if (BED_BLOCKS.contains(clickedBlock)) {
-            penalty = -15;
+            penalty = cfg.fireBedBurn.get();
             langKey = "villagediplomacy.react.bed_burn";
         } else if (ENTRY_BLOCKS.contains(clickedBlock)) {
-            penalty = -8;
+            penalty = cfg.fireDoorBurn.get();
             langKey = "villagediplomacy.react.door_burn";
         } else if (VALUABLE_BLOCKS.contains(clickedBlock)) {
-            penalty = -10;
+            penalty = cfg.fireWorkstationBurn.get();
             langKey = "villagediplomacy.react.workstation_burn";
         } else {
 
@@ -207,18 +231,20 @@ public class FireDamageHandler {
 
             if (!isFlammable) {
 
-                penalty = -1;
+                penalty = cfg.fireInnocent.get();
                 langKey = "villagediplomacy.react.fire_innocent";
             } else {
-                penalty = -5;
+                penalty = cfg.fireStart.get();
                 langKey = "villagediplomacy.react.fire_start";
             }
         }
 
+        int oldRep = data.getReputation(playerId, village);
         data.addReputation(playerId, village, penalty);
         int newRep = data.getReputation(playerId, village);
+        VillagerEventHandler.checkAndNotifyReputationChange(player, oldRep, newRep);
 
-        AbstractVillager witness = findNearestVillager(level, clickedPos);
+        AbstractVillager witness = findWitness(level, clickedPos, player);
         if (witness != null) {
             ModLang.sendDialogRandom(player, level.getRandom(), witness, langKey, 3);
         }
@@ -238,8 +264,8 @@ public class FireDamageHandler {
         if (villageOpt.isEmpty()) return;
         BlockPos villagePos = villageOpt.get();
 
-        if (level.getEntitiesOfClass(AbstractVillager.class,
-            new AABB(centerPos).inflate(32)).isEmpty()) return;
+        AbstractVillager witness = findExplosionWitness(level, centerPos);
+        if (witness == null) return;
 
         UUID playerId = findTntPlacer(level, centerPos);
         if (playerId == null) {
@@ -251,20 +277,21 @@ public class FireDamageHandler {
         ServerPlayer player = level.getServer().getPlayerList().getPlayer(playerId);
         if (player == null) return;
 
-        int penalty = 50;
+        int penalty = Math.abs(VillageDiplomacyConfig.INSTANCE.fireExplosion.get());
 
         VillageReputationData data = VillageReputationData.get(level);
+        int oldRep = data.getReputation(playerId, villagePos);
         data.addReputation(playerId, villagePos, -penalty);
         int newRep = data.getReputation(playerId, villagePos);
+        VillagerEventHandler.checkAndNotifyReputationChange(player, oldRep, newRep);
 
-        AbstractVillager witness = findNearestVillager(level, centerPos);
-        if (witness != null) {
-            ModLang.sendDialogRandom(player, level.getRandom(), witness,
-                "villagediplomacy.react.explosion_massive", 3);
-        }
+        ModLang.sendDialogRandom(player, level.getRandom(), witness,
+            "villagediplomacy.react.explosion_massive", 3);
 
         player.sendSystemMessage(Component.translatable("villagediplomacy.sys.explosion_damage", penalty));
         ModLang.sendReputationSummary(player, -penalty, newRep);
+
+        GrievanceHandler.record(level, villagePos, GrievanceType.SABOTAGE, player);
     }
 
     @SubscribeEvent
@@ -287,15 +314,18 @@ public class FireDamageHandler {
         BlockPos village = villagePos.get();
         UUID playerId = player.getUUID();
 
-        data.addReputation(playerId, village, 3);
+        int bonus = VillageDiplomacyConfig.INSTANCE.fireExtinguish.get();
+        int oldRep = data.getReputation(playerId, village);
+        data.addReputation(playerId, village, bonus);
         int newRep = data.getReputation(playerId, village);
+        VillagerEventHandler.checkAndNotifyReputationChange(player, oldRep, newRep);
 
-        AbstractVillager witness = findNearestVillager(level, pos);
+        AbstractVillager witness = findWitness(level, pos, player);
         if (witness != null) {
             ModLang.sendDialogRandom(player, level.getRandom(), witness,
                 "villagediplomacy.react.fire_extinguish", 3);
         }
-        ModLang.sendReputationSummary(player, 3, newRep);
+        ModLang.sendReputationSummary(player, bonus, newRep);
     }
 
     @SubscribeEvent
@@ -304,7 +334,7 @@ public class FireDamageHandler {
 
         long now = System.currentTimeMillis();
         trackedTnt.entrySet().removeIf(entry ->
-            now - entry.getValue().time() > 300000); 
+            now - entry.getValue().time() > 300000);
     }
 
     @SubscribeEvent
@@ -318,18 +348,36 @@ public class FireDamageHandler {
     }
 
     private static boolean isPlayerObserved(ServerLevel level, ServerPlayer player, BlockPos pos) {
-        return !level.getEntitiesOfClass(AbstractVillager.class, new AABB(pos).inflate(VILLAGER_RADIUS)).isEmpty();
+        return findWitness(level, pos, player) != null;
     }
 
-    private static AbstractVillager findNearestVillager(ServerLevel level, BlockPos pos) {
+    private static AbstractVillager findWitness(ServerLevel level, BlockPos pos, ServerPlayer player) {
         List<AbstractVillager> villagers = level.getEntitiesOfClass(AbstractVillager.class,
             new AABB(pos).inflate(VILLAGER_RADIUS));
-        if (villagers.isEmpty()) return null;
 
         AbstractVillager nearest = null;
         double nearestDist = Double.MAX_VALUE;
         for (AbstractVillager v : villagers) {
+            if (!VillagerEventHandler.hasLineOfSight(v, player, level)) continue;
             double dist = v.distanceToSqr(pos.getX(), pos.getY(), pos.getZ());
+            if (dist < nearestDist) {
+                nearestDist = dist;
+                nearest = v;
+            }
+        }
+        return nearest;
+    }
+
+    private static AbstractVillager findExplosionWitness(ServerLevel level, BlockPos centerPos) {
+        Vec3 center = Vec3.atCenterOf(centerPos);
+        List<AbstractVillager> villagers = level.getEntitiesOfClass(AbstractVillager.class,
+            new AABB(centerPos).inflate(EXPLOSION_WITNESS_RADIUS));
+
+        AbstractVillager nearest = null;
+        double nearestDist = Double.MAX_VALUE;
+        for (AbstractVillager v : villagers) {
+            if (!VillagerEventHandler.hasLineOfSightTo(v, center, level)) continue;
+            double dist = v.distanceToSqr(center);
             if (dist < nearestDist) {
                 nearestDist = dist;
                 nearest = v;
@@ -354,7 +402,7 @@ public class FireDamageHandler {
     private static UUID findTntPlacer(ServerLevel level, BlockPos centerPos) {
 
         for (Map.Entry<BlockPos, PlacedTntInfo> entry : trackedTnt.entrySet()) {
-            if (entry.getKey().distSqr(centerPos) < 100) { 
+            if (entry.getKey().distSqr(centerPos) < 100) {
                 return entry.getValue().playerId();
             }
         }

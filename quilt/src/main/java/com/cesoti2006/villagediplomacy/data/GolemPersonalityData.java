@@ -2,6 +2,8 @@ package com.cesoti2006.villagediplomacy.data;
 
 import com.cesoti2006.villagediplomacy.personality.GolemPersonality;
 import net.minecraft.nbt.CompoundTag;
+
+import javax.annotation.Nonnull;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerLevel;
@@ -23,7 +25,7 @@ public class GolemPersonalityData extends SavedData {
                 .computeIfAbsent(GolemPersonalityData::load, GolemPersonalityData::new, DATA_NAME);
     }
 
-    public static GolemPersonalityData load(CompoundTag tag) {
+    public static GolemPersonalityData load(@Nonnull CompoundTag tag) {
         GolemPersonalityData data = new GolemPersonalityData();
 
         ListTag golemsList = tag.getList("Golems", Tag.TAG_COMPOUND);
@@ -78,9 +80,9 @@ public class GolemPersonalityData extends SavedData {
         return tag;
     }
 
-    public GolemPersonality getOrCreatePersonality(UUID golemId, String villageName, Random random) {
+    public GolemPersonality getOrCreatePersonality(UUID golemId, Random random) {
         if (!golemPersonalities.containsKey(golemId)) {
-            GolemPersonality personality = GolemPersonality.generateRandom(villageName, random);
+            GolemPersonality personality = GolemPersonality.generateRandom(random);
             golemPersonalities.put(golemId, personality);
             setDirty();
         }

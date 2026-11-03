@@ -1,6 +1,5 @@
 package com.cesoti2006.villagediplomacy.data;
 
-import com.cesoti2006.villagediplomacy.util.VillageNameGenerator;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -8,6 +7,8 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.saveddata.SavedData;
 import net.minecraft.world.level.storage.DimensionDataStorage;
+
+import javax.annotation.Nonnull;
 
 import java.util.*;
 
@@ -36,7 +37,7 @@ public class PlayerClaimedVillageData extends SavedData {
         }
     }
 
-    public static PlayerClaimedVillageData load(CompoundTag tag) {
+    public static PlayerClaimedVillageData load(@Nonnull CompoundTag tag) {
         PlayerClaimedVillageData data = new PlayerClaimedVillageData();
 
         ListTag villagesList = tag.getList("Villages", Tag.TAG_COMPOUND);

@@ -11,6 +11,8 @@ public final class VillageDiplomacyNetwork {
 
     private static final String PROTOCOL = "2";
 
+    private static boolean registered = false;
+
     @SuppressWarnings("removal")
     public static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
             new ResourceLocation("villagediplomacy", "main"),
@@ -21,6 +23,9 @@ public final class VillageDiplomacyNetwork {
     private VillageDiplomacyNetwork() {}
 
     public static void register() {
+        if (registered) return;
+        registered = true;
+
         int id = 0;
         CHANNEL.messageBuilder(OpenVillageHudPacket.class, id++, NetworkDirection.PLAY_TO_CLIENT)
                 .encoder(OpenVillageHudPacket::write)

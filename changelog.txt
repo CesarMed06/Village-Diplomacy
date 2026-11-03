@@ -1,6 +1,33 @@
 Village Diplomacy — Changelog
 ================================
 
+v1.5.0 — "Diplomacy Between Villages"
+---------------------------------------
+
+New Features:
+• Village-to-village diplomatic system
+  - Diplomatic state per village pair (peace, tension, crisis, ultimatum,
+    mobilization, war, siege, truce and occupation)
+  - Grievances: each village remembers what you did to it and uses it as casus belli
+  - War declarations and ultimatums, with a village leader who decides
+  - Active war: mobilization by bell, civilians taking shelter and a strength tracker
+  - Three-day truce with residual consequences and war memory
+  - New commands: /diplomacy grievances, warreadiness, declare, ultimatum,
+    war, peace, state, setstate and settension
+• Village-to-village relationships (-100..100) and editable village names
+• Villagers with names, traits and emotions of their own, plus personal trade prices
+• Iron golems with names, temperaments and creation stories
+• Last will: a villager who dies leaves a note with their name, trade and final words
+• Full Russian translation on top of English and Spanish
+• 12 ranks, from LEGENDARY HERO to WANTED CRIMINAL, with discounts or penalties
+• 71 configuration options to tune every value, threshold and module
+
+Ports:
+• NeoForge 1.20.1
+• Forge, Fabric and Quilt 1.20.1 brought up to date with the same code
+• NeoForge 1.21.0
+• Forge, NeoForge, Fabric and Quilt for 1.21.1 (Java 21)
+
 v1.4.0 — "Innkeeper, Witnesses & NeoForge"
 -------------------------------------------
 

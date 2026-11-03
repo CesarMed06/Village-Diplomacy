@@ -1,30 +1,42 @@
 modLoader="javafml"
 loaderVersion="[47,)"
 license="All Rights Reserved"
+issueTrackerURL="https://github.com/CesarMed06/Village-Diplomacy/issues"
 
 [[mods]]
 modId="villagediplomacy"
-version="1.4.0"
+version="1.5.0"
 displayName="Village Diplomacy"
 updateJSONURL=""
-displayURL=""
-logoFile=""
+displayURL="https://www.curseforge.com/minecraft/mc-mods/village-diplomacy"
+logoFile="assets/villagediplomacy/icon.png"
 credits="Created by cesoti2006"
 authors="cesoti2006"
 description='''
-Village Diplomacy - A complete reputation and relationship system for Minecraft villagers.
+Village Diplomacy - A living reputation and relationship system for Minecraft villages.
+Every village remembers you individually: earn their trust and they open their doors, their
+chests and their best prices - or become the criminal they barricade themselves against.
 
 Features:
-• Dynamic reputation system with 7 ranks (HERO to VILLAIN)
-• Unique villager personalities with custom behaviors
-• Hostility and forgiveness system for Iron Golems
-• Village naming system with biome-specific names (EN/ES)
-• Over 250 contextual messages based on your actions
-• Special interactions when placing blocks
-• Epic notifications for rank changes with effects
-• Reputation only lost when a villager witnesses your actions
+• Reputation per village and per player (never global)
+• 12 ranks, from LEGENDARY HERO to WANTED CRIMINAL, with trade discounts or penalties
+• Witness system - your crimes only count if a villager sees you (real line of sight)
+• Villages react to your rank: doors, chests, beds, bells and workstations
+• Villager personalities - biome-based names, 35 traits, emotions and personal trade prices
+• Innkeeper and hostel - every village elects one; sleep for 1 emerald, free at high reputation
+• Iron golems with their own names, temperaments and creation stories
+• Mourning, reactions to deaths and villager wills
+• Living day/night cycle - villagers work, eat, light their homes and go to bed
+• Claim your own village anywhere (/diplomacy claim, configurable radius)
+• Guard Villagers and MCA Reborn integration - guards respect your rank and hunt wanted criminals
+• 250+ contextual dialogue lines, fully translated into English, Spanish and Russian
+• 70+ configuration options to tune every value, threshold and module
 
-Build your reputation by trading, helping villagers, and respecting their property - or become a feared villain!
+Build your reputation by trading, helping villagers and respecting their property - or tear
+it all down and live as the villain they warn their children about.
+
+CurseForge: https://www.curseforge.com/minecraft/mc-mods/village-diplomacy
+Modrinth: https://modrinth.com/mod/village-diplomacy
 '''
 
 [[dependencies.villagediplomacy]]

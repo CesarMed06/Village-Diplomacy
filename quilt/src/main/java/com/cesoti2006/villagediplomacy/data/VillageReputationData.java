@@ -2,6 +2,7 @@ package com.cesoti2006.villagediplomacy.data;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import javax.annotation.Nonnull;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerLevel;
@@ -22,7 +23,7 @@ public class VillageReputationData extends SavedData {
     public VillageReputationData() {
     }
 
-    public static VillageReputationData load(CompoundTag tag) {
+    public static VillageReputationData load(@Nonnull CompoundTag tag) {
         VillageReputationData data = new VillageReputationData();
 
         ListTag playerList = tag.getList("PlayerReputations", Tag.TAG_COMPOUND);
@@ -70,9 +71,7 @@ public class VillageReputationData extends SavedData {
     }
 
     private String getVillageKey(BlockPos villagePos) {
-        int snapX = (villagePos.getX() >> 7) << 7;
-        int snapZ = (villagePos.getZ() >> 7) << 7;
-        return snapX + "_" + snapZ;
+        return VillageId.of(villagePos);
     }
 
     public int getReputation(UUID playerId, BlockPos villagePos) {
@@ -97,31 +96,10 @@ public class VillageReputationData extends SavedData {
         setDirty();
     }
 
-    public int getReputation(UUID playerId) {
-        Map<String, Integer> villageReps = playerVillageReputations.get(playerId);
-        if (villageReps == null || villageReps.isEmpty()) return 0;
-
-        return (int) villageReps.values().stream().mapToInt(Integer::intValue).average().orElse(0);
-    }
-
-    public void addReputation(UUID playerId, int amount) {
-
-        Map<String, Integer> villageReps = playerVillageReputations.get(playerId);
-        if (villageReps != null && !villageReps.isEmpty()) {
-            for (String villageKey : villageReps.keySet()) {
-                int current = villageReps.get(villageKey);
-                villageReps.put(villageKey, current + amount);
-            }
-        }
-        setDirty();
-    }
-
-    public void setReputation(UUID playerId, int reputation) {
-
+    public void addReputationByKey(UUID playerId, String villageKey, int amount) {
         Map<String, Integer> villageReps = playerVillageReputations.computeIfAbsent(playerId, k -> new HashMap<>());
-        for (String villageKey : villageReps.keySet()) {
-            villageReps.put(villageKey, reputation);
-        }
+        int current = villageReps.getOrDefault(villageKey, 0);
+        villageReps.put(villageKey, current + amount);
         setDirty();
     }
 

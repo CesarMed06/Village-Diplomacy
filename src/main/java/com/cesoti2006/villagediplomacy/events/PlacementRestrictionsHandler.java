@@ -1,12 +1,17 @@
 package com.cesoti2006.villagediplomacy.events;
 
+import com.cesoti2006.villagediplomacy.config.VillageDiplomacyConfig;
 import com.cesoti2006.villagediplomacy.data.VillageDetector;
 import com.cesoti2006.villagediplomacy.data.VillageReputationData;
+import com.cesoti2006.villagediplomacy.reputation.ReputationTiersHandler;
+import com.cesoti2006.villagediplomacy.util.BlockRules;
+import com.cesoti2006.villagediplomacy.util.ModLang;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.npc.Villager;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.phys.AABB;
 import net.minecraftforge.event.level.BlockEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -19,14 +24,14 @@ import java.util.UUID;
 
 public class PlacementRestrictionsHandler {
 
-    private static final int REP_BLOCK_PLACEMENT  = -400;  
-    private static final int REP_PENALTY_DISLIKED = -200;  
-    private static final int REP_PENALTY_SUSPICIOUS = -100; 
-    private static final int REP_PENALTY_NEUTRAL  = 0;     
+    private static final int REP_FLOOR = -900;
+    private static final long WINDOW_MS = 8000;
+    private static final double WITNESS_RANGE = 32.0D;
 
-    private static final long MSG_COOLDOWN_MS = 8000;
-
-    private final Map<UUID, Long> msgCooldown = new HashMap<>();
+    private static final Map<UUID, Long> windowStart = new HashMap<>();
+    private static final Map<UUID, Integer> windowPenalty = new HashMap<>();
+    private static final Map<UUID, Integer> windowBlocks = new HashMap<>();
+    private static final Map<UUID, BlockPos> windowVillage = new HashMap<>();
 
     @SubscribeEvent
     public void onBlockPlace(BlockEvent.EntityPlaceEvent event) {
@@ -35,61 +40,119 @@ public class PlacementRestrictionsHandler {
 
         BlockPos pos = event.getPos();
 
+        Block placed = event.getPlacedBlock().getBlock();
+        if (BlockRules.isPlant(placed) || BlockRules.isFireHazard(placed)) return;
+
         Optional<BlockPos> nearestVillage = VillageDetector.findNearestVillage(level, pos, 200);
         if (nearestVillage.isEmpty()) return;
 
+        var cfg = VillageDiplomacyConfig.INSTANCE;
         VillageReputationData data = VillageReputationData.get(level);
-        int rep = data.getReputation(player.getUUID(), nearestVillage.get());
+        BlockPos villagePos = nearestVillage.get();
+        UUID playerId = player.getUUID();
+        int rep = data.getReputation(playerId, villagePos);
 
-        if (rep >= 800) {
+        if (rep >= ReputationTiersHandler.ReputationTier.HERO.getMinReputation()) {
             return;
         }
 
-        if (rep <= REP_BLOCK_PLACEMENT) {
+        if (rep <= cfg.restrictPlacementBlockThreshold.get()) {
             event.setCanceled(true);
-            sendThrottled(player, level, "villagediplomacy.restrict.placement.blocked", nearestVillage.get());
+            announce(player, level, pos, "villagediplomacy.restrict.placement.blocked", villagePos, rep, 0, rep);
             return;
         }
 
-        int penaltyAmount = 0;
-        String messageKey = null;
-
-        if (rep < REP_PENALTY_DISLIKED) {  
-            penaltyAmount = -15;
+        int penalty;
+        String messageKey;
+        if (rep < cfg.restrictPlacementDislikedThreshold.get()) {
+            penalty = cfg.restrictPlacementDislikedPenalty.get();
             messageKey = "villagediplomacy.restrict.placement.disliked";
-        } else if (rep < REP_PENALTY_SUSPICIOUS) {  
-            penaltyAmount = -8;
+        } else if (rep < cfg.restrictPlacementSuspiciousThreshold.get()) {
+            penalty = cfg.restrictPlacementSuspiciousPenalty.get();
             messageKey = "villagediplomacy.restrict.placement.suspicious";
-        } else if (rep < REP_PENALTY_NEUTRAL) {  
-            penaltyAmount = -3;
+        } else if (rep < 0) {
+            penalty = cfg.restrictPlacementNeutralPenalty.get();
             messageKey = "villagediplomacy.restrict.placement.neutral";
+        } else {
+            return;
         }
 
-        if (penaltyAmount < 0) {
-            data.addReputation(player.getUUID(), nearestVillage.get(), penaltyAmount);
-
-            List<Villager> nearby = level.getEntitiesOfClass(Villager.class, new AABB(pos).inflate(20));
-            if (!nearby.isEmpty()) {
-                sendThrottled(player, level, messageKey, nearestVillage.get());
-            }
+        int newRep = rep;
+        if (rep > REP_FLOOR) {
+            data.addReputation(playerId, villagePos, penalty);
+            newRep = data.getReputation(playerId, villagePos);
         }
 
+        announce(player, level, pos, messageKey, villagePos, rep, penalty, newRep);
     }
 
-    private void sendThrottled(ServerPlayer player, ServerLevel level, String key, BlockPos villagePos) {
+    private static void announce(ServerPlayer player, ServerLevel level, BlockPos pos, String messageKey,
+                                 BlockPos villagePos, int oldRep, int penalty, int newRep) {
+        UUID playerId = player.getUUID();
         long now = System.currentTimeMillis();
-        if (msgCooldown.getOrDefault(player.getUUID(), 0L) + MSG_COOLDOWN_MS > now) return;
+        Long start = windowStart.get(playerId);
 
-        List<Villager> nearby = level.getEntitiesOfClass(Villager.class, 
-            new AABB(villagePos).inflate(100));
-
-        if (!nearby.isEmpty()) {
-            Villager villager = nearby.get(level.getRandom().nextInt(nearby.size()));
-            String messageKey = key + ".villager";
-            com.cesoti2006.villagediplomacy.util.ModLang.sendDialogRandom(player, level.getRandom(), villager, messageKey, 3);
-        } else {
-            player.sendSystemMessage(Component.translatable(key));
+        if (start != null && now - start < WINDOW_MS) {
+            windowPenalty.merge(playerId, penalty, Integer::sum);
+            windowBlocks.merge(playerId, 1, Integer::sum);
+            windowVillage.put(playerId, villagePos);
+            return;
         }
-        msgCooldown.put(player.getUUID(), now);
+
+        windowStart.put(playerId, now);
+
+        windowPenalty.put(playerId, penalty);
+        windowBlocks.put(playerId, 1);
+        windowVillage.put(playerId, villagePos);
+
+        player.sendSystemMessage(Component.translatable(messageKey));
+
+        Villager witness = findWitness(level, player, pos);
+        if (witness != null) {
+            ModLang.sendDialogRandom(player, level.getRandom(), witness, messageKey + ".villager", 3);
+        }
+
+        if (penalty < 0) {
+            VillagerEventHandler.checkAndNotifyReputationChange(player, oldRep, newRep);
+            ModLang.sendReputationSummary(player, penalty, newRep);
+        }
+    }
+
+    public static void flushPending(ServerPlayer player) {
+        UUID playerId = player.getUUID();
+        Long start = windowStart.get(playerId);
+        if (start == null || System.currentTimeMillis() - start < WINDOW_MS) return;
+
+        int blocks = windowBlocks.getOrDefault(playerId, 0);
+        int penalty = windowPenalty.getOrDefault(playerId, 0);
+        BlockPos villagePos = windowVillage.remove(playerId);
+        windowStart.remove(playerId);
+        windowBlocks.remove(playerId);
+        windowPenalty.remove(playerId);
+
+        if (blocks <= 1 || villagePos == null || penalty == 0) return;
+        if (!(player.level() instanceof ServerLevel level)) return;
+
+        player.sendSystemMessage(Component.translatable("villagediplomacy.restrict.placement.more",
+                (penalty > 0 ? "+" : "") + penalty, String.valueOf(blocks)));
+        ModLang.sendReputationSummary(player, penalty,
+                VillageReputationData.get(level).getReputation(playerId, villagePos));
+    }
+
+    public static void forget(UUID playerId) {
+        windowStart.remove(playerId);
+        windowBlocks.remove(playerId);
+        windowPenalty.remove(playerId);
+        windowVillage.remove(playerId);
+    }
+
+    private static Villager findWitness(ServerLevel level, ServerPlayer player, BlockPos pos) {
+        List<Villager> nearby = level.getEntitiesOfClass(Villager.class, new AABB(pos).inflate(WITNESS_RANGE));
+        for (Villager villager : nearby) {
+            if (VillagerEventHandler.hasLineOfSight(villager, player, level)) {
+                return villager;
+            }
+        }
+        return null;
     }
 }

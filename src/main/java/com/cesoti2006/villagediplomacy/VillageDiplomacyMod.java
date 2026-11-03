@@ -1,16 +1,18 @@
 package com.cesoti2006.villagediplomacy;
 
 import com.cesoti2006.villagediplomacy.commands.DiplomacyCommands;
+import com.cesoti2006.villagediplomacy.diplomacy.GrievanceHandler;
+import com.cesoti2006.villagediplomacy.diplomacy.WarDeclarationHandler;
+import com.cesoti2006.villagediplomacy.diplomacy.WarManager;
 import com.cesoti2006.villagediplomacy.events.VillagerEventHandler;
 import com.cesoti2006.villagediplomacy.events.TradeModifierHandler;
 import com.cesoti2006.villagediplomacy.events.VillagerBehaviorHandler;
 import com.cesoti2006.villagediplomacy.network.VillageDiplomacyNetwork;
-import com.cesoti2006.villagediplomacy.personality.PersonalityBehaviorHandler;
-import com.cesoti2006.villagediplomacy.personality.VillagerActivityBehavior;
+import com.cesoti2006.villagediplomacy.events.PlacementRestrictionsHandler;
 import com.cesoti2006.villagediplomacy.events.ReputationRestrictionsHandler;
 import com.cesoti2006.villagediplomacy.events.FireDamageHandler;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.server.ServerStartingEvent;
+import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -25,22 +27,40 @@ public class VillageDiplomacyMod {
 
     public static VillagerEventHandler eventHandler;
 
+    public VillageDiplomacyMod() {
+        init(null);
+    }
+
     @SuppressWarnings("removal")
     public VillageDiplomacyMod(FMLJavaModLoadingContext context) {
+        init(context.getModEventBus());
+    }
+
+    public VillageDiplomacyMod(IEventBus modEventBus) {
+        init(modEventBus);
+    }
+
+    @SuppressWarnings("removal")
+    private void init(IEventBus modEventBus) {
 
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, VillageDiplomacyConfig.SPEC);
 
-        IEventBus modEventBus = context.getModEventBus();
-        modEventBus.addListener(this::commonSetup);
+        if (modEventBus != null) {
+            modEventBus.addListener(this::commonSetup);
+        } else {
+            VillageDiplomacyNetwork.register();
+        }
 
         eventHandler = new VillagerEventHandler();
         MinecraftForge.EVENT_BUS.register(eventHandler);
         MinecraftForge.EVENT_BUS.register(new TradeModifierHandler());
-        MinecraftForge.EVENT_BUS.register(new VillagerBehaviorHandler());
-        MinecraftForge.EVENT_BUS.register(new PersonalityBehaviorHandler());
-        MinecraftForge.EVENT_BUS.register(new VillagerActivityBehavior());
+        MinecraftForge.EVENT_BUS.register(VillagerBehaviorHandler.class);
+        MinecraftForge.EVENT_BUS.register(new PlacementRestrictionsHandler());
         MinecraftForge.EVENT_BUS.register(new ReputationRestrictionsHandler());
         MinecraftForge.EVENT_BUS.register(FireDamageHandler.class);
+        MinecraftForge.EVENT_BUS.register(GrievanceHandler.class);
+        MinecraftForge.EVENT_BUS.register(WarDeclarationHandler.class);
+        MinecraftForge.EVENT_BUS.register(WarManager.class);
         MinecraftForge.EVENT_BUS.register(this);
     }
 
@@ -49,7 +69,7 @@ public class VillageDiplomacyMod {
     }
 
     @SubscribeEvent
-    public void onServerStarting(ServerStartingEvent event) {
-        DiplomacyCommands.register(event.getServer().getCommands().getDispatcher());
+    public void onRegisterCommands(RegisterCommandsEvent event) {
+        DiplomacyCommands.register(event.getDispatcher());
     }
 }

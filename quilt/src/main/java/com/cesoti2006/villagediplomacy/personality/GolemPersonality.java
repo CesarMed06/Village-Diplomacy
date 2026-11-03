@@ -2,11 +2,13 @@ package com.cesoti2006.villagediplomacy.personality;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.MutableComponent;
 
 import java.util.Random;
 
 public class GolemPersonality {
+
+    public static final ChatFormatting GOLEM_NAME_COLOR = ChatFormatting.AQUA;
+
     private final String name;
     private final GolemTrait temperament;
     private final GolemTrait loyalty;
@@ -16,22 +18,12 @@ public class GolemPersonality {
     private final int storyTemplateIndex;
 
     public enum GolemTrait {
-        GENTLE(ChatFormatting.GREEN),
-        STERN(ChatFormatting.GRAY),
-        FIERCE(ChatFormatting.RED),
-        DEVOTED(ChatFormatting.GOLD),
-        DUTIFUL(ChatFormatting.YELLOW),
-        INDEPENDENT(ChatFormatting.AQUA);
-
-        private final ChatFormatting chatColor;
-
-        GolemTrait(ChatFormatting chatColor) {
-            this.chatColor = chatColor;
-        }
-
-        public ChatFormatting chatColor() {
-            return chatColor;
-        }
+        GENTLE,
+        STERN,
+        FIERCE,
+        DEVOTED,
+        DUTIFUL,
+        INDEPENDENT;
 
         public String traitKey() {
             return "villagediplomacy.golem.trait." + name().toLowerCase();
@@ -47,7 +39,7 @@ public class GolemPersonality {
         this.storyTemplateIndex = storyTemplateIndex;
     }
 
-    public static GolemPersonality generateRandom(String villageName, Random random) {
+    public static GolemPersonality generateRandom(Random random) {
         String name = generateGolemName(random);
 
         GolemTrait temperament = random.nextInt(10) < 3 ? GolemTrait.GENTLE
@@ -60,15 +52,25 @@ public class GolemPersonality {
         return new GolemPersonality(name, temperament, loyalty, "", storyIdx);
     }
 
-    private static String generateGolemName(Random random) {
-        String[] names = {
-                "Ironheart", "Steelguard", "Stonefist", "Ironwall", "Defender",
-                "Guardian", "Sentinel", "Protector", "Warden", "Keeper",
-                "Strongarm", "Ironforge", "Steelheart", "Stonewall", "Ironclad",
-                "Bulwark", "Anvil", "Hammer", "Shield", "Fortress"
-        };
+    private static final String[] GOLEM_NAME_IDS = {
+            "ironheart", "steelguard", "stonefist", "ironwall", "defender",
+            "guardian", "sentinel", "protector", "warden", "keeper",
+            "strongarm", "ironforge", "steelheart", "stonewall", "ironclad",
+            "bulwark", "anvil", "hammer", "shield", "fortress"
+    };
 
-        return names[random.nextInt(names.length)];
+    private static final java.util.Set<String> GOLEM_NAME_KEYS =
+            new java.util.HashSet<>(java.util.Arrays.asList(GOLEM_NAME_IDS));
+
+    private static String generateGolemName(Random random) {
+        return GOLEM_NAME_IDS[random.nextInt(GOLEM_NAME_IDS.length)];
+    }
+
+    public Component nameComponent() {
+        Component base = name != null && GOLEM_NAME_KEYS.contains(name)
+                ? Component.translatable("villagediplomacy.golemname." + name)
+                : Component.literal(name != null ? name : "");
+        return base.copy().withStyle(GOLEM_NAME_COLOR);
     }
 
     public Component getGreetingComponent() {
@@ -78,7 +80,7 @@ public class GolemPersonality {
             case FIERCE -> "villagediplomacy.golem.greet.fierce";
             case DEVOTED, DUTIFUL, INDEPENDENT -> "villagediplomacy.golem.greet.default";
         };
-        return Component.translatable(k, name);
+        return Component.translatable(k, nameComponent());
     }
 
     public Component getPatrolComponent() {
@@ -88,7 +90,7 @@ public class GolemPersonality {
             case INDEPENDENT -> "villagediplomacy.golem.patrol.independent";
             case GENTLE, STERN, FIERCE -> "villagediplomacy.golem.patrol.default";
         };
-        return Component.translatable(k, name);
+        return Component.translatable(k, nameComponent());
     }
 
     public Component getThreatDetectedComponent() {
@@ -98,7 +100,7 @@ public class GolemPersonality {
             case FIERCE -> "villagediplomacy.golem.threat.fierce";
             case DEVOTED, DUTIFUL, INDEPENDENT -> "villagediplomacy.golem.threat.default";
         };
-        return Component.translatable(k, name);
+        return Component.translatable(k, nameComponent());
     }
 
     public Component getLoyaltyLineComponent() {
@@ -108,7 +110,7 @@ public class GolemPersonality {
             case INDEPENDENT -> "villagediplomacy.golem.loyalty_line.independent";
             case GENTLE, STERN, FIERCE -> "villagediplomacy.golem.loyalty_line.default";
         };
-        return Component.translatable(k, name);
+        return Component.translatable(k, nameComponent());
     }
 
     public Component getTemperamentLineComponent() {
@@ -118,7 +120,7 @@ public class GolemPersonality {
             case FIERCE -> "villagediplomacy.golem.temperament_line.fierce";
             case DEVOTED, DUTIFUL, INDEPENDENT -> "villagediplomacy.golem.temperament_line.default";
         };
-        return Component.translatable(k, name);
+        return Component.translatable(k, nameComponent());
     }
 
     public Component getCreationStoryComponent(String villageRef) {
@@ -129,9 +131,9 @@ public class GolemPersonality {
     }
 
     public Component getFullTitleComponent() {
-        MutableComponent nameC = Component.literal(name).withStyle(temperament.chatColor());
-        Component traitC = Component.translatable(temperament.traitKey());
-        return Component.translatable("villagediplomacy.golem.title", nameC, traitC);
+        return Component.translatable("villagediplomacy.golem.title",
+                nameComponent(),
+                Component.translatable(temperament.traitKey()).withStyle(ChatFormatting.YELLOW));
     }
 
     public Component getFriendlyHitResponseComponent(int strikes) {
@@ -142,7 +144,7 @@ public class GolemPersonality {
                 case FIERCE -> "villagediplomacy.golem.warn1.fierce";
                 default -> "villagediplomacy.golem.warn1.default";
             };
-            return Component.translatable(k, name).withStyle(net.minecraft.ChatFormatting.GOLD);
+            return Component.translatable(k, nameComponent()).withStyle(net.minecraft.ChatFormatting.GOLD);
         } else if (strikes == 2) {
             String k = switch (temperament) {
                 case GENTLE -> "villagediplomacy.golem.warn2.gentle";
@@ -150,9 +152,9 @@ public class GolemPersonality {
                 case FIERCE -> "villagediplomacy.golem.warn2.fierce";
                 default -> "villagediplomacy.golem.warn2.default";
             };
-            return Component.translatable(k, name).withStyle(net.minecraft.ChatFormatting.RED);
+            return Component.translatable(k, nameComponent()).withStyle(net.minecraft.ChatFormatting.RED);
         } else {
-            return Component.translatable("villagediplomacy.golem.warn3", name)
+            return Component.translatable("villagediplomacy.golem.warn3", nameComponent())
                     .withStyle(net.minecraft.ChatFormatting.DARK_RED);
         }
     }

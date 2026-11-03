@@ -1,0 +1,7 @@
+accessWidener	v2	named
+
+# En Forge el access transformer del MDK deja publicos los selectores de IA del Mob, y la logica de
+# personalidad del mod anade metas (huir, mirar al jugador) directamente al aldeano. En Fabric el
+# equivalente es este access widener: mismos campos, misma visibilidad.
+accessible	field	net/minecraft/world/entity/Mob	goalSelector	Lnet/minecraft/world/entity/ai/goal/GoalSelector;
+accessible	field	net/minecraft/world/entity/Mob	targetSelector	Lnet/minecraft/world/entity/ai/goal/GoalSelector;

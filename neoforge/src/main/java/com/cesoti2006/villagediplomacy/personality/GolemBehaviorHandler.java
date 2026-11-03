@@ -19,7 +19,7 @@ import java.util.Optional;
 @Mod.EventBusSubscriber
 public class GolemBehaviorHandler {
 
-    private static final long INTERACTION_COOLDOWN_MS = 30000; 
+    private static final long INTERACTION_COOLDOWN_MS = 30000;
 
     @SubscribeEvent
     public static void onGolemSpawn(EntityJoinLevelEvent event) {
@@ -28,17 +28,13 @@ public class GolemBehaviorHandler {
         if (event.getLevel().isClientSide())
             return;
         if (golem.isPlayerCreated())
-            return; 
+            return;
 
         ServerLevel level = (ServerLevel) event.getLevel();
         GolemPersonalityData data = GolemPersonalityData.get(level);
 
-        Optional<BlockPos> village = VillageDetector.findNearestVillage(level, golem.blockPosition(), 100);
-        String villageName = village.isPresent() ? VillageDetector.getVillageId(village.get()) : "Aldea Desconocida";
-
         GolemPersonality personality = data.getOrCreatePersonality(
                 golem.getUUID(),
-                villageName,
                 new java.util.Random(golem.getUUID().hashCode()));
 
         golem.setCustomName(personality.getFullTitleComponent());
@@ -54,7 +50,7 @@ public class GolemBehaviorHandler {
         if (event.getHand() != InteractionHand.MAIN_HAND)
             return;
         if (golem.isPlayerCreated())
-            return; 
+            return;
 
         ServerLevel level = (ServerLevel) event.getLevel();
         GolemPersonalityData data = GolemPersonalityData.get(level);
@@ -69,12 +65,12 @@ public class GolemBehaviorHandler {
         if (golem.getTarget() == player ||
                 (golem.getPersistentAngerTarget() != null && golem.getPersistentAngerTarget().equals(player.getUUID()))) {
             ModLang.sendRandomWithArgs(player, level.getRandom(), "villagediplomacy.golem.danger", 5,
-                    personality.getName());
+                    personality.nameComponent());
             return;
         }
 
         if (!data.canInteract(golem.getUUID(), INTERACTION_COOLDOWN_MS)) {
-            player.sendSystemMessage(Component.translatable("villagediplomacy.golem.busy", personality.getName()));
+            player.sendSystemMessage(Component.translatable("villagediplomacy.golem.busy", personality.nameComponent()));
             return;
         }
 
@@ -88,9 +84,9 @@ public class GolemBehaviorHandler {
         }
 
         Component storyLine = Component.literal("[")
-                .withStyle(net.minecraft.ChatFormatting.GRAY)
-                .append(Component.literal(personality.getName()).withStyle(personality.getTemperament().chatColor()))
-                .append(Component.literal("] ").withStyle(net.minecraft.ChatFormatting.GRAY))
+                .withStyle(net.minecraft.ChatFormatting.DARK_GRAY)
+                .append(personality.nameComponent())
+                .append(Component.literal("] ").withStyle(net.minecraft.ChatFormatting.DARK_GRAY))
                 .append(personality.getCreationStoryComponent(villageRef).copy().withStyle(net.minecraft.ChatFormatting.ITALIC));
 
         Component[] responses = {

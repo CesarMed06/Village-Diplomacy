@@ -127,13 +127,24 @@ public class NameGenerator {
     }
 
     public static String generateName(String biomeType, boolean isMale, Random random) {
-
-        String normalizedBiome = normalizeBiome(biomeType);
-
-        Map<String, String[]> nameList = isMale ? MALE_NAMES : FEMALE_NAMES;
-        String[] names = nameList.getOrDefault(normalizedBiome, nameList.get("plains"));
-
+        String[] names = namesFor(biomeType, isMale);
         return names[random.nextInt(names.length)];
+    }
+
+    public static String[] namesFor(String biomeType, boolean isMale) {
+        String normalizedBiome = normalizeBiome(biomeType);
+        Map<String, String[]> nameList = isMale ? MALE_NAMES : FEMALE_NAMES;
+        return nameList.getOrDefault(normalizedBiome, nameList.get("plains"));
+    }
+
+    public static boolean isMaleName(String name) {
+        if (name == null || name.isEmpty()) return true;
+        for (String[] names : MALE_NAMES.values()) {
+            for (String candidate : names) {
+                if (candidate.equalsIgnoreCase(name)) return true;
+            }
+        }
+        return false;
     }
 
     private static String normalizeBiome(String biomeId) {
@@ -146,40 +157,5 @@ public class NameGenerator {
         if (lower.contains("swamp") || lower.contains("bog")) return "swamp";
 
         return "plains";
-    }
-
-    public static String generateNickname(String profession, int level, Random random) {
-        if (level < 4) return ""; 
-
-        switch (profession.toLowerCase()) {
-            case "librarian":
-                return random.nextBoolean() ? "the Wise" : "the Scholar";
-            case "weaponsmith":
-                return random.nextBoolean() ? "the Smith" : "the Warsmith";
-            case "armorer":
-                return random.nextBoolean() ? "the Anvil" : "the Armorer";
-            case "toolsmith":
-                return random.nextBoolean() ? "the Craftsman" : "the Artisan";
-            case "farmer":
-                return random.nextBoolean() ? "the Farmer" : "the Sower";
-            case "fisherman":
-                return random.nextBoolean() ? "the Fisher" : "the Sailor";
-            case "shepherd":
-                return random.nextBoolean() ? "the Shepherd" : "the Herder";
-            case "fletcher":
-                return random.nextBoolean() ? "the Archer" : "the Bowyer";
-            case "butcher":
-                return random.nextBoolean() ? "the Butcher" : "the Cook";
-            case "leatherworker":
-                return random.nextBoolean() ? "the Tanner" : "the Leatherworker";
-            case "mason":
-                return random.nextBoolean() ? "the Mason" : "the Builder";
-            case "cartographer":
-                return random.nextBoolean() ? "the Cartographer" : "the Explorer";
-            case "cleric":
-                return random.nextBoolean() ? "the Healer" : "the Priest";
-            default:
-                return "the Expert";
-        }
     }
 }

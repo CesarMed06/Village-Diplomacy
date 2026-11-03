@@ -2,6 +2,7 @@ package com.cesoti2006.villagediplomacy.data;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import javax.annotation.Nonnull;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerLevel;
@@ -22,7 +23,7 @@ public class VillageMourningData extends SavedData {
                 .computeIfAbsent(VillageMourningData::load, VillageMourningData::new, DATA_NAME);
     }
 
-    public static VillageMourningData load(CompoundTag tag) {
+    public static VillageMourningData load(@Nonnull CompoundTag tag) {
         VillageMourningData data = new VillageMourningData();
 
         ListTag deathsList = tag.getList("Deaths", Tag.TAG_COMPOUND);
@@ -90,7 +91,7 @@ public class VillageMourningData extends SavedData {
 
     public List<MourningRecord> getRecentDeaths(String villageId) {
         long currentTime = System.currentTimeMillis();
-        long mourningPeriod = 20 * 60 * 1000; 
+        long mourningPeriod = 20 * 60 * 1000;
 
         List<MourningRecord> deaths = recentDeaths.get(villageId);
         if (deaths == null) return Collections.emptyList();

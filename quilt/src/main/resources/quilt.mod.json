@@ -2,7 +2,6 @@
   "schema_version": 1,
   "quilt_loader": {
     "group": "${mod_group_id}",
-    "name": "${mod_name}",
     "version": "${version}",
     "metadata": {
       "name": "${mod_name}",
@@ -13,13 +12,20 @@
       "contact": {
         "homepage": ""
       },
-      "license": "${mod_license}",
+      "license": {
+        "name": "${mod_license}",
+        "id": "LicenseRef-All-Rights-Reserved",
+        "url": ""
+      },
       "icon": "assets/villagediplomacy/icon.png"
     },
     "intermediate_mappings": "net.fabricmc:intermediary",
     "entrypoints": {
-      "init": [
+      "main": [
         "com.cesoti2006.villagediplomacy.fabric.VillageDiplomacyQuilt"
+      ],
+      "client": [
+        "com.cesoti2006.villagediplomacy.fabric.VillageDiplomacyQuiltClient"
       ]
     },
     "depends": [
@@ -37,5 +43,6 @@
       }
     ],
     "id": "${mod_id}"
-  }
+  },
+  "access_widener": "villagediplomacy.accesswidener"
 }

@@ -5,5 +5,5 @@ import org.slf4j.LoggerFactory;
 
 public class VillageDiplomacy {
     public static final String MODID = "villagediplomacy";
-    public static final Logger LOGGER = LoggerFactory.getLogger("villagediplomacy");
+    public static final Logger LOGGER = LoggerFactory.getLogger(MODID);
 }

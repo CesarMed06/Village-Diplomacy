@@ -1,0 +1,50 @@
+modLoader="javafml"
+loaderVersion="[1,)"
+license="All Rights Reserved"
+issueTrackerURL="https://github.com/CesarMed06/Village-Diplomacy/issues"
+
+[[mods]]
+modId="villagediplomacy"
+version="1.5.0"
+displayName="Village Diplomacy"
+displayURL="https://www.curseforge.com/minecraft/mc-mods/village-diplomacy"
+logoFile="assets/villagediplomacy/icon.png"
+credits="Created by cesoti2006"
+authors="cesoti2006"
+description='''
+Village Diplomacy - A living reputation and relationship system for Minecraft villages.
+Every village remembers you individually: earn their trust and they open their doors, their
+chests and their best prices - or become the criminal they barricade themselves against.
+
+Features:
+- Reputation per village and per player (never global)
+- 12 ranks, from LEGENDARY HERO to WANTED CRIMINAL, with trade discounts or penalties
+- Witness system - your crimes only count if a villager sees you (real line of sight)
+- Villages react to your rank: doors, chests, beds, bells and workstations
+- Villager personalities - biome-based names, 35 traits, emotions and personal trade prices
+- Innkeeper and hostel - every village elects one; sleep for 1 emerald, free at high reputation
+- Iron golems with their own names, temperaments and creation stories
+- Mourning, reactions to deaths and villager wills
+- Living day/night cycle - villagers work, eat, light their homes and go to bed
+- Claim your own village anywhere (/diplomacy claim, configurable radius)
+- Guard Villagers and MCA Reborn integration - guards respect your rank and hunt wanted criminals
+- 250+ contextual dialogue lines, fully translated into English, Spanish and Russian
+- 70+ configuration options to tune every value, threshold and module
+
+CurseForge: https://www.curseforge.com/minecraft/mc-mods/village-diplomacy
+Modrinth: https://modrinth.com/mod/village-diplomacy
+'''
+
+[[dependencies.villagediplomacy]]
+modId="neoforge"
+type="required"
+versionRange="[21.1.0,21.2)"
+ordering="NONE"
+side="BOTH"
+
+[[dependencies.villagediplomacy]]
+modId="minecraft"
+type="required"
+versionRange="[1.21.1,1.21.2)"
+ordering="NONE"
+side="BOTH"

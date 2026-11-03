@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "quilt_loader": {
+    "group": "${mod_group_id}",
+    "version": "${version}",
+    "metadata": {
+      "name": "${mod_name}",
+      "description": "${mod_description}",
+      "authors": [
+        "${mod_authors}"
+      ],
+      "contact": {
+        "homepage": ""
+      },
+      "license": {
+        "name": "${mod_license}",
+        "id": "LicenseRef-All-Rights-Reserved",
+        "url": ""
+      },
+      "icon": "assets/villagediplomacy/icon.png"
+    },
+    "intermediate_mappings": "net.fabricmc:intermediary",
+    "entrypoints": {
+      "main": [
+        "com.cesoti2006.villagediplomacy.fabric.VillageDiplomacyQuilt"
+      ],
+      "client": [
+        "com.cesoti2006.villagediplomacy.fabric.VillageDiplomacyQuiltClient"
+      ]
+    },
+    "depends": [
+      {
+        "id": "quilt_loader",
+        "versions": ">=${quilt_loader_version}"
+      },
+      {
+        "id": "fabricloader",
+        "versions": ">=${fabric_loader_version}"
+      },
+      {
+        "id": "fabric-api",
+        "versions": "*"
+      },
+      {
+        "id": "minecraft",
+        "versions": "${minecraft_version}"
+      }
+    ],
+    "id": "${mod_id}"
+  },
+  "access_widener": "villagediplomacy.accesswidener"
+}

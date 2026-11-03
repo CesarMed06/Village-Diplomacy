@@ -27,9 +27,10 @@ Languages:
 • Full Russian translation (2,503 keys), on top of English and Spanish
 
 Ports:
-• Forge, NeoForge, Fabric and Quilt for 1.20.1, all sharing the same code
-• NeoForge 1.21.0
-• Forge, NeoForge, Fabric and Quilt for 1.21.1 (Java 21), full feature parity
+• New in this version: Forge, NeoForge, Fabric and Quilt for 1.21.1 (Java 21, full feature
+  parity) and NeoForge for 1.21.0
+• 1.20.1 keeps the four loaders from earlier releases (Forge, NeoForge, Fabric and Quilt),
+  all sharing the same code
 
 Fixes:
 • The village banner texture is a real PNG again, so it no longer shows as a missing texture

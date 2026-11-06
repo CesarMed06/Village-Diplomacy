@@ -6,29 +6,24 @@ v1.5.0 — "Diplomacy Between Villages"
 
 New Features:
 • Village-to-village diplomacy
-  - Nine diplomatic states per village pair: PEACE, TENSION, CRISIS, ULTIMATUM,
-    MOBILIZING, WAR, SIEGE, TRUCE and OCCUPATION
+  - Diplomatic states per village pair: PEACE, TENSION, CRISIS, ULTIMATUM, WAR and TRUCE
   - Grievances: every village remembers what you did to it and turns it into a casus belli
-  - War goals: tribute, border, submission or vengeance
-  - A village leader decides on ultimatums, truces and war declarations
-  - Active war: mobilization by bell, civilians taking shelter, strength tracker and skirmishes
-  - Sieges, a three-day truce with residual consequences and war memory that outlives the conflict
+  - War goals: tribute, border, submission or vengeance, named in the declaration
+  - A village leader decides whether to send an ultimatum or declare war outright
+  - Active war: the bells of both villages ring for a day, villagers caught outside are
+    called back to the village, and the strength of both sides is tracked on a 0-100 score
+  - Clashes at the front move that score, and peace signs a three-day truce with residual
+    consequences and war memory that outlives the conflict
   - New commands: /diplomacy declare, ultimatum, war, peace, state, setstate, settension,
     grievances, warreadiness, resolve, setlevel and setrelation
-• Village-to-village relationships (-100..100) and editable village names
-• Villagers with names, traits and emotions of their own, plus personal trade prices
-• Iron golems with names, temperaments and creation stories
-• Last will: a villager who dies leaves a note with their name, trade and final words
-• Block placement rules tied to your reputation
-• 12 ranks, from LEGENDARY HERO to WANTED CRIMINAL, with discounts or penalties
-• 71 configuration options to tune every value, threshold and module
+• 27 new configuration options (71 in total)
 
 Languages:
 • Full Russian translation (2,503 keys), on top of English and Spanish
 
 Ports:
 • New in this version: Forge, NeoForge, Fabric and Quilt for 1.21.1 (Java 21, full feature
-  parity) and NeoForge for 1.21.0
+  parity)
 • 1.20.1 keeps the four loaders from earlier releases (Forge, NeoForge, Fabric and Quilt),
   all sharing the same code
 

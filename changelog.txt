@@ -1,6 +1,17 @@
 Village Diplomacy — Changelog
 ================================
 
+v1.5.1
+---------------------------------------
+
+Fixes:
+• Fixed a freeze right after joining a world in large modpacks: the mourning system was scanning the
+  points of interest of every dimension every few seconds, on the server thread. It no longer scans.
+• Building inside a village you have claimed no longer costs reputation.
+• The "you keep building here" summary now arrives with the next block you place, instead of a
+  few seconds later when you were already doing something else.
+• Russian: removed a placeholder from the war grievance label that showed as a raw "%s".
+
 v1.5.0 — "Diplomacy Between Villages"
 ---------------------------------------
 

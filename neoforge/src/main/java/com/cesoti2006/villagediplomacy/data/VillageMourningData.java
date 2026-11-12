@@ -81,6 +81,37 @@ public class VillageMourningData extends SavedData {
         return tag;
     }
 
+    public boolean hasRecentDeaths() {
+        long currentTime = System.currentTimeMillis();
+        long mourningPeriod = 20 * 60 * 1000;
+
+        for (List<MourningRecord> deaths : recentDeaths.values()) {
+            for (MourningRecord death : deaths) {
+                if (currentTime - death.deathTime <= mourningPeriod) return true;
+            }
+        }
+        return false;
+    }
+
+    public Map<String, List<MourningRecord>> getRecentDeathsByVillage() {
+        Map<String, List<MourningRecord>> result = new HashMap<>();
+        long currentTime = System.currentTimeMillis();
+        long mourningPeriod = 20 * 60 * 1000;
+        boolean pruned = false;
+
+        for (Map.Entry<String, List<MourningRecord>> entry : recentDeaths.entrySet()) {
+            int before = entry.getValue().size();
+            entry.getValue().removeIf(death -> currentTime - death.deathTime > mourningPeriod);
+            if (entry.getValue().size() != before) pruned = true;
+            if (!entry.getValue().isEmpty()) {
+                result.put(entry.getKey(), new ArrayList<>(entry.getValue()));
+            }
+        }
+
+        if (pruned) setDirty();
+        return result;
+    }
+
     public void registerDeath(String villageId, String villagerName, String profession, BlockPos jobSite) {
         long currentTime = System.currentTimeMillis();
         MourningRecord record = new MourningRecord(villagerName, profession, currentTime, jobSite);

@@ -1,7 +1,7 @@
 package com.cesoti2006.villagediplomacy.personality;
 
-import com.cesoti2006.villagediplomacy.data.VillageDetector;
 import com.cesoti2006.villagediplomacy.data.VillageMourningData;
+import com.cesoti2006.villagediplomacy.data.VillageRelationshipData;
 import com.cesoti2006.villagediplomacy.data.VillagerPersonalityData;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
@@ -30,14 +30,16 @@ public class MourningBehaviorHandler {
 
     private static void processMourningBehavior(ServerLevel level) {
         VillageMourningData mourningData = VillageMourningData.get(level);
+        if (!mourningData.hasRecentDeaths()) return;
 
-        List<BlockPos> villages = VillageDetector.findAllVillages(level, BlockPos.ZERO, 10000);
+        VillageRelationshipData relations = VillageRelationshipData.get(level);
 
-        for (BlockPos villagePos : villages) {
-            String villageId = VillageDetector.getVillageId(villagePos);
-            List<VillageMourningData.MourningRecord> deaths = mourningData.getRecentDeaths(villageId);
+        for (Map.Entry<String, List<VillageMourningData.MourningRecord>> entry
+                : mourningData.getRecentDeathsByVillage().entrySet()) {
+            BlockPos villagePos = relations.getVillagePosition(entry.getKey());
+            if (villagePos == null) continue;
 
-            if (deaths.isEmpty()) continue;
+            List<VillageMourningData.MourningRecord> deaths = entry.getValue();
 
             List<Villager> nearbyVillagers = level.getEntitiesOfClass(
                 Villager.class,

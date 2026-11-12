@@ -1,6 +1,7 @@
 package com.cesoti2006.villagediplomacy.events;
 
 import com.cesoti2006.villagediplomacy.config.VillageDiplomacyConfig;
+import com.cesoti2006.villagediplomacy.data.PlayerClaimedVillageData;
 import com.cesoti2006.villagediplomacy.data.VillageDetector;
 import com.cesoti2006.villagediplomacy.data.VillageReputationData;
 import com.cesoti2006.villagediplomacy.reputation.ReputationTiersHandler;
@@ -33,6 +34,10 @@ public class PlacementRestrictionsHandler {
 
     public boolean onBlockPlace(ServerPlayer player, ServerLevel level, BlockPos pos, Block placed) {
         if (BlockRules.isPlant(placed) || BlockRules.isFireHazard(placed)) return false;
+
+        flushPending(player);
+
+        if (ownsVillageAt(level, pos, player)) return false;
 
         Optional<BlockPos> nearestVillage = VillageDetector.findNearestVillage(level, pos, 200);
         if (nearestVillage.isEmpty()) return false;
@@ -145,5 +150,16 @@ public class PlacementRestrictionsHandler {
             }
         }
         return null;
+    }
+
+    private static boolean ownsVillageAt(ServerLevel level, BlockPos pos, ServerPlayer player) {
+        PlayerClaimedVillageData data = PlayerClaimedVillageData.get(level);
+        for (PlayerClaimedVillageData.ClaimedVillage village : data.getAllVillages()) {
+            if (!village.owner.equals(player.getUUID())) continue;
+            if (Math.abs(pos.getX() - village.center.getX()) > village.radius) continue;
+            if (Math.abs(pos.getZ() - village.center.getZ()) > village.radius) continue;
+            return true;
+        }
+        return false;
     }
 }

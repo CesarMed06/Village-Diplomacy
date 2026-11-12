@@ -886,7 +886,6 @@ public class VillagerEventHandler {
             makeGolemsProtectVillageBasedOnReputation(player, level);
             checkForVillagerGreetings(player, level);
             applyReputationDecay(player, level);
-            PlacementRestrictionsHandler.flushPending(player);
 
         }
     }

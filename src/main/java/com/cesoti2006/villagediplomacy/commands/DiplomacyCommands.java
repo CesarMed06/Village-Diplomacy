@@ -43,6 +43,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Predicate;
 
 import com.cesoti2006.villagediplomacy.data.PlayerClaimedVillageData;
 import com.cesoti2006.villagediplomacy.data.PlayerClaimedVillageData.ClaimedVillage;
@@ -51,11 +52,14 @@ import com.cesoti2006.villagediplomacy.reputation.ReputationTiersHandler.Reputat
 
 public class DiplomacyCommands {
 
+    private static final Predicate<CommandSourceStack> ADMIN = source -> source.hasPermission(2);
+    private static final Predicate<CommandSourceStack> DEBUG = source -> source.hasPermission(3);
+
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(Commands.literal("diplomacy")
 
                 .executes(DiplomacyCommands::showCommandHelp)
-                .then(Commands.literal("name")
+                .then(Commands.literal("name").requires(ADMIN)
                         .then(Commands.argument("villageName", StringArgumentType.greedyString())
                                 .executes(context -> nameCurrentVillage(context, StringArgumentType.getString(context, "villageName")))))
                 .then(Commands.literal("info")
@@ -64,17 +68,17 @@ public class DiplomacyCommands {
                         .then(Commands.literal("get")
                                 .then(Commands.argument("player", EntityArgument.player())
                                         .executes(context -> getReputation(context, EntityArgument.getPlayer(context, "player")))))
-                        .then(Commands.literal("set")
+                        .then(Commands.literal("set").requires(ADMIN)
                                 .then(Commands.argument("player", EntityArgument.player())
                                         .then(Commands.argument("amount", IntegerArgumentType.integer(-1000, 1000))
                                                 .executes(context -> setReputation(context, EntityArgument.getPlayer(context, "player"),
                                                         IntegerArgumentType.getInteger(context, "amount"))))))
-                        .then(Commands.literal("add")
+                        .then(Commands.literal("add").requires(ADMIN)
                                 .then(Commands.argument("player", EntityArgument.player())
                                         .then(Commands.argument("amount", IntegerArgumentType.integer(-1000, 1000))
                                                 .executes(context -> addReputation(context, EntityArgument.getPlayer(context, "player"),
                                                         IntegerArgumentType.getInteger(context, "amount")))))))
-                .then(Commands.literal("setrep")
+                .then(Commands.literal("setrep").requires(ADMIN)
                         .then(Commands.argument("player", EntityArgument.player())
                                 .then(Commands.argument("amount", IntegerArgumentType.integer(-1000, 1000))
                                         .executes(context -> setReputation(context, EntityArgument.getPlayer(context, "player"),
@@ -117,7 +121,7 @@ public class DiplomacyCommands {
                                 .executes(context -> claimVillage(context, StringArgumentType.getString(context, "name")))))
                 .then(Commands.literal("unclaim")
                         .executes(DiplomacyCommands::unclaimVillage))
-                .then(Commands.literal("test")
+                .then(Commands.literal("test").requires(DEBUG)
                         .then(Commands.literal("chest")
                                 .executes(DiplomacyCommands::testChestDeposit))
                         .then(Commands.literal("caravan")
@@ -144,7 +148,7 @@ public class DiplomacyCommands {
                         .executes(DiplomacyCommands::giftToVillage)
                         .then(Commands.argument("amount", IntegerArgumentType.integer(1, 2304))
                                 .executes(context -> giftToVillage(context, IntegerArgumentType.getInteger(context, "amount")))))
-                .then(Commands.literal("setlevel")
+                .then(Commands.literal("setlevel").requires(ADMIN)
                         .then(Commands.argument("level", IntegerArgumentType.integer(1, 5))
                                 .executes(context -> setVillagerLevel(context, IntegerArgumentType.getInteger(context, "level"))))));
     }
@@ -247,7 +251,7 @@ public class DiplomacyCommands {
     }
 
     private static LiteralArgumentBuilder<CommandSourceStack> setRelationCommand() {
-        return Commands.literal("setrelation")
+        return Commands.literal("setrelation").requires(ADMIN)
                 .then(Commands.argument("points", IntegerArgumentType.integer(-100, 100))
                         .suggests(POINTS_SUGGESTIONS)
                         .executes(context -> setRelationNearest(context, IntegerArgumentType.getInteger(context, "points"))))
@@ -278,7 +282,7 @@ public class DiplomacyCommands {
     }
 
     private static LiteralArgumentBuilder<CommandSourceStack> setStateCommand() {
-        return Commands.literal("setstate")
+        return Commands.literal("setstate").requires(ADMIN)
                 .executes(DiplomacyCommands::showSetStateUsage)
                 .then(Commands.argument("state", StringArgumentType.word())
                         .suggests(STATE_SUGGESTIONS)
@@ -305,7 +309,7 @@ public class DiplomacyCommands {
     }
 
     private static LiteralArgumentBuilder<CommandSourceStack> setTensionCommand() {
-        return Commands.literal("settension")
+        return Commands.literal("settension").requires(ADMIN)
                 .then(Commands.argument("amount", IntegerArgumentType.integer(0, 100))
                         .suggests(TENSION_SUGGESTIONS)
                         .executes(context -> setDiplomaticTensionNearest(context,
@@ -323,7 +327,7 @@ public class DiplomacyCommands {
     }
 
     private static LiteralArgumentBuilder<CommandSourceStack> renameCommand() {
-        return Commands.literal("rename")
+        return Commands.literal("rename").requires(ADMIN)
                 .then(Commands.argument("village", StringArgumentType.string())
                         .suggests(VILLAGE_SUGGESTIONS)
                         .then(Commands.argument("newName", StringArgumentType.greedyString())
@@ -998,7 +1002,7 @@ public class DiplomacyCommands {
     }
 
     private static LiteralArgumentBuilder<CommandSourceStack> declareCommand() {
-        return Commands.literal("declare")
+        return Commands.literal("declare").requires(ADMIN)
                 .executes(DiplomacyCommands::declareWarNearest)
                 .then(Commands.argument("village1", StringArgumentType.string())
                         .suggests(VILLAGE_SUGGESTIONS)
@@ -1010,7 +1014,7 @@ public class DiplomacyCommands {
     }
 
     private static LiteralArgumentBuilder<CommandSourceStack> ultimatumCommand() {
-        return Commands.literal("ultimatum")
+        return Commands.literal("ultimatum").requires(ADMIN)
                 .executes(DiplomacyCommands::sendUltimatumNearest)
                 .then(Commands.argument("village1", StringArgumentType.string())
                         .suggests(VILLAGE_SUGGESTIONS)
@@ -1183,7 +1187,7 @@ public class DiplomacyCommands {
     }
 
     private static LiteralArgumentBuilder<CommandSourceStack> peaceCommand() {
-        return Commands.literal("peace")
+        return Commands.literal("peace").requires(ADMIN)
                 .executes(DiplomacyCommands::signPeaceNearest)
                 .then(Commands.argument("village1", StringArgumentType.string())
                         .suggests(VILLAGE_SUGGESTIONS)

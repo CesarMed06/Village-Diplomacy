@@ -139,6 +139,7 @@ public class VillagerEventHandler {
     private final Map<UUID, String> lastVisitedVillage = new HashMap<>();
 
     private final Map<UUID, Boolean> playerInInnRange = new HashMap<>();
+    private final Map<UUID, BlockPos> innAnchorSeen = new HashMap<>();
     private final Map<UUID, List<Long>> villagerAttackTimes = new HashMap<>();
     private final Map<UUID, Long> chestLootCooldown = new HashMap<>();
     private final Map<UUID, Integer> chestOpenReputation = new HashMap<>();
@@ -805,6 +806,11 @@ public class VillagerEventHandler {
         if (event.getEntity() instanceof ServerPlayer player) {
             UUID pid = player.getUUID();
             playerLoginTime.remove(pid);
+            playerInInnRange.remove(pid);
+            BlockPos logoutInnAnchor = innAnchorSeen.remove(pid);
+            if (logoutInnAnchor != null && player.level() instanceof ServerLevel logoutLevel) {
+                clearInnGlow(logoutLevel, logoutInnAnchor);
+            }
             lastVisitedVillage.remove(pid);
             greetingCooldown.remove(pid);
             placeReactionCooldown.remove(pid);
@@ -2951,6 +2957,7 @@ public class VillagerEventHandler {
 
         String lastVillage = lastVisitedVillage.get(playerId);
         if (nearestVillage.isEmpty()) {
+            forgetInn(level, player);
             if (lastVillage != null) {
 
                 if (greetingCooldown.containsKey(playerId)) {
@@ -3009,8 +3016,8 @@ public class VillagerEventHandler {
 
             player.sendSystemMessage(Component.translatable("villagediplomacy.enter.bar"));
 
-            MutableComponent line1 = Component.literal("  " + icon + " §6Entrando a ")
-                    .append(VillageDisplayName.asComponent(villageNameStored));
+            MutableComponent line1 = Component.translatable("villagediplomacy.enter.line1",
+                    icon, VillageDisplayName.asComponent(villageNameStored));
             player.sendSystemMessage(line1);
 
             player.sendSystemMessage(Component.translatable(
@@ -3071,6 +3078,7 @@ public class VillagerEventHandler {
 
         BlockPos anchor = InnkeeperHelper.getInnAnchor(level, villagePos);
         if (anchor != null) {
+            innAnchorSeen.put(playerId, anchor);
             boolean inRange = player.blockPosition().distSqr(anchor) <= (double) (InnkeeperHelper.INN_RADIUS * InnkeeperHelper.INN_RADIUS);
             Boolean wasInRange = playerInInnRange.get(playerId);
             if (wasInRange == null || wasInRange != inRange) {
@@ -3082,7 +3090,40 @@ public class VillagerEventHandler {
                 } else if (wasInRange != null) {
                     player.sendSystemMessage(Component.translatable("villagediplomacy.enter.inn_far"));
                 }
+                updateInnkeeperGlow(level, villagePos, anchor, inRange);
             }
+        }
+    }
+
+    private static void updateInnkeeperGlow(ServerLevel level, BlockPos villagePos, BlockPos anchor, boolean inRange) {
+        if (inRange) {
+            Villager innkeeper = InnkeeperHelper.findInnkeeper(level, villagePos);
+            if (innkeeper != null) {
+                if (!innkeeper.isCurrentlyGlowing()) {
+                    innkeeper.setGlowingTag(true);
+                }
+                return;
+            }
+        }
+        clearInnGlow(level, anchor);
+    }
+
+    private static void clearInnGlow(ServerLevel level, BlockPos anchor) {
+        if (anchor == null) return;
+        for (Villager villager : level.getEntitiesOfClass(Villager.class,
+                new AABB(anchor).inflate(64.0D, 64.0D, 64.0D))) {
+            if (villager.isCurrentlyGlowing()) {
+                villager.setGlowingTag(false);
+            }
+        }
+    }
+
+    private void forgetInn(ServerLevel level, ServerPlayer player) {
+        UUID playerId = player.getUUID();
+        playerInInnRange.remove(playerId);
+        BlockPos anchor = innAnchorSeen.remove(playerId);
+        if (anchor != null) {
+            clearInnGlow(level, anchor);
         }
     }
 

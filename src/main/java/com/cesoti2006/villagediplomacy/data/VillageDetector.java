@@ -23,6 +23,8 @@ public class VillageDetector {
     private static final Map<String, CachedLevel> villageLevelCache = new HashMap<>();
     private static final long CACHE_TTL_MS = 5000;
     private static final int VILLAGE_LEVEL_RANGE = 20;
+    private static final int ABANDONED_RADIUS = 48;
+    private static final int ABANDONED_VERTICAL = 32;
 
     private static class CachedVillage {
         final Optional<BlockPos> villagePos;
@@ -109,6 +111,9 @@ public class VillageDetector {
         }
 
         Optional<BlockPos> vanilla = findVillageByStructure(level, playerPos, radius);
+        if (vanilla.isPresent() && isAbandonedVillage(level, vanilla.get())) {
+            vanilla = Optional.empty();
+        }
         Optional<BlockPos> claimed = findNearestCustomVillage(level, playerPos, radius);
 
         Optional<BlockPos> result;
@@ -126,6 +131,19 @@ public class VillageDetector {
         }
 
         return result;
+    }
+
+    public static boolean isAbandonedVillage(ServerLevel level, BlockPos villagePos) {
+        if (level == null || villagePos == null) return false;
+
+        net.minecraft.world.phys.AABB area = new net.minecraft.world.phys.AABB(villagePos)
+                .inflate(ABANDONED_RADIUS, ABANDONED_VERTICAL, ABANDONED_RADIUS);
+
+        if (!level.getEntitiesOfClass(net.minecraft.world.entity.npc.Villager.class, area).isEmpty()) {
+            return false;
+        }
+        return !level.getEntitiesOfClass(
+                net.minecraft.world.entity.monster.ZombieVillager.class, area).isEmpty();
     }
 
     public static boolean hasLivingVillagers(ServerLevel level, BlockPos villagePos, int checkRadius) {

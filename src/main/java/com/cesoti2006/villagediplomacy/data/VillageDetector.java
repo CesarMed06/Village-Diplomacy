@@ -23,8 +23,8 @@ public class VillageDetector {
     private static final Map<String, CachedLevel> villageLevelCache = new HashMap<>();
     private static final long CACHE_TTL_MS = 5000;
     private static final int VILLAGE_LEVEL_RANGE = 20;
-    private static final int ABANDONED_RADIUS = 48;
-    private static final int ABANDONED_VERTICAL = 32;
+    private static final int ABANDONED_RADIUS = 96;
+    private static final int ABANDONED_VERTICAL = 48;
 
     private static class CachedVillage {
         final Optional<BlockPos> villagePos;
@@ -135,15 +135,28 @@ public class VillageDetector {
 
     public static boolean isAbandonedVillage(ServerLevel level, BlockPos villagePos) {
         if (level == null || villagePos == null) return false;
+        if (!isAreaFullyLoaded(level, villagePos, ABANDONED_RADIUS)) return false;
 
         net.minecraft.world.phys.AABB area = new net.minecraft.world.phys.AABB(villagePos)
                 .inflate(ABANDONED_RADIUS, ABANDONED_VERTICAL, ABANDONED_RADIUS);
 
-        if (!level.getEntitiesOfClass(net.minecraft.world.entity.npc.Villager.class, area).isEmpty()) {
-            return false;
+        return level.getEntitiesOfClass(net.minecraft.world.entity.npc.Villager.class, area).isEmpty();
+    }
+
+    private static boolean isAreaFullyLoaded(ServerLevel level, BlockPos center, int radius) {
+        int minChunkX = (center.getX() - radius) >> 4;
+        int maxChunkX = (center.getX() + radius) >> 4;
+        int minChunkZ = (center.getZ() - radius) >> 4;
+        int maxChunkZ = (center.getZ() + radius) >> 4;
+
+        for (int cx = minChunkX; cx <= maxChunkX; cx++) {
+            for (int cz = minChunkZ; cz <= maxChunkZ; cz++) {
+                if (!level.isLoaded(new BlockPos(cx << 4, center.getY(), cz << 4))) {
+                    return false;
+                }
+            }
         }
-        return !level.getEntitiesOfClass(
-                net.minecraft.world.entity.monster.ZombieVillager.class, area).isEmpty();
+        return true;
     }
 
     public static boolean hasLivingVillagers(ServerLevel level, BlockPos villagePos, int checkRadius) {

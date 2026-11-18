@@ -209,9 +209,9 @@ public final class ModLang {
         player.sendSystemMessage(component);
     }
 
-    public static void sendDialog(ServerPlayer player, AbstractVillager villager, String key) {
+    public static void sendDialog(ServerPlayer player, AbstractVillager villager, String key, Object... args) {
         MutableComponent msg = villagerPrefix(villager)
-            .append(Component.translatable(key).withStyle(COLOR_DIALOG));
+            .append(Component.translatable(key, args).withStyle(COLOR_DIALOG));
         player.sendSystemMessage(msg);
     }
 

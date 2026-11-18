@@ -4,6 +4,7 @@ import com.cesoti2006.villagediplomacy.commands.DiplomacyCommands;
 import com.cesoti2006.villagediplomacy.diplomacy.GrievanceHandler;
 import com.cesoti2006.villagediplomacy.diplomacy.WarDeclarationHandler;
 import com.cesoti2006.villagediplomacy.diplomacy.WarManager;
+import com.cesoti2006.villagediplomacy.events.VillageLifeHandler;
 import com.cesoti2006.villagediplomacy.events.VillagerEventHandler;
 import com.cesoti2006.villagediplomacy.events.TradeModifierHandler;
 import com.cesoti2006.villagediplomacy.events.VillagerBehaviorHandler;
@@ -61,6 +62,7 @@ public class VillageDiplomacyMod {
         MinecraftForge.EVENT_BUS.register(GrievanceHandler.class);
         MinecraftForge.EVENT_BUS.register(WarDeclarationHandler.class);
         MinecraftForge.EVENT_BUS.register(WarManager.class);
+        MinecraftForge.EVENT_BUS.register(VillageLifeHandler.class);
         MinecraftForge.EVENT_BUS.register(this);
     }
 

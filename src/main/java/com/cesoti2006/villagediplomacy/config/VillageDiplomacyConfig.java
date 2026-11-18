@@ -89,6 +89,11 @@ public class VillageDiplomacyConfig {
     public final ForgeConfigSpec.BooleanValue enableGolemPersonalities;
     public final ForgeConfigSpec.BooleanValue enableVillageRelations;
 
+    public final ForgeConfigSpec.BooleanValue enableVillageLife;
+    public final ForgeConfigSpec.BooleanValue enableBellRhythm;
+    public final ForgeConfigSpec.BooleanValue enableMarketDay;
+    public final ForgeConfigSpec.BooleanValue enableVillagerChat;
+
     public final ForgeConfigSpec.IntValue placedBlockRetentionDays;
 
     static {
@@ -507,6 +512,34 @@ public class VillageDiplomacyConfig {
             .comment("Enable inter-village relationship system?",
                      "Default: true")
             .define("enableVillageRelations", true);
+
+        builder.pop();
+
+        builder.push("village_life").comment(
+            "Ambient life in villages: bell rhythm, market days and villager conversations.",
+            "Everything in this section is cosmetic and safe to disable.");
+
+        this.enableVillageLife = builder
+            .comment("Master switch for all ambient village life features.",
+                     "Default: true")
+            .define("enableVillageLife", true);
+
+        this.enableBellRhythm = builder
+            .comment("Ring the village bell at dawn, noon and dusk.",
+                     "Default: true")
+            .define("enableBellRhythm", true);
+
+        this.enableMarketDay = builder
+            .comment("Every seventh day the village holds a market day.",
+                     "It only fires when your reputation with that village is 100 or higher,",
+                     "and it brings bells, fireworks and cheering villagers.",
+                     "Default: true")
+            .define("enableMarketDay", true);
+
+        this.enableVillagerChat = builder
+            .comment("Villagers chat with each other when you are close enough to listen.",
+                     "Default: true")
+            .define("enableVillagerChat", true);
 
         builder.pop();
 

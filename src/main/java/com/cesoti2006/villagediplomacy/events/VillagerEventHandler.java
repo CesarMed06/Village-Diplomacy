@@ -137,6 +137,7 @@ public class VillagerEventHandler {
     private final Map<UUID, Integer> lastReputationLevel = new HashMap<>();
     private final Map<UUID, Long> greetingCooldown = new HashMap<>();
     private final Map<UUID, String> lastVisitedVillage = new HashMap<>();
+    private final Map<UUID, BlockPos> lastVillageCenter = new HashMap<>();
 
     private final Map<UUID, Boolean> playerInInnRange = new HashMap<>();
     private final Map<UUID, BlockPos> innAnchorSeen = new HashMap<>();
@@ -812,6 +813,7 @@ public class VillagerEventHandler {
                 clearInnGlow(logoutLevel, logoutInnAnchor);
             }
             lastVisitedVillage.remove(pid);
+            lastVillageCenter.remove(pid);
             greetingCooldown.remove(pid);
             placeReactionCooldown.remove(pid);
             farmReactionCooldown.remove(pid);
@@ -2969,15 +2971,25 @@ public class VillagerEventHandler {
                     Math.max(com.cesoti2006.villagediplomacy.config.VillageDiplomacyConfig.INSTANCE.villageExitConfirmRadius.get(),
                              com.cesoti2006.villagediplomacy.config.VillageDiplomacyConfig.INSTANCE.villageEnterRadius.get() + 16));
                         if (confirmExit.isEmpty()) {
-                            VillageRelationshipData relationData = VillageRelationshipData.get(level);
-                            String storedName = relationData.getVillageName(lastVillage);
-                            player.sendSystemMessage(Component.translatable("villagediplomacy.enter.bar"));
-                            player.sendSystemMessage(Component.translatable(
-                                    "villagediplomacy.enter.leaving",
-                                    VillageDisplayName.asComponent(storedName)));
-                            player.sendSystemMessage(Component.translatable("villagediplomacy.enter.bar"));
+                            int exitRadius = Math.max(
+                                    com.cesoti2006.villagediplomacy.config.VillageDiplomacyConfig.INSTANCE.villageExitConfirmRadius.get(),
+                                    com.cesoti2006.villagediplomacy.config.VillageDiplomacyConfig.INSTANCE.villageEnterRadius.get() + 16);
+                            BlockPos lastCenter = lastVillageCenter.get(playerId);
+                            boolean stillInside = lastCenter != null
+                                    && player.blockPosition().distSqr(lastCenter) <= (double) exitRadius * exitRadius;
+
+                            if (!stillInside) {
+                                VillageRelationshipData relationData = VillageRelationshipData.get(level);
+                                String storedName = relationData.getVillageName(lastVillage);
+                                player.sendSystemMessage(Component.translatable("villagediplomacy.enter.bar"));
+                                player.sendSystemMessage(Component.translatable(
+                                        "villagediplomacy.enter.leaving",
+                                        VillageDisplayName.asComponent(storedName)));
+                                player.sendSystemMessage(Component.translatable("villagediplomacy.enter.bar"));
+                            }
 
                             lastVisitedVillage.remove(playerId);
+                            lastVillageCenter.remove(playerId);
                             greetingCooldown.remove(playerId);
                         }
                     }
@@ -2990,6 +3002,7 @@ public class VillagerEventHandler {
         if (!VillageDetector.hasLivingVillagers(level, villagePos, 64)) {
             if (lastVillage != null && lastVisitedVillage.containsKey(playerId)) {
                 lastVisitedVillage.remove(playerId);
+                lastVillageCenter.remove(playerId);
                 greetingCooldown.remove(playerId);
             }
             return;
@@ -3073,6 +3086,7 @@ public class VillagerEventHandler {
             ModLang.sendDialogNamed(player, randomVillagerName, tierKey + "." + di);
 
             lastVisitedVillage.put(playerId, villageId);
+            lastVillageCenter.put(playerId, villagePos);
             greetingCooldown.put(playerId, currentTime);
         }
 

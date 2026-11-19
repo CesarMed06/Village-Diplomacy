@@ -1,5 +1,6 @@
 package com.cesoti2006.villagediplomacy.events;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,16 +43,23 @@ public final class VillageLifeHandler {
 
     private static final int BELL_SEARCH_RADIUS = 96;
     private static final int VILLAGER_SEARCH_RADIUS = 96;
+    private static final int BELL_MESSAGE_RADIUS = 48;
+    private static final int BELL_GATHER_RADIUS = 40;
+    private static final int GATHER_MAX_VILLAGERS = 4;
+    private static final long GATHER_DURATION_MS = 12_000L;
+
     private static final int CHAT_VILLAGER_RADIUS = 12;
     private static final double CHAT_MAX_PAIR_DISTANCE_SQR = 36.0;
-    private static final long CHAT_PAIR_COOLDOWN_MS = 120_000L;
-    private static final long CHAT_PLAYER_COOLDOWN_MS = 45_000L;
+    private static final long CHAT_PAIR_COOLDOWN_MS = 60_000L;
+    private static final long CHAT_PLAYER_COOLDOWN_MS = 20_000L;
 
     private static final String[] CHAT_TOPICS = { "weather", "work", "gossip", "player", "war" };
+    private static final int[][] GATHER_SPOTS = { { 1, 0 }, { -1, 0 }, { 0, 1 }, { 0, -1 } };
 
     private static int tickCounter = 0;
 
-    private static final Map<String, Long> bellDays = new HashMap<>();
+    private static final Map<String, Long> bellLastTime = new HashMap<>();
+    private static final Map<String, Long> bellGatherUntil = new HashMap<>();
     private static final Map<String, Long> pairChats = new HashMap<>();
     private static final Map<UUID, Long> playerChats = new HashMap<>();
 
@@ -96,9 +104,13 @@ public final class VillageLifeHandler {
             VillageRelationshipData relations = VillageRelationshipData.get(level);
             relations.registerVillage(center, level);
             String villageId = relations.getVillageId(center);
+            String bellKey = level.dimension().location() + "|" + villageId;
 
-            if (bell != null && (config.enableBellRhythm.get() || config.enableMarketDay.get())) {
-                tickBell(level, relations, villageId, center, bell, day, timeOfDay, config);
+            if (bell != null) {
+                if (config.enableBellRhythm.get() || config.enableMarketDay.get()) {
+                    tickBell(level, relations, villageId, bellKey, center, bell, day, timeOfDay, config);
+                }
+                tickGather(level, bellKey, bell);
             }
             if (config.enableVillagerChat.get()) {
                 tickConversation(level, player, center);
@@ -107,37 +119,101 @@ public final class VillageLifeHandler {
     }
 
     private static void tickBell(ServerLevel level, VillageRelationshipData relations, String villageId,
-                                 BlockPos center, BlockPos bell, long day, long timeOfDay,
+                                 String bellKey, BlockPos center, BlockPos bell, long day, long timeOfDay,
                                  VillageDiplomacyConfig config) {
-        int phase;
+        long target;
+        String phaseName;
         if (isWithinWindow(timeOfDay, MORNING)) {
-            phase = 0;
+            target = MORNING;
+            phaseName = "morning";
         } else if (isWithinWindow(timeOfDay, NOON)) {
-            phase = 1;
+            target = NOON;
+            phaseName = "noon";
         } else if (isWithinWindow(timeOfDay, EVENING)) {
-            phase = 2;
+            target = EVENING;
+            phaseName = "evening";
         } else {
             return;
         }
 
-        String key = level.dimension().location() + "|" + villageId + "|" + day + "|" + phase;
-        if (bellDays.containsKey(key)) return;
+        Long previous = bellLastTime.put(bellKey, timeOfDay);
+        if (bellLastTime.size() > 400) bellLastTime.clear();
+        if (previous != null && isWithinWindow(previous, target)) return;
 
         boolean celebration = config.enableMarketDay.get()
-                && phase == 1
+                && phaseName.equals("noon")
                 && day % MARKET_CYCLE_DAYS == 0
                 && hasCelebrant(level, center, bell);
 
-        bellDays.put(key, day);
-        if (bellDays.size() > 600) {
-            bellDays.entrySet().removeIf(entry -> entry.getValue() < day - 1);
+        // Vanilla block event: shakes the bell and plays the long toll for everyone nearby.
+        level.blockEvent(bell, Blocks.BELL, 1, 0);
+        bellGatherUntil.put(bellKey, System.currentTimeMillis() + GATHER_DURATION_MS);
+
+        sendBellMessage(level, relations, villageId, bell, "villagediplomacy.life.bell." + phaseName);
+        if (celebration) celebrate(level, relations, villageId, center, bell);
+    }
+
+    private static void sendBellMessage(ServerLevel level, VillageRelationshipData relations, String villageId,
+                                        BlockPos bell, String keyPrefix) {
+        int count = ModLang.variantCount(keyPrefix, 3);
+        if (count <= 0) return;
+
+        Component message = Component.translatable(
+                keyPrefix + "." + level.getRandom().nextInt(count),
+                ModLang.villageName(relations.getVillageName(villageId))).withStyle(ChatFormatting.GRAY);
+
+        for (ServerPlayer player : level.players()) {
+            if (player.blockPosition().distSqr(bell) <= BELL_MESSAGE_RADIUS * BELL_MESSAGE_RADIUS) {
+                player.sendSystemMessage(message);
+            }
+        }
+    }
+
+    private static void tickGather(ServerLevel level, String bellKey, BlockPos bell) {
+        Long until = bellGatherUntil.get(bellKey);
+        if (until == null) return;
+        if (System.currentTimeMillis() > until) {
+            bellGatherUntil.remove(bellKey);
+            return;
         }
 
-        level.playSound(null, bell, SoundEvents.BELL_BLOCK, SoundSource.BLOCKS, 2.0F, 0.9F);
+        List<Villager> nearby = level.getEntitiesOfClass(Villager.class,
+                new AABB(bell).inflate(BELL_GATHER_RADIUS, 16.0D, BELL_GATHER_RADIUS),
+                v -> !v.isBaby() && v.isAlive() && !v.isRemoved());
+        if (nearby.isEmpty()) return;
 
-        if (celebration) {
-            celebrate(level, relations, villageId, center, bell);
+        nearby.sort((a, b) -> Double.compare(a.blockPosition().distSqr(bell), b.blockPosition().distSqr(bell)));
+
+        int gathered = 0;
+        for (Villager villager : nearby) {
+            if (gathered >= GATHER_MAX_VILLAGERS) break;
+            int[] offset = GATHER_SPOTS[gathered % GATHER_SPOTS.length];
+            BlockPos spot = spotNearBell(level, bell, offset[0], offset[1]);
+            if (spot == null) {
+                gathered++;
+                continue;
+            }
+            if (villager.blockPosition().distSqr(spot) <= 2.25D) {
+                villager.getLookControl().setLookAt(bell.getX() + 0.5D, bell.getY() + 0.5D, bell.getZ() + 0.5D);
+            } else {
+                villager.getNavigation().moveTo(spot.getX() + 0.5D, spot.getY(), spot.getZ() + 0.5D, 0.9D);
+            }
+            gathered++;
         }
+    }
+
+    private static BlockPos spotNearBell(ServerLevel level, BlockPos bell, int dx, int dz) {
+        BlockPos base = bell.offset(dx, 0, dz);
+        for (int dy = 1; dy >= -7; dy--) {
+            BlockPos pos = base.offset(0, dy, 0);
+            if (!level.isLoaded(pos)) return null;
+            if (level.getBlockState(pos).isAir()
+                    && level.getBlockState(pos.above()).isAir()
+                    && level.getBlockState(pos.below()).isSolidRender(level, pos.below())) {
+                return pos;
+            }
+        }
+        return null;
     }
 
     private static void celebrate(ServerLevel level, VillageRelationshipData relations, String villageId,
@@ -184,7 +260,7 @@ public final class VillageLifeHandler {
 
         Long lastPlayer = playerChats.get(playerId);
         if (lastPlayer != null && now - lastPlayer < CHAT_PLAYER_COOLDOWN_MS) return;
-        if (level.getRandom().nextInt(4) != 0) return;
+        if (level.getRandom().nextInt(3) != 0) return;
 
         List<Villager> nearby = level.getEntitiesOfClass(Villager.class,
                 player.getBoundingBox().inflate(CHAT_VILLAGER_RADIUS),
@@ -204,6 +280,10 @@ public final class VillageLifeHandler {
         }
         if (second == null || nearest > CHAT_MAX_PAIR_DISTANCE_SQR) return;
 
+        String topic = pickTopic(level, player, center);
+        int count = ModLang.variantCount("villagediplomacy.life.chat." + topic, 4);
+        if (count <= 0) return;
+
         String pairKey = pairKey(first.getUUID(), second.getUUID());
         Long lastPair = pairChats.get(pairKey);
         if (lastPair != null && now - lastPair < CHAT_PAIR_COOLDOWN_MS) return;
@@ -217,8 +297,6 @@ public final class VillageLifeHandler {
             playerChats.entrySet().removeIf(entry -> now - entry.getValue() > CHAT_PLAYER_COOLDOWN_MS * 4);
         }
 
-        String topic = CHAT_TOPICS[level.getRandom().nextInt(CHAT_TOPICS.length)];
-
         first.getLookControl().setLookAt(second, 30.0F, 30.0F);
         second.getLookControl().setLookAt(first, 30.0F, 30.0F);
         first.getNavigation().stop();
@@ -229,10 +307,27 @@ public final class VillageLifeHandler {
         level.playSound(null, second.blockPosition(), SoundEvents.VILLAGER_AMBIENT,
                 SoundSource.NEUTRAL, 0.8F, 1.0F + level.getRandom().nextFloat() * 0.2F);
 
-        ModLang.sendDialog(player, first,
-                "villagediplomacy.life.chat." + topic + "." + level.getRandom().nextInt(5),
-                player.getScoreboardName());
-        ModLang.sendDialog(player, second, "villagediplomacy.life.reply." + topic);
+        ModLang.sendChatLine(player, first, second,
+                "villagediplomacy.life.chat." + topic + "." + level.getRandom().nextInt(count));
+        ModLang.sendChatLine(player, second, first, "villagediplomacy.life.reply." + topic);
+    }
+
+    private static String pickTopic(ServerLevel level, ServerPlayer player, BlockPos center) {
+        List<String> topics = new ArrayList<>(List.of(CHAT_TOPICS));
+
+        if (level.isRaining() || level.isThundering()) topics.add("storm");
+
+        long timeOfDay = level.getDayTime() % TICKS_PER_DAY;
+        if (timeOfDay >= 13000L && timeOfDay < 23000L) topics.add("night");
+
+        int reputation = VillageReputationData.get(level).getReputation(player.getUUID(), center);
+        if (reputation >= 300) {
+            topics.add("player_good");
+        } else if (reputation < 0) {
+            topics.add("player_bad");
+        }
+
+        return topics.get(level.getRandom().nextInt(topics.size()));
     }
 
     private static String pairKey(UUID first, UUID second) {

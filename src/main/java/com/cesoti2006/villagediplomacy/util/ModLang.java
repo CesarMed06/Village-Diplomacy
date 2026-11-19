@@ -97,9 +97,11 @@ public final class ModLang {
         }
     }
 
-    public static MutableComponent villagerPrefix(AbstractVillager villager) {
+    public static MutableComponent villagerName(AbstractVillager villager) {
         Component name;
-        if (villager.hasCustomName()) {
+        if (villager == null) {
+            name = Component.translatable("entity.minecraft.villager.none");
+        } else if (villager.hasCustomName()) {
             name = Component.literal(stripFormatting(villager.getCustomName().getString()));
         } else if (villager instanceof net.minecraft.world.entity.npc.Villager v) {
             name = professionName(v.getVillagerData().getProfession());
@@ -108,8 +110,12 @@ public final class ModLang {
         } else {
             name = Component.translatable("entity.minecraft.villager.none");
         }
+        return name.copy().withStyle(COLOR_VILLAGER_NAME);
+    }
+
+    public static MutableComponent villagerPrefix(AbstractVillager villager) {
         return Component.literal("[").withStyle(COLOR_BRACKET)
-            .append(name.copy().withStyle(COLOR_VILLAGER_NAME))
+            .append(villagerName(villager))
             .append(Component.literal("] ").withStyle(COLOR_BRACKET));
     }
 
@@ -212,6 +218,18 @@ public final class ModLang {
     public static void sendDialog(ServerPlayer player, AbstractVillager villager, String key, Object... args) {
         MutableComponent msg = villagerPrefix(villager)
             .append(Component.translatable(key, args).withStyle(COLOR_DIALOG));
+        player.sendSystemMessage(msg);
+    }
+
+    public static void sendChatLine(ServerPlayer player, AbstractVillager speaker, AbstractVillager listener,
+                                    String key, Object... args) {
+        MutableComponent msg = villagerPrefix(speaker);
+        if (listener != null) {
+            msg.append(Component.literal("\u2192 ").withStyle(ChatFormatting.DARK_GRAY))
+                .append(villagerName(listener))
+                .append(Component.literal(": ").withStyle(ChatFormatting.DARK_GRAY));
+        }
+        msg.append(Component.translatable(key, args).withStyle(COLOR_DIALOG));
         player.sendSystemMessage(msg);
     }
 

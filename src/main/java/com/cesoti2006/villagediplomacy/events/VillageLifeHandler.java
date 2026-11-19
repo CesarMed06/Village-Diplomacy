@@ -20,8 +20,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.entity.ai.village.poi.PoiManager;
-import net.minecraft.world.entity.ai.village.poi.PoiTypes;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.AABB;
@@ -42,7 +40,8 @@ public final class VillageLifeHandler {
     private static final int MARKET_MIN_REPUTATION = 100;
     private static final double EVENT_RADIUS = 128.0;
 
-    private static final int BELL_SEARCH_RADIUS = 64;
+    private static final int BELL_SEARCH_RADIUS = 96;
+    private static final int VILLAGER_SEARCH_RADIUS = 96;
     private static final int CHAT_VILLAGER_RADIUS = 12;
     private static final double CHAT_MAX_PAIR_DISTANCE_SQR = 36.0;
     private static final long CHAT_PAIR_COOLDOWN_MS = 120_000L;
@@ -83,20 +82,23 @@ public final class VillageLifeHandler {
         long timeOfDay = dayTime % TICKS_PER_DAY;
 
         for (ServerPlayer player : players) {
+            BlockPos playerPos = player.blockPosition();
             Optional<BlockPos> found = VillageDetector.findNearestVillage(
-                    level, player.blockPosition(), config.villageEnterRadius.get());
+                    level, playerPos, Math.max(96, config.villageEnterRadius.get()));
             if (found.isEmpty()) continue;
 
             BlockPos center = found.get();
             if (!VillageDetector.isPlayerAtVillageLevel(level, player, center)) continue;
-            if (!VillageDetector.hasLivingVillagers(level, center, 64)) continue;
+            if (!VillageDetector.hasLivingVillagers(level, playerPos, VILLAGER_SEARCH_RADIUS)) continue;
+
+            BlockPos bell = findBell(level, playerPos, center);
 
             VillageRelationshipData relations = VillageRelationshipData.get(level);
             relations.registerVillage(center, level);
             String villageId = relations.getVillageId(center);
 
-            if (config.enableBellRhythm.get() || config.enableMarketDay.get()) {
-                tickBell(level, relations, villageId, center, day, timeOfDay, config);
+            if (bell != null && (config.enableBellRhythm.get() || config.enableMarketDay.get())) {
+                tickBell(level, relations, villageId, center, bell, day, timeOfDay, config);
             }
             if (config.enableVillagerChat.get()) {
                 tickConversation(level, player, center);
@@ -105,7 +107,8 @@ public final class VillageLifeHandler {
     }
 
     private static void tickBell(ServerLevel level, VillageRelationshipData relations, String villageId,
-                                 BlockPos center, long day, long timeOfDay, VillageDiplomacyConfig config) {
+                                 BlockPos center, BlockPos bell, long day, long timeOfDay,
+                                 VillageDiplomacyConfig config) {
         int phase;
         if (isWithinWindow(timeOfDay, MORNING)) {
             phase = 0;
@@ -119,18 +122,16 @@ public final class VillageLifeHandler {
 
         String key = level.dimension().location() + "|" + villageId + "|" + day + "|" + phase;
         if (bellDays.containsKey(key)) return;
-        bellDays.put(key, day);
-        if (bellDays.size() > 600) {
-            bellDays.entrySet().removeIf(entry -> entry.getValue() < day - 1);
-        }
-
-        BlockPos bell = findBell(level, center);
-        if (bell == null) return;
 
         boolean celebration = config.enableMarketDay.get()
                 && phase == 1
                 && day % MARKET_CYCLE_DAYS == 0
-                && hasCelebrant(level, center);
+                && hasCelebrant(level, center, bell);
+
+        bellDays.put(key, day);
+        if (bellDays.size() > 600) {
+            bellDays.entrySet().removeIf(entry -> entry.getValue() < day - 1);
+        }
 
         level.playSound(null, bell, SoundEvents.BELL_BLOCK, SoundSource.BLOCKS, 2.0F, 0.9F);
 
@@ -152,13 +153,13 @@ public final class VillageLifeHandler {
                 ModLang.villageName(relations.getVillageName(villageId))).withStyle(ChatFormatting.GRAY);
 
         for (ServerPlayer player : level.players()) {
-            if (player.blockPosition().distSqr(center) > EVENT_RADIUS * EVENT_RADIUS) continue;
+            if (player.blockPosition().distSqr(bell) > EVENT_RADIUS * EVENT_RADIUS) continue;
             if (data.getReputation(player.getUUID(), center) < MARKET_MIN_REPUTATION) continue;
             player.sendSystemMessage(message);
         }
 
         for (Villager villager : level.getEntitiesOfClass(Villager.class,
-                new AABB(center).inflate(48.0D, 24.0D, 48.0D),
+                new AABB(bell).inflate(48.0D, 24.0D, 48.0D),
                 v -> !v.isBaby() && v.isAlive() && !v.isRemoved())) {
             if (level.getRandom().nextInt(3) != 0) continue;
             level.sendParticles(ParticleTypes.HAPPY_VILLAGER,
@@ -167,11 +168,11 @@ public final class VillageLifeHandler {
         }
     }
 
-    private static boolean hasCelebrant(ServerLevel level, BlockPos center) {
+    private static boolean hasCelebrant(ServerLevel level, BlockPos center, BlockPos bell) {
         VillageReputationData data = VillageReputationData.get(level);
         double radiusSqr = EVENT_RADIUS * EVENT_RADIUS;
         for (ServerPlayer player : level.players()) {
-            if (player.blockPosition().distSqr(center) > radiusSqr) continue;
+            if (player.blockPosition().distSqr(bell) > radiusSqr) continue;
             if (data.getReputation(player.getUUID(), center) >= MARKET_MIN_REPUTATION) return true;
         }
         return false;
@@ -220,6 +221,8 @@ public final class VillageLifeHandler {
 
         first.getLookControl().setLookAt(second, 30.0F, 30.0F);
         second.getLookControl().setLookAt(first, 30.0F, 30.0F);
+        first.getNavigation().stop();
+        second.getNavigation().stop();
 
         level.playSound(null, first.blockPosition(), SoundEvents.VILLAGER_AMBIENT,
                 SoundSource.NEUTRAL, 0.9F, 0.9F + level.getRandom().nextFloat() * 0.2F);
@@ -240,10 +243,11 @@ public final class VillageLifeHandler {
         return timeOfDay >= target && timeOfDay < target + WINDOW;
     }
 
-    private static BlockPos findBell(ServerLevel level, BlockPos center) {
-        BlockPos meeting = level.getPoiManager()
-                .findClosest(poi -> poi.is(PoiTypes.MEETING), center, BELL_SEARCH_RADIUS, PoiManager.Occupancy.ANY)
-                .orElse(null);
+    private static BlockPos findBell(ServerLevel level, BlockPos playerPos, BlockPos center) {
+        BlockPos meeting = VillageDetector.findMeeting(level, playerPos, BELL_SEARCH_RADIUS).orElse(null);
+        if (meeting == null) {
+            meeting = VillageDetector.findMeeting(level, center, BELL_SEARCH_RADIUS).orElse(null);
+        }
         if (meeting == null) return null;
         if (level.getBlockState(meeting).is(Blocks.BELL)) return meeting;
 

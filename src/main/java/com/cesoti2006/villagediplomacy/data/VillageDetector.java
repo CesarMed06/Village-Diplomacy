@@ -23,8 +23,10 @@ public class VillageDetector {
     private static final Map<String, CachedLevel> villageLevelCache = new HashMap<>();
     private static final long CACHE_TTL_MS = 5000;
     private static final int VILLAGE_LEVEL_RANGE = 20;
-    private static final int ABANDONED_RADIUS = 96;
-    private static final int ABANDONED_VERTICAL = 48;
+    private static final int ABANDONED_RADIUS = 128;
+    private static final int ANCHOR_SEARCH_RADIUS = 128;
+    private static final int WITNESS_RADIUS = 64;
+    private static final int ABANDONED_VERTICAL = 64;
 
     private static class CachedVillage {
         final Optional<BlockPos> villagePos;
@@ -111,7 +113,7 @@ public class VillageDetector {
         }
 
         Optional<BlockPos> vanilla = findVillageByStructure(level, playerPos, radius);
-        if (vanilla.isPresent() && isAbandonedVillage(level, vanilla.get())) {
+        if (vanilla.isPresent() && isAbandonedVillage(level, vanilla.get(), playerPos)) {
             vanilla = Optional.empty();
         }
         Optional<BlockPos> claimed = findNearestCustomVillage(level, playerPos, radius);
@@ -134,13 +136,20 @@ public class VillageDetector {
     }
 
     public static boolean isAbandonedVillage(ServerLevel level, BlockPos villagePos) {
+        return isAbandonedVillage(level, villagePos, null);
+    }
+
+    public static boolean isAbandonedVillage(ServerLevel level, BlockPos villagePos, BlockPos witness) {
         if (level == null || villagePos == null) return false;
-        if (!isAreaFullyLoaded(level, villagePos, ABANDONED_RADIUS)) return false;
+        if (!isAreaFullyLoaded(level, villagePos, 48)) return false;
+        BlockPos anchor = findMeeting(level, villagePos, ANCHOR_SEARCH_RADIUS).orElse(villagePos);
+        if (!anchor.equals(villagePos) && !isAreaFullyLoaded(level, anchor, 48)) return false;
 
-        net.minecraft.world.phys.AABB area = new net.minecraft.world.phys.AABB(villagePos)
-                .inflate(ABANDONED_RADIUS, ABANDONED_VERTICAL, ABANDONED_RADIUS);
-
-        return level.getEntitiesOfClass(net.minecraft.world.entity.npc.Villager.class, area).isEmpty();
+        if (hasVillagerNear(level, anchor, ABANDONED_RADIUS)) return false;
+        if (!anchor.equals(villagePos) && hasVillagerNear(level, villagePos, ABANDONED_RADIUS)) return false;
+        if (witness != null && witness.distSqr(villagePos) <= 160.0D * 160.0D
+                && hasVillagerNear(level, witness, WITNESS_RADIUS)) return false;
+        return true;
     }
 
     private static boolean isAreaFullyLoaded(ServerLevel level, BlockPos center, int radius) {
@@ -157,6 +166,21 @@ public class VillageDetector {
             }
         }
         return true;
+    }
+
+    private static boolean hasVillagerNear(ServerLevel level, BlockPos center, int radius) {
+        return !level.getEntitiesOfClass(net.minecraft.world.entity.npc.Villager.class,
+                new net.minecraft.world.phys.AABB(center).inflate(radius, ABANDONED_VERTICAL, radius),
+                villager -> villager.isAlive() && !villager.isRemoved()).isEmpty();
+    }
+
+    public static Optional<BlockPos> findMeeting(ServerLevel level, BlockPos center, int radius) {
+        try {
+            return level.getPoiManager().findClosest(
+                    point -> point.is(PoiTypes.MEETING), center, radius, PoiManager.Occupancy.ANY);
+        } catch (Exception e) {
+            return Optional.empty();
+        }
     }
 
     public static boolean hasLivingVillagers(ServerLevel level, BlockPos villagePos, int checkRadius) {

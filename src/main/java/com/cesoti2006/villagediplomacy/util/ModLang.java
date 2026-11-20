@@ -8,6 +8,8 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.npc.AbstractVillager;
 import net.minecraft.world.entity.npc.WanderingTrader;
 
+import com.cesoti2006.villagediplomacy.data.VillagerPersonalityData;
+import com.cesoti2006.villagediplomacy.personality.VillagerPersonality;
 import com.cesoti2006.villagediplomacy.reputation.ReputationTiersHandler;
 import com.cesoti2006.villagediplomacy.reputation.ReputationTiersHandler.ReputationTier;
 
@@ -22,6 +24,10 @@ public final class ModLang {
     private static final ChatFormatting COLOR_REP_NEGATIVE   = ChatFormatting.RED;
     private static final ChatFormatting COLOR_REP_TIER       = ChatFormatting.AQUA;
     private static final ChatFormatting COLOR_BRACKET        = ChatFormatting.DARK_GRAY;
+    private static final ChatFormatting COLOR_NAME_INNKEEPER = ChatFormatting.LIGHT_PURPLE;
+    private static final ChatFormatting COLOR_INNKEEPER_TAG  = ChatFormatting.AQUA;
+    private static final ChatFormatting COLOR_PROFESSION_DEFAULT = ChatFormatting.GRAY;
+    private static final ChatFormatting COLOR_PLAYER_NAME    = ChatFormatting.WHITE;
 
     private static final String LANG_RESOURCE = "/assets/villagediplomacy/lang/en_us.json";
 
@@ -97,26 +103,116 @@ public final class ModLang {
         }
     }
 
-    public static MutableComponent villagerName(AbstractVillager villager) {
-        Component name;
-        if (villager == null) {
-            name = Component.translatable("entity.minecraft.villager.none");
-        } else if (villager.hasCustomName()) {
-            name = Component.literal(stripFormatting(villager.getCustomName().getString()));
-        } else if (villager instanceof net.minecraft.world.entity.npc.Villager v) {
-            name = professionName(v.getVillagerData().getProfession());
-        } else if (villager instanceof WanderingTrader) {
-            name = Component.translatable("entity.minecraft.wandering_trader");
-        } else {
-            name = Component.translatable("entity.minecraft.villager.none");
+    public static ChatFormatting professionColor(net.minecraft.world.entity.npc.VillagerProfession profession) {
+        return switch (professionPath(profession)) {
+            case "farmer" -> ChatFormatting.GREEN;
+            case "fisherman" -> ChatFormatting.AQUA;
+            case "shepherd" -> ChatFormatting.WHITE;
+            case "fletcher" -> ChatFormatting.YELLOW;
+            case "librarian" -> ChatFormatting.BLUE;
+            case "cartographer" -> ChatFormatting.DARK_AQUA;
+            case "cleric" -> ChatFormatting.DARK_PURPLE;
+            case "armorer" -> ChatFormatting.DARK_GRAY;
+            case "weaponsmith" -> ChatFormatting.DARK_RED;
+            case "toolsmith" -> ChatFormatting.RED;
+            case "butcher" -> ChatFormatting.RED;
+            case "leatherworker" -> ChatFormatting.DARK_GREEN;
+            case "mason" -> ChatFormatting.GRAY;
+            default -> ChatFormatting.GRAY;
+        };
+    }
+
+    public static String plainName(AbstractVillager villager) {
+        if (villager == null) return null;
+
+        if (villager.level() instanceof net.minecraft.server.level.ServerLevel level) {
+            VillagerPersonality personality = VillagerPersonalityData.get(level)
+                    .getPersonality(villager.getUUID());
+            if (personality != null) {
+                String name = stripFormatting(personality.getCustomName()).trim();
+                if (!name.isEmpty()) return name;
+            }
         }
-        return name.copy().withStyle(COLOR_VILLAGER_NAME);
+
+        if (villager.hasCustomName()) {
+            String name = stripFormatting(villager.getCustomName().getString()).trim();
+            if (!name.isEmpty()) return name;
+        }
+        return null;
+    }
+
+    private static boolean isInnkeeper(AbstractVillager villager) {
+        if (!(villager instanceof net.minecraft.world.entity.npc.Villager v)) return false;
+        if (!(v.level() instanceof net.minecraft.server.level.ServerLevel level)) return false;
+        return InnkeeperHelper.isInnkeeper(level, v);
+    }
+
+    public static MutableComponent displayName(AbstractVillager villager) {
+        String name = plainName(villager);
+        if (name != null) {
+            return Component.literal(name)
+                    .withStyle(isInnkeeper(villager) ? COLOR_NAME_INNKEEPER : COLOR_VILLAGER_NAME);
+        }
+        if (villager instanceof net.minecraft.world.entity.npc.Villager v) {
+            return professionName(v.getVillagerData().getProfession())
+                    .copy().withStyle(COLOR_VILLAGER_NAME);
+        }
+        if (villager instanceof WanderingTrader) {
+            return Component.translatable("entity.minecraft.wandering_trader")
+                    .withStyle(COLOR_VILLAGER_NAME);
+        }
+        return Component.translatable("entity.minecraft.villager.none").withStyle(COLOR_VILLAGER_NAME);
+    }
+
+    public static MutableComponent playerDisplayName(ServerPlayer player) {
+        return Component.literal(player.getGameProfile().getName()).withStyle(COLOR_PLAYER_NAME);
+    }
+
+    public static MutableComponent villagerTag(AbstractVillager villager) {
+        if (villager == null) {
+            return Component.literal("[").withStyle(COLOR_BRACKET)
+                    .append(Component.translatable("entity.minecraft.villager.none").withStyle(COLOR_VILLAGER_NAME))
+                    .append(Component.literal("]").withStyle(COLOR_BRACKET));
+        }
+
+        boolean innkeeper = isInnkeeper(villager);
+        Component label;
+        ChatFormatting labelColor;
+
+        if (innkeeper) {
+            label = Component.translatable("villagediplomacy.tag.innkeeper");
+            labelColor = COLOR_INNKEEPER_TAG;
+        } else if (villager instanceof net.minecraft.world.entity.npc.Villager v) {
+            label = professionName(v.getVillagerData().getProfession());
+            labelColor = professionColor(v.getVillagerData().getProfession());
+        } else if (villager instanceof WanderingTrader) {
+            label = Component.translatable("entity.minecraft.wandering_trader");
+            labelColor = ChatFormatting.LIGHT_PURPLE;
+        } else {
+            label = Component.translatable("entity.minecraft.villager.none");
+            labelColor = COLOR_PROFESSION_DEFAULT;
+        }
+
+        MutableComponent tag = Component.literal("[").withStyle(COLOR_BRACKET)
+                .append(label.copy().withStyle(labelColor))
+                .append(Component.literal("]").withStyle(COLOR_BRACKET));
+
+        String name = plainName(villager);
+        if (name != null) {
+            tag.append(Component.literal(" "))
+                    .append(Component.literal(name)
+                            .withStyle(innkeeper ? COLOR_NAME_INNKEEPER : COLOR_VILLAGER_NAME));
+        }
+        return tag;
+    }
+
+    public static MutableComponent villagerName(AbstractVillager villager) {
+        return displayName(villager);
     }
 
     public static MutableComponent villagerPrefix(AbstractVillager villager) {
-        return Component.literal("[").withStyle(COLOR_BRACKET)
-            .append(villagerName(villager))
-            .append(Component.literal("] ").withStyle(COLOR_BRACKET));
+        return villagerTag(villager).copy()
+            .append(Component.literal(": ").withStyle(COLOR_BRACKET));
     }
 
     public static MutableComponent namedPrefix(String name) {
@@ -166,9 +262,8 @@ public final class ModLang {
     }
 
     public static MutableComponent genericVillagerPrefix() {
-        return Component.literal("[").withStyle(COLOR_BRACKET)
-            .append(Component.translatable("entity.minecraft.villager.none").withStyle(COLOR_VILLAGER_NAME))
-            .append(Component.literal("] ").withStyle(COLOR_BRACKET));
+        return villagerTag(null).copy()
+            .append(Component.literal(": ").withStyle(COLOR_BRACKET));
     }
 
     public static net.minecraft.world.entity.npc.Villager nearestVillager(ServerPlayer player, String keyPrefix) {
@@ -223,14 +318,19 @@ public final class ModLang {
 
     public static void sendChatLine(ServerPlayer player, AbstractVillager speaker, AbstractVillager listener,
                                     String key, Object... args) {
-        MutableComponent msg = villagerPrefix(speaker);
+        MutableComponent msg = villagerTag(speaker).copy();
         if (listener != null) {
-            msg.append(Component.literal("\u2192 ").withStyle(ChatFormatting.DARK_GRAY))
-                .append(villagerName(listener))
-                .append(Component.literal(": ").withStyle(ChatFormatting.DARK_GRAY));
+            msg.append(Component.literal(" \u2192 ").withStyle(COLOR_BRACKET))
+                .append(villagerTag(listener));
         }
-        msg.append(Component.translatable(key, args).withStyle(COLOR_DIALOG));
+        msg.append(Component.literal(": ").withStyle(COLOR_BRACKET))
+            .append(Component.translatable(key, args).withStyle(COLOR_DIALOG));
         player.sendSystemMessage(msg);
+    }
+
+    public static void sendDialogVillager(ServerPlayer player, AbstractVillager villager, String key, Object... args) {
+        player.sendSystemMessage(villagerPrefix(villager)
+            .append(Component.translatable(key, args).withStyle(COLOR_DIALOG)));
     }
 
     public static void sendDialogRandom(ServerPlayer player, RandomSource random,

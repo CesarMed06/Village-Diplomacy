@@ -151,6 +151,9 @@ public class DiplomacyCommands {
                 .then(Commands.literal("setlevel").requires(ADMIN)
                         .then(Commands.argument("level", IntegerArgumentType.integer(1, 5))
                                 .executes(context -> setVillagerLevel(context, IntegerArgumentType.getInteger(context, "level"))))));
+
+        dispatcher.register(Commands.literal("villagediplomacy")
+                .redirect(dispatcher.getRoot().getChild("diplomacy")));
     }
 
     private static final SuggestionProvider<CommandSourceStack> VILLAGE_SUGGESTIONS = (context, builder) -> {

@@ -126,6 +126,7 @@ import net.minecraftforge.event.entity.player.BonemealEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.entity.player.PlayerContainerEvent;
 import net.minecraftforge.event.entity.player.PlayerSleepInBedEvent;
+import net.minecraftforge.event.entity.player.PlayerSetSpawnEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 import java.util.*;
@@ -156,6 +157,7 @@ public class VillagerEventHandler {
     private final Map<UUID, Long> bellRingCooldown = new HashMap<>();
 
     private final Map<UUID, Long> bellStrikeCooldown = new HashMap<>();
+    private final Map<UUID, Long> spawnNoticeCooldown = new HashMap<>();
     private final Map<UUID, Long> trapdoorCooldown = new HashMap<>();
     private final Map<UUID, Long> craftingTableCooldown = new HashMap<>();
     private final Map<UUID, Long> fenceGateCooldown = new HashMap<>();
@@ -1930,6 +1932,37 @@ public class VillagerEventHandler {
     }
 
     @SubscribeEvent
+    public void onSetSpawn(PlayerSetSpawnEvent event) {
+        if (!(event.getEntity() instanceof ServerPlayer player))
+            return;
+
+        BlockPos spawnPos = event.getNewSpawn();
+        if (spawnPos == null)
+            return;
+        if (!(player.level() instanceof ServerLevel level))
+            return;
+
+        Optional<BlockPos> nearestVillage = VillageDetector.findNearestVillage(level, spawnPos, 200);
+        if (nearestVillage.isEmpty())
+            return;
+
+        PlayerPlacedBlocks placed = PlayerPlacedBlocks.get(level);
+        if (placed.isPlayerBuiltZone(level, spawnPos, player.getUUID()))
+            return;
+
+        event.setCanceled(true);
+
+        long now = System.currentTimeMillis();
+        Long lastNotice = spawnNoticeCooldown.get(player.getUUID());
+        if (lastNotice != null && now - lastNotice < 15000L)
+            return;
+        spawnNoticeCooldown.put(player.getUUID(), now);
+
+        player.sendSystemMessage(Component.translatable("villagediplomacy.sys.spawn_blocked")
+                .withStyle(ChatFormatting.RED));
+    }
+
+    @SubscribeEvent
     public void onBedSleep(PlayerSleepInBedEvent event) {
         if (!(event.getEntity() instanceof ServerPlayer player))
             return;
@@ -3044,7 +3077,7 @@ public class VillagerEventHandler {
                 BlockPos anchor = InnkeeperHelper.getInnAnchor(level, villagePos);
                 BlockPos showPos = (anchor != null) ? anchor : innkeeper.blockPosition();
                 player.sendSystemMessage(Component.translatable("villagediplomacy.enter.innkeeper",
-                        ModLang.nameComponent(innkeeper.getName().getString()),
+                        ModLang.displayName(innkeeper),
                         innkeeper.getVillagerData().getLevel(),
                         showPos.getX(), showPos.getY(), showPos.getZ()));
             }
@@ -3070,20 +3103,23 @@ public class VillagerEventHandler {
             else if (reputation >= -199) { tierKey = "villagediplomacy.greet.rep.hostile"; tierCount = 3; }
             else { tierKey = "villagediplomacy.dialog.hostile"; tierCount = 6; }
 
-            String randomVillagerName = "Aldeano";
-            java.util.List<net.minecraft.world.entity.npc.Villager> nearby = level.getEntitiesOfClass(
-                net.minecraft.world.entity.npc.Villager.class,
+            Villager speakerVillager = null;
+            java.util.List<Villager> nearby = level.getEntitiesOfClass(
+                Villager.class,
                 player.getBoundingBox().inflate(16));
             if (!nearby.isEmpty()) {
-                net.minecraft.world.entity.npc.Villager v = nearby.get(level.getRandom().nextInt(nearby.size()));
-                randomVillagerName = v.hasCustomName() ? v.getCustomName().getString() : "Aldeano";
-                if (v.isBaby() && reputation >= 0) {
+                speakerVillager = nearby.get(level.getRandom().nextInt(nearby.size()));
+                if (speakerVillager.isBaby() && reputation >= 0) {
                     tierKey = "villagediplomacy.dialog.children";
                     tierCount = 7;
                 }
             }
             int di = ModLang.randomIndex(level.getRandom(), tierKey, tierCount);
-            ModLang.sendDialogNamed(player, randomVillagerName, tierKey + "." + di);
+            if (speakerVillager != null) {
+                ModLang.sendDialogVillager(player, speakerVillager, tierKey + "." + di);
+            } else {
+                ModLang.sendRandom(player, level.getRandom(), tierKey, tierCount);
+            }
 
             lastVisitedVillage.put(playerId, villageId);
             lastVillageCenter.put(playerId, villagePos);

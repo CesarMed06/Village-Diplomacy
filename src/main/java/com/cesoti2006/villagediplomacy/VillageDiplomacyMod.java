@@ -20,7 +20,10 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.ModLoadingContext;
+import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.config.ModConfig;
+import net.minecraftforge.fml.loading.FMLEnvironment;
+import net.minecraftforge.api.distmarker.Dist;
 import com.cesoti2006.villagediplomacy.config.VillageDiplomacyConfig;
 
 @Mod("villagediplomacy")
@@ -45,6 +48,11 @@ public class VillageDiplomacyMod {
     private void init(IEventBus modEventBus) {
 
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, VillageDiplomacyConfig.SPEC);
+
+        if (FMLEnvironment.dist == Dist.CLIENT) {
+            DistExecutor.unsafeRunWhenOn(Dist.CLIENT,
+                    () -> com.cesoti2006.villagediplomacy.client.VillageDiplomacyClient::registerConfigScreen);
+        }
 
         if (modEventBus != null) {
             modEventBus.addListener(this::commonSetup);

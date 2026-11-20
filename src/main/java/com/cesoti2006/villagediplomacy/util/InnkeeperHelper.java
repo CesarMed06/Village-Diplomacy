@@ -122,6 +122,12 @@ public final class InnkeeperHelper {
         return best;
     }
 
+    public static boolean isInnkeeper(ServerLevel level, Villager villager) {
+        VillageRelationshipData relData = VillageRelationshipData.get(level);
+        UUID stored = relData.getInnkeeperUUID(relData.getVillageId(villager.blockPosition()));
+        return stored != null && stored.equals(villager.getUUID());
+    }
+
     public static boolean isInnBed(ServerLevel level, BlockPos bedPos, BlockPos villagePos) {
         BlockPos anchor = getInnAnchor(level, villagePos);
         if (anchor == null) return false;

@@ -1717,8 +1717,8 @@ public class VillagerEventHandler {
                 if (!isUnwelcome && (!placeReactionCooldown.containsKey(player.getUUID())
                         || placeNow - placeReactionCooldown.get(player.getUUID()) > 3000)) {
                     placeReactionCooldown.put(player.getUUID(), placeNow);
-                    String witnessName = placedWitness != null && placedWitness.hasCustomName() ? placedWitness.getCustomName().getString() : "Aldeano";
-                    sendPlaceReaction(player, level, placeKey, isWelcome, witnessName);
+                    sendPlaceReaction(player, level, placeKey, isWelcome,
+                            ModLang.displayName(placedWitness));
                 }
             }
         }
@@ -2757,11 +2757,11 @@ public class VillagerEventHandler {
     private static final int PLACE_REACTION_LINES = 6;
 
     private static void sendPlaceReaction(ServerPlayer player, ServerLevel level, String placeId, boolean isWelcome,
-            String villagerName) {
+            Component villagerName) {
         String tier = isWelcome ? "welcome" : "neutral";
         ModLang.sendRandomWithArgs(player, level.getRandom(),
                 "villagediplomacy.react.place." + placeId + "." + tier, PLACE_REACTION_LINES,
-                ModLang.nameComponent(villagerName));
+                villagerName);
     }
 
     private void manageCrimeStatus(ServerPlayer player, ServerLevel level) {

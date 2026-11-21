@@ -1,19 +1,28 @@
 package com.cesoti2006.villagediplomacy.client;
 
+import java.util.List;
+
 import com.cesoti2006.villagediplomacy.config.VillageDiplomacyConfig;
 
+import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.AbstractSliderButton;
-import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.components.CycleButton;
+import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraftforge.common.ForgeConfigSpec;
 
 /**
  * In-game settings screen. Also serves as the config screen of the mods list,
  * so the "Config" button is no longer greyed out.
+ *
+ * Everything here is drawn by the mod itself (no textures, no extra assets), so
+ * the screen keeps a dark, coloured look instead of the default grey buttons.
  */
 public class VillageConfigScreen extends Screen {
 
@@ -24,11 +33,30 @@ public class VillageConfigScreen extends Screen {
             "villagediplomacy.config.tab.reputation"
     };
 
-    private static final int ROW_HEIGHT = 26;
+    private static final int[] TAB_ACCENTS = {
+            0xFF5FCB7E, 0xFFE0B040, 0xFF4FC3D9, 0xFFB07CE8
+    };
+
+    private static final int ROW_H = 24;
+    private static final int ROW_GAP = 3;
+
+    private static final int PANEL_BG = 0xF00E1014;
+    private static final int PANEL_BORDER = 0xFF2A313B;
+    private static final int ROW_BG = 0xFF191D24;
+    private static final int ROW_BG_HOVER = 0xFF212733;
+    private static final int ROW_BORDER = 0xFF2C333D;
+    private static final int TEXT = 0xFFEDEDED;
+    private static final int TEXT_DIM = 0xFF98A0A8;
+    private static final int SAVE_ACCENT = 0xFF5FCB7E;
 
     private final Screen parent;
     private int tab = 0;
-    private boolean saved = false;
+    private long savedUntil = 0L;
+
+    private int panelX;
+    private int panelY;
+    private int panelW;
+    private int panelH;
 
     public VillageConfigScreen(Screen parent) {
         super(Component.translatable("villagediplomacy.config.title"));
@@ -38,54 +66,34 @@ public class VillageConfigScreen extends Screen {
     @Override
     protected void init() {
         clearWidgets();
-        saved = false;
 
-        int tabWidth = 74;
-        int gap = 4;
-        int startX = (width - (tabWidth * 4 + gap * 3)) / 2;
+        panelW = 380;
+        panelX = width / 2 - panelW / 2;
+        panelY = 66;
+        panelH = Math.max(148, height - panelY - 56);
+
+        int tabWidth = 96;
+        int tabGap = 6;
+        int tabsX = width / 2 - (tabWidth * 4 + tabGap * 3) / 2;
         for (int i = 0; i < 4; i++) {
-            final int index = i;
-            Button button = Button.builder(Component.translatable(TAB_KEYS[i]), b -> {
-                tab = index;
-                rebuild();
-            }).bounds(startX + i * (tabWidth + gap), 34, tabWidth, 20).build();
-            button.active = tab != i;
-            addRenderableWidget(button);
+            addRenderableWidget(new ProTab(tabsX + i * (tabWidth + tabGap), 40, tabWidth, 20, i));
         }
 
-        VillageDiplomacyConfig config = VillageDiplomacyConfig.INSTANCE;
-        int y = 74;
-        switch (tab) {
-            case 0 -> {
-                addToggle(y, "enableVillageLife", config.enableVillageLife);
-                addToggle(y + ROW_HEIGHT, "enableBellRhythm", config.enableBellRhythm);
-                addToggle(y + ROW_HEIGHT * 2, "enableMarketDay", config.enableMarketDay);
-                addToggle(y + ROW_HEIGHT * 3, "enableVillagerChat", config.enableVillagerChat);
-            }
-            case 1 -> {
-                addSlider(y, "villageEnterRadius", config.villageEnterRadius, 16, 256, 4);
-                addSlider(y + ROW_HEIGHT, "villageExitConfirmRadius", config.villageExitConfirmRadius, 32, 512, 4);
-                addSlider(y + ROW_HEIGHT * 2, "customVillageRadius", config.customVillageRadius, 16, 128, 4);
-                addToggle(y + ROW_HEIGHT * 3, "enableEntryMessages", config.enableEntryMessages);
-            }
-            case 2 -> {
-                addToggle(y, "enablePersonalities", config.enablePersonalities);
-                addToggle(y + ROW_HEIGHT, "enableGolemPersonalities", config.enableGolemPersonalities);
-                addToggle(y + ROW_HEIGHT * 2, "enableVillageRelations", config.enableVillageRelations);
-                addToggle(y + ROW_HEIGHT * 3, "enableGuardAttacks", config.enableGuardAttacks);
-            }
-            default -> {
-                addSlider(y, "reputationDecayPerDay", config.reputationDecayPerDay, 0, 100, 1);
-                addSlider(y + ROW_HEIGHT, "repTrade", config.repTrade, 0, 100, 1);
-                addSlider(y + ROW_HEIGHT * 2, "repKillHostileBase", config.repKillHostileBase, 0, 100, 1);
-                addSlider(y + ROW_HEIGHT * 3, "repKillVillager", config.repKillVillager, -300, 0, 5);
+        if (VillageDiplomacyConfig.SPEC.isLoaded()) {
+            List<Option> options = optionsFor(tab);
+            int rowX = panelX + 12;
+            int rowWidth = panelW - 24;
+            int rowY = panelY + 12;
+            for (int i = 0; i < options.size(); i++) {
+                addRenderableWidget(new ProRow(rowX, rowY + i * (ROW_H + ROW_GAP), rowWidth, ROW_H,
+                        options.get(i), TAB_ACCENTS[tab]));
             }
         }
 
-        addRenderableWidget(Button.builder(Component.translatable("villagediplomacy.config.save"), b -> saveSettings())
-                .bounds(width / 2 - 102, height - 52, 100, 20).build());
-        addRenderableWidget(Button.builder(CommonComponents.GUI_DONE, b -> onClose())
-                .bounds(width / 2 + 2, height - 52, 100, 20).build());
+        addRenderableWidget(new ProButton(width / 2 - 104, height - 40, 100, 22,
+                Component.translatable("villagediplomacy.config.save"), true));
+        addRenderableWidget(new ProButton(width / 2 + 4, height - 40, 100, 22,
+                CommonComponents.GUI_DONE, false));
     }
 
     private void rebuild() {
@@ -93,40 +101,67 @@ public class VillageConfigScreen extends Screen {
         init();
     }
 
-    private void addToggle(int y, String optionKey, ForgeConfigSpec.BooleanValue value) {
-        if (!VillageDiplomacyConfig.SPEC.isLoaded()) return;
-        CycleButton<Boolean> button = CycleButton.onOffBuilder(value.get())
-                .create(width / 2 - 110, y, 220, 20,
-                        Component.translatable("villagediplomacy.config.option." + optionKey),
-                        (widget, state) -> value.set(state));
-        addRenderableWidget(button);
+    private static List<Option> optionsFor(int tab) {
+        VillageDiplomacyConfig config = VillageDiplomacyConfig.INSTANCE;
+        return switch (tab) {
+            case 0 -> List.of(
+                    Option.toggle("enableVillageLife", Items.BELL, config.enableVillageLife),
+                    Option.toggle("enableBellRhythm", Items.CLOCK, config.enableBellRhythm),
+                    Option.toggle("enableMarketDay", Items.EMERALD, config.enableMarketDay),
+                    Option.toggle("enableVillagerChat", Items.BOOK, config.enableVillagerChat));
+            case 1 -> List.of(
+                    Option.slider("villageEnterRadius", Items.COMPASS, config.villageEnterRadius, 16, 256, 4),
+                    Option.slider("villageExitConfirmRadius", Items.MAP, config.villageExitConfirmRadius, 32, 512, 4),
+                    Option.slider("customVillageRadius", Items.STONE_BRICKS, config.customVillageRadius, 16, 128, 4),
+                    Option.toggle("enableEntryMessages", Items.OAK_SIGN, config.enableEntryMessages));
+            case 2 -> List.of(
+                    Option.toggle("enablePersonalities", Items.NAME_TAG, config.enablePersonalities),
+                    Option.toggle("enableGolemPersonalities", Items.IRON_BLOCK, config.enableGolemPersonalities),
+                    Option.toggle("enableVillageRelations", Items.MAP, config.enableVillageRelations),
+                    Option.toggle("enableGuardAttacks", Items.IRON_SWORD, config.enableGuardAttacks));
+            default -> List.of(
+                    Option.slider("reputationDecayPerDay", Items.CLOCK, config.reputationDecayPerDay, 0, 100, 1),
+                    Option.slider("repTrade", Items.EMERALD, config.repTrade, 0, 100, 1),
+                    Option.slider("repKillHostileBase", Items.ROTTEN_FLESH, config.repKillHostileBase, 0, 100, 1),
+                    Option.slider("repKillVillager", Items.IRON_SWORD, config.repKillVillager, -300, 0, 5));
+        };
     }
 
-    private void addSlider(int y, String optionKey, ForgeConfigSpec.IntValue value,
-                           int min, int max, int step) {
-        if (!VillageDiplomacyConfig.SPEC.isLoaded()) return;
-        addRenderableWidget(new IntSlider(width / 2 - 110, y, 220, 20, value,
-                "villagediplomacy.config.option." + optionKey, min, max, step));
+    @Override
+    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        renderBackground(graphics);
+        graphics.fillGradient(0, 0, width, height, 0xE8080A0E, 0xF0040508);
+        graphics.fillGradient(0, 0, width, 74, 0xAA10141A, 0x0010141A);
+
+        int accent = TAB_ACCENTS[tab];
+        graphics.drawCenteredString(font, title, width / 2, 16, TEXT);
+        graphics.fill(width / 2 - 120, 58, width / 2 + 120, 59, (accent & 0x00FFFFFF) | 0x99000000);
+
+        roundedBox(graphics, panelX, panelY, panelW, panelH, PANEL_BG, PANEL_BORDER);
+        graphics.drawString(font, Component.translatable(TAB_KEYS[tab]).withStyle(ChatFormatting.BOLD),
+                panelX + 14, panelY + panelH - 16, accent, false);
+
+        if (!VillageDiplomacyConfig.SPEC.isLoaded()) {
+            graphics.drawCenteredString(font, Component.translatable("villagediplomacy.config.not_loaded"),
+                    width / 2, panelY + panelH / 2, TEXT_DIM);
+        }
+
+        graphics.drawCenteredString(font, Component.translatable("villagediplomacy.config.restart"),
+                width / 2, height - 54, TEXT_DIM);
+
+        if (System.currentTimeMillis() < savedUntil) {
+            graphics.drawCenteredString(font, Component.translatable("villagediplomacy.config.saved"),
+                    width / 2, height - 66, SAVE_ACCENT);
+        }
+
+        super.render(graphics, mouseX, mouseY, partialTick);
     }
 
     private void saveSettings() {
         if (VillageDiplomacyConfig.SPEC.isLoaded()) {
             VillageDiplomacyConfig.SPEC.save();
         }
-        saved = true;
-    }
-
-    @Override
-    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        renderBackground(graphics);
-        graphics.drawCenteredString(font, title, width / 2, 16, 0xFFFFFF);
-        graphics.drawCenteredString(font, Component.translatable("villagediplomacy.config.restart"),
-                width / 2, height - 74, 0x9A9A9A);
-        if (saved) {
-            graphics.drawCenteredString(font, Component.translatable("villagediplomacy.config.saved"),
-                    width / 2, height - 68, 0x55FF55);
-        }
-        super.render(graphics, mouseX, mouseY, partialTick);
+        savedUntil = System.currentTimeMillis() + 2500L;
     }
 
     @Override
@@ -136,48 +171,222 @@ public class VillageConfigScreen extends Screen {
         }
     }
 
-    private static final class IntSlider extends AbstractSliderButton {
+    private static void roundedBox(GuiGraphics graphics, int x, int y, int width, int height,
+                                   int fill, int border) {
+        fillRounded(graphics, x, y, width, height, border);
+        fillRounded(graphics, x + 1, y + 1, width - 2, height - 2, fill);
+    }
 
-        private final ForgeConfigSpec.IntValue option;
-        private final String labelKey;
-        private final int min;
-        private final int max;
-        private final int step;
+    private static void fillRounded(GuiGraphics graphics, int x, int y, int width, int height, int color) {
+        graphics.fill(x + 2, y, x + width - 2, y + height, color);
+        graphics.fill(x, y + 2, x + 2, y + height - 2, color);
+        graphics.fill(x + width - 2, y + 2, x + width, y + height - 2, color);
+        graphics.fill(x + 1, y + 1, x + width - 1, y + height - 1, color);
+    }
 
-        private IntSlider(int x, int y, int width, int height, ForgeConfigSpec.IntValue option,
-                          String labelKey, int min, int max, int step) {
-            super(x, y, width, height, Component.empty(), fraction(option, min, max));
-            this.option = option;
-            this.labelKey = labelKey;
-            this.min = min;
-            this.max = max;
-            this.step = Math.max(1, step);
-            updateMessage();
+    private record Option(String key, ItemStack icon, ForgeConfigSpec.BooleanValue toggle,
+                          ForgeConfigSpec.IntValue slider, int min, int max, int step) {
+
+        static Option toggle(String key, Item icon, ForgeConfigSpec.BooleanValue value) {
+            return new Option(key, new ItemStack(icon), value, null, 0, 0, 1);
         }
 
-        private static double fraction(ForgeConfigSpec.IntValue option, int min, int max) {
-            if (max <= min) return 0.0D;
-            int current = option.get();
-            return Math.max(0.0D, Math.min(1.0D, (double) (current - min) / (double) (max - min)));
+        static Option slider(String key, Item icon, ForgeConfigSpec.IntValue value,
+                             int min, int max, int step) {
+            return new Option(key, new ItemStack(icon), null, value, min, max, step);
         }
+    }
 
-        private int currentValue() {
-            int raw = (int) Math.round(min + value * (max - min));
-            int snapped = Math.round((float) raw / step) * step;
-            return Math.max(min, Math.min(max, snapped));
+    private final class ProTab extends AbstractWidget {
+
+        private final int index;
+
+        private ProTab(int x, int y, int width, int height, int index) {
+            super(x, y, width, height, Component.translatable(TAB_KEYS[index]));
+            this.index = index;
         }
 
         @Override
-        protected void updateMessage() {
-            setMessage(Component.translatable(labelKey)
-                    .append(Component.literal(": " + currentValue())));
-        }
+        protected void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+            boolean selected = tab == index;
+            boolean hover = isMouseOver(mouseX, mouseY);
+            int accent = TAB_ACCENTS[index];
 
-        @Override
-        protected void applyValue() {
-            if (VillageDiplomacyConfig.SPEC.isLoaded()) {
-                option.set(currentValue());
+            roundedBox(graphics, getX(), getY(), width, height,
+                    selected ? 0xFF20262F : (hover ? 0xFF1B2027 : 0xFF14181E),
+                    selected ? accent : ROW_BORDER);
+            graphics.drawCenteredString(font, getMessage(), getX() + width / 2, getY() + 6,
+                    selected ? accent : TEXT_DIM);
+            if (selected) {
+                graphics.fill(getX() + 14, getY() + height - 3, getX() + width - 14,
+                        getY() + height - 1, accent);
             }
+        }
+
+        @Override
+        public boolean mouseClicked(double mouseX, double mouseY, int button) {
+            if (button != 0 || !active || !visible || !isMouseOver(mouseX, mouseY)) return false;
+            playDownSound(Minecraft.getInstance().getSoundManager());
+            tab = index;
+            rebuild();
+            return true;
+        }
+
+        @Override
+        protected void updateWidgetNarration(NarrationElementOutput narration) {
+            defaultButtonNarrationText(narration);
+        }
+    }
+
+    private final class ProRow extends AbstractWidget {
+
+        private final Option option;
+        private final int accent;
+        private boolean dragging;
+
+        private ProRow(int x, int y, int width, int height, Option option, int accent) {
+            super(x, y, width, height,
+                    Component.translatable("villagediplomacy.config.option." + option.key()));
+            this.option = option;
+            this.accent = accent;
+        }
+
+        @Override
+        protected void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+            boolean hover = isMouseOver(mouseX, mouseY);
+            roundedBox(graphics, getX(), getY(), width, height,
+                    hover ? ROW_BG_HOVER : ROW_BG, hover ? accent : ROW_BORDER);
+
+            graphics.renderItem(option.icon(), getX() + 8, getY() + 4);
+            graphics.drawString(font, getMessage(), getX() + 30, getY() + 5, TEXT, false);
+
+            boolean enabled;
+            String state;
+            if (option.toggle() != null) {
+                enabled = option.toggle().get();
+                state = Component.translatable(enabled ? "options.on" : "options.off").getString();
+            } else {
+                int value = option.slider().get();
+                enabled = value != option.min();
+                state = String.valueOf(value);
+            }
+
+            int chipWidth = font.width(state) + 10;
+            int chipX = getX() + width - chipWidth - 8;
+            roundedBox(graphics, chipX, getY() + 5, chipWidth, 14,
+                    enabled ? 0xFF1E3A29 : 0xFF1C2027, enabled ? accent : ROW_BORDER);
+            graphics.drawString(font, state, chipX + 5, getY() + 8,
+                    enabled ? accent : TEXT_DIM, false);
+
+            if (option.slider() != null) {
+                int trackX = getX() + 30;
+                int trackY = getY() + height - 6;
+                int trackWidth = Math.max(24, chipX - 8 - trackX);
+                graphics.fill(trackX, trackY, trackX + trackWidth, trackY + 2, 0xFF2A3038);
+
+                int filled = (int) Math.round(trackWidth * fraction());
+                graphics.fill(trackX, trackY, trackX + filled, trackY + 2, accent);
+                graphics.fill(trackX + Math.max(0, filled - 2), trackY - 2,
+                        trackX + Math.min(trackWidth, filled + 2), trackY + 4, 0xFFFFFFFF);
+            }
+
+            if (hover) {
+                graphics.renderTooltip(font,
+                        Component.translatable("villagediplomacy.config.desc." + option.key())
+                                .withStyle(ChatFormatting.GRAY),
+                        mouseX, mouseY);
+            }
+        }
+
+        private double fraction() {
+            int min = option.min();
+            int max = option.max();
+            if (max <= min) return 0.0D;
+            double value = option.slider().get();
+            return Math.max(0.0D, Math.min(1.0D, (value - min) / (double) (max - min)));
+        }
+
+        private void dragTo(double mouseX) {
+            int trackX = getX() + 30;
+            int trackWidth = Math.max(24, getX() + width - 62 - trackX);
+            double fraction = Math.max(0.0D, Math.min(1.0D, (mouseX - trackX) / (double) trackWidth));
+            int raw = (int) Math.round(option.min() + fraction * (option.max() - option.min()));
+            int step = Math.max(1, option.step());
+            int snapped = Math.round((float) raw / step) * step;
+            option.slider().set(Math.max(option.min(), Math.min(option.max(), snapped)));
+        }
+
+        @Override
+        public boolean mouseClicked(double mouseX, double mouseY, int button) {
+            if (button != 0 || !active || !visible || !isMouseOver(mouseX, mouseY)) return false;
+            playDownSound(Minecraft.getInstance().getSoundManager());
+            if (option.toggle() != null) {
+                option.toggle().set(!option.toggle().get());
+                return true;
+            }
+            dragging = true;
+            dragTo(mouseX);
+            return true;
+        }
+
+        @Override
+        public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
+            if (dragging && button == 0) {
+                dragTo(mouseX);
+                return true;
+            }
+            return false;
+        }
+
+        @Override
+        public boolean mouseReleased(double mouseX, double mouseY, int button) {
+            dragging = false;
+            return super.mouseReleased(mouseX, mouseY, button);
+        }
+
+        @Override
+        protected void updateWidgetNarration(NarrationElementOutput narration) {
+            defaultButtonNarrationText(narration);
+        }
+    }
+
+    private final class ProButton extends AbstractWidget {
+
+        private final boolean primary;
+
+        private ProButton(int x, int y, int width, int height, Component message, boolean primary) {
+            super(x, y, width, height, message);
+            this.primary = primary;
+        }
+
+        @Override
+        protected void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+            boolean hover = isMouseOver(mouseX, mouseY);
+            int accent = primary ? SAVE_ACCENT : 0xFF8892A0;
+            roundedBox(graphics, getX(), getY(), width, height,
+                    primary
+                            ? (hover ? 0xFF23472F : 0xFF1B3324)
+                            : (hover ? 0xFF232833 : 0xFF191D24),
+                    hover ? accent : ROW_BORDER);
+            graphics.drawCenteredString(font, getMessage(), getX() + width / 2, getY() + 7,
+                    primary ? accent : TEXT);
+        }
+
+        @Override
+        public boolean mouseClicked(double mouseX, double mouseY, int button) {
+            if (button != 0 || !active || !visible || !isMouseOver(mouseX, mouseY)) return false;
+            playDownSound(Minecraft.getInstance().getSoundManager());
+            if (primary) {
+                saveSettings();
+            } else {
+                onClose();
+            }
+            return true;
+        }
+
+        @Override
+        protected void updateWidgetNarration(NarrationElementOutput narration) {
+            defaultButtonNarrationText(narration);
         }
     }
 }

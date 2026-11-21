@@ -5,10 +5,13 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.animal.IronGolem;
 import net.minecraft.world.entity.npc.AbstractVillager;
 import net.minecraft.world.entity.npc.WanderingTrader;
 
 import com.cesoti2006.villagediplomacy.data.VillagerPersonalityData;
+import com.cesoti2006.villagediplomacy.personality.PersonalityTrait;
 import com.cesoti2006.villagediplomacy.personality.VillagerPersonality;
 import com.cesoti2006.villagediplomacy.reputation.ReputationTiersHandler;
 import com.cesoti2006.villagediplomacy.reputation.ReputationTiersHandler.ReputationTier;
@@ -26,6 +29,8 @@ public final class ModLang {
     private static final ChatFormatting COLOR_BRACKET        = ChatFormatting.DARK_GRAY;
     private static final ChatFormatting COLOR_NAME_INNKEEPER = ChatFormatting.LIGHT_PURPLE;
     private static final ChatFormatting COLOR_INNKEEPER_TAG  = ChatFormatting.AQUA;
+    private static final ChatFormatting COLOR_GOLEM_TAG      = ChatFormatting.DARK_AQUA;
+    private static final ChatFormatting COLOR_GOLEM_NAME     = ChatFormatting.GRAY;
     private static final ChatFormatting COLOR_PROFESSION_DEFAULT = ChatFormatting.GRAY;
     private static final ChatFormatting COLOR_PLAYER_NAME    = ChatFormatting.WHITE;
 
@@ -88,7 +93,56 @@ public final class ModLang {
     }
 
     public static Component professionName(net.minecraft.world.entity.npc.VillagerProfession profession) {
-        return Component.translatable("entity.minecraft.villager." + professionPath(profession));
+        String path = professionPath(profession);
+        if ("none".equals(path)) {
+            return Component.translatable("villagediplomacy.prof.none");
+        }
+        return Component.translatable("entity.minecraft.villager." + path);
+    }
+
+    /**
+     * Groups the sixteen vanilla professions into five flavours of small talk, so a
+     * conversation sounds like the people having it instead of a generic villager.
+     */
+    public static String professionFamily(net.minecraft.world.entity.npc.VillagerProfession profession) {
+        return switch (professionPath(profession)) {
+            case "farmer", "fisherman", "shepherd", "butcher" -> "food";
+            case "toolsmith", "weaponsmith", "armorer", "leatherworker" -> "craft";
+            case "librarian", "cartographer", "cleric" -> "learned";
+            case "mason", "fletcher" -> "builder";
+            default -> "folk";
+        };
+    }
+
+    /** Mood derived from a villager's personality, used to pick how they open a chat. */
+    public static String moodKey(AbstractVillager villager) {
+        if (!(villager instanceof net.minecraft.world.entity.npc.Villager v)) return null;
+        if (!(v.level() instanceof net.minecraft.server.level.ServerLevel level)) return null;
+        VillagerPersonality personality = VillagerPersonalityData.get(level).getPersonality(v.getUUID());
+        if (personality == null) return null;
+
+        PersonalityTrait temperament = personality.getTemperament();
+        if (temperament == PersonalityTrait.IRRITABLE || temperament == PersonalityTrait.HOTHEADED) return "gruff";
+
+        PersonalityTrait outlook = personality.getOutlook();
+        if (outlook == PersonalityTrait.CHEERFUL || outlook == PersonalityTrait.OPTIMISTIC) return "cheerful";
+
+        PersonalityTrait work = personality.getWorkEthic();
+        if (work == PersonalityTrait.LAZY || work == PersonalityTrait.RELAXED) return "tired";
+
+        PersonalityTrait social = personality.getSocialBehavior();
+        if (social == PersonalityTrait.SHY || social == PersonalityTrait.RESERVED) return "shy";
+
+        PersonalityTrait courage = personality.getCourage();
+        if (courage == PersonalityTrait.BRAVE || courage == PersonalityTrait.FEARLESS) return "proud";
+
+        return null;
+    }
+
+    public static String randomLineKey(RandomSource random, String keyPrefix, int fallback) {
+        int n = variantCount(keyPrefix, fallback);
+        if (n <= 0) return null;
+        return keyPrefix + "." + random.nextInt(n);
     }
 
     public static void sendTradePitch(ServerPlayer player, RandomSource random,
@@ -118,6 +172,7 @@ public final class ModLang {
             case "butcher" -> ChatFormatting.RED;
             case "leatherworker" -> ChatFormatting.DARK_GREEN;
             case "mason" -> ChatFormatting.GRAY;
+            case "nitwit" -> ChatFormatting.DARK_PURPLE;
             default -> ChatFormatting.GRAY;
         };
     }
@@ -162,6 +217,38 @@ public final class ModLang {
                     .withStyle(COLOR_VILLAGER_NAME);
         }
         return Component.translatable("entity.minecraft.villager.none").withStyle(COLOR_VILLAGER_NAME);
+    }
+
+    public static MutableComponent golemName(IronGolem golem) {
+        String[] numerals = { "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX" };
+        String numeral = numerals[Math.floorMod(golem.getUUID().hashCode(), numerals.length)];
+        return Component.translatable("villagediplomacy.golem.name", Component.literal(numeral))
+                .withStyle(COLOR_GOLEM_NAME);
+    }
+
+    public static MutableComponent golemTag(IronGolem golem) {
+        return Component.literal("[").withStyle(COLOR_BRACKET)
+                .append(Component.translatable("villagediplomacy.tag.golem").withStyle(COLOR_GOLEM_TAG))
+                .append(Component.literal("] ").withStyle(COLOR_BRACKET))
+                .append(golemName(golem));
+    }
+
+    public static MutableComponent entityTag(Entity entity) {
+        if (entity instanceof AbstractVillager villager) return villagerTag(villager);
+        if (entity instanceof IronGolem golem) return golemTag(golem);
+        return Component.literal("?").withStyle(COLOR_BRACKET);
+    }
+
+    public static void sendEntityChatLine(ServerPlayer player, Entity speaker, Entity listener,
+                                          String key, Object... args) {
+        MutableComponent msg = entityTag(speaker).copy();
+        if (listener != null) {
+            msg.append(Component.literal(" \u2192 ").withStyle(COLOR_BRACKET))
+               .append(entityTag(listener));
+        }
+        msg.append(Component.literal(": ").withStyle(COLOR_BRACKET))
+           .append(Component.translatable(key, args).withStyle(COLOR_DIALOG));
+        player.sendSystemMessage(msg);
     }
 
     public static MutableComponent playerDisplayName(ServerPlayer player) {

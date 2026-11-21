@@ -28,6 +28,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
+import net.minecraft.world.entity.animal.IronGolem;
 import net.minecraft.world.entity.ai.memory.WalkTarget;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.level.block.Blocks;
@@ -55,6 +56,16 @@ public final class VillageLifeHandler {
     private static final int BELL_GATHER_RADIUS = 40;
     private static final int GATHER_MAX_VILLAGERS = 5;
     private static final long BELL_CALL_MS = 26_000L;
+    private static final int BELL_MAX_ATTEMPTS = 3;
+    private static final double BELL_REACH_HORIZONTAL = 4.5D;
+    private static final double BELL_REACH_WET = 7.0D;
+    private static final int BELL_REACH_BELOW = 10;
+    private static final int BELL_REACH_ABOVE = 12;
+
+    private static final int GOLEM_SEARCH_RADIUS = 14;
+    private static final long GOLEM_PLAYER_COOLDOWN_MS = 85_000L;
+    private static final long GOLEM_REPLY_MIN_MS = 2_200L;
+    private static final int GOLEM_TALK_CHANCE = 6;
 
     private static final int CHAT_VILLAGER_RADIUS = 12;
     private static final double CHAT_MAX_PAIR_DISTANCE_SQR = 36.0;
@@ -77,14 +88,23 @@ public final class VillageLifeHandler {
     private static final Map<String, Long> pairChats = new HashMap<>();
     private static final Map<UUID, Long> playerChats = new HashMap<>();
     private static final List<PendingReply> pendingReplies = new ArrayList<>();
+    private static final List<PendingGolemReply> pendingGolemReplies = new ArrayList<>();
+    private static final Map<UUID, Long> golemChats = new HashMap<>();
+    private static final Map<UUID, InnTracker> innTrackers = new HashMap<>();
 
     private VillageLifeHandler() {
     }
 
-    private record BellCall(String day, String phase, boolean celebration, long expiresAt) {
+    private record BellCall(String day, String phase, boolean celebration, long expiresAt, int attempt) {
     }
 
     private record PendingReply(long dueAt, UUID speaker, UUID listener, String key) {
+    }
+
+    private record PendingGolemReply(long dueAt, UUID speaker, UUID listener, String key) {
+    }
+
+    private record InnTracker(BlockPos lastPos, long since) {
     }
 
     @SubscribeEvent
@@ -136,10 +156,14 @@ public final class VillageLifeHandler {
             }
             if (config.enableVillagerChat.get()) {
                 tickConversation(level, player, center);
+                if (config.enableGolemPersonalities.get()) {
+                    tickGolems(level, player);
+                }
             }
         }
 
         tickPendingReplies(level);
+        tickPendingGolemReplies(level);
         tickInnkeepers(level, visitedCenters);
     }
 
@@ -148,11 +172,19 @@ public final class VillageLifeHandler {
         long now = System.currentTimeMillis();
 
         BellCall active = bellCalls.get(bellKey);
+        if (active != null && now <= active.expiresAt()) {
+            tickGather(level, relations, villageId, bellKey, center, bell, active);
+            return;
+        }
         if (active != null) {
-            if (now > active.expiresAt()) {
-                bellCalls.remove(bellKey);
-            } else {
-                tickGather(level, relations, villageId, bellKey, center, bell, active);
+            bellCalls.remove(bellKey);
+            String activeTag = active.day() + "|" + active.phase();
+            boolean alreadyRung = activeTag.equals(bellRungTags.get(bellKey));
+            if (!alreadyRung && active.attempt() < BELL_MAX_ATTEMPTS) {
+                BellCall retry = new BellCall(active.day(), active.phase(), active.celebration(),
+                        now + BELL_CALL_MS, active.attempt() + 1);
+                bellCalls.put(bellKey, retry);
+                tickGather(level, relations, villageId, bellKey, center, bell, retry);
                 return;
             }
         }
@@ -180,7 +212,7 @@ public final class VillageLifeHandler {
                 && phaseName.equals("noon")
                 && day % MARKET_CYCLE_DAYS == 0;
 
-        BellCall call = new BellCall(String.valueOf(day), phaseName, celebration, now + BELL_CALL_MS);
+        BellCall call = new BellCall(String.valueOf(day), phaseName, celebration, now + BELL_CALL_MS, 0);
         bellCalls.put(bellKey, call);
         if (bellCalls.size() > 200) bellCalls.clear();
 
@@ -243,19 +275,29 @@ public final class VillageLifeHandler {
         bellRungTags.put(bellKey, call.day() + "|" + call.phase());
         if (bellRungTags.size() > 400) bellRungTags.clear();
 
+        level.sendParticles(ParticleTypes.HAPPY_VILLAGER,
+                ringer.getX(), ringer.getY() + 1.2D, ringer.getZ(),
+                6, 0.35D, 0.4D, 0.35D, 0.0D);
+
         sendBellMessage(level, relations, villageId, bell,
                 "villagediplomacy.life.bell." + call.phase(), ringer);
 
         if (call.celebration()) celebrate(level, relations, villageId, center, bell);
     }
 
+    /**
+     * The bell can hang inside a well, above a roof or over water; a villager close
+     * enough on any side is able to strike it. Being in water widens the reach a
+     * little so a swimmer under the bell still tolls it instead of treading water.
+     */
     private static boolean canReachBell(Villager villager, BlockPos bell) {
         BlockPos pos = villager.blockPosition();
         double dx = (pos.getX() + 0.5D) - (bell.getX() + 0.5D);
         double dz = (pos.getZ() + 0.5D) - (bell.getZ() + 0.5D);
         double horizontal = Math.sqrt(dx * dx + dz * dz);
+        double limit = villager.isInWater() ? BELL_REACH_WET : BELL_REACH_HORIZONTAL;
         int dy = pos.getY() - bell.getY();
-        return horizontal <= 2.8D && dy >= -5 && dy <= 6;
+        return horizontal <= limit && dy >= -BELL_REACH_BELOW && dy <= BELL_REACH_ABOVE;
     }
 
     private static void sendBellMessage(ServerLevel level, VillageRelationshipData relations, String villageId,
@@ -312,7 +354,10 @@ public final class VillageLifeHandler {
 
             speaker.getLookControl().setLookAt(listener, 40.0F, 30.0F);
             for (ServerPlayer player : level.players()) {
-                if (player.blockPosition().distSqr(speaker.blockPosition()) <= 196) {
+                // Only deliver the answer to players who can actually see both speakers,
+                // otherwise the chat names a villager standing behind a wall.
+                if (player.blockPosition().distSqr(speaker.blockPosition()) <= 196
+                        && player.blockPosition().distSqr(listener.blockPosition()) <= 196) {
                     ModLang.sendChatLine(player, speaker, listener, pending.key());
                 }
             }
@@ -329,7 +374,7 @@ public final class VillageLifeHandler {
 
         List<Villager> nearby = level.getEntitiesOfClass(Villager.class,
                 player.getBoundingBox().inflate(CHAT_VILLAGER_RADIUS),
-                v -> !v.isBaby() && v.isAlive() && !v.isRemoved());
+                v -> !v.isBaby() && v.isAlive() && !v.isRemoved() && v.distanceToSqr(player) <= 100.0D);
         if (nearby.size() < 2) return;
 
         Villager first = nearby.get(level.getRandom().nextInt(nearby.size()));
@@ -347,8 +392,29 @@ public final class VillageLifeHandler {
         if (Math.abs(first.getY() - second.getY()) > 4.0D) return;
 
         String topic = pickTopic(level, player, center);
-        int count = ModLang.variantCount("villagediplomacy.life.chat." + topic, 4);
-        if (count <= 0) return;
+        String family = ModLang.professionFamily(first.getVillagerData().getProfession());
+        String mood = ModLang.moodKey(first);
+
+        String lineKey;
+        int roll = level.getRandom().nextInt(100);
+        if (mood != null && roll < 24) {
+            lineKey = ModLang.randomLineKey(level.getRandom(), "villagediplomacy.life.chat.mood." + mood, 4);
+        } else if (roll < 62) {
+            lineKey = ModLang.randomLineKey(level.getRandom(), "villagediplomacy.life.chat.fam." + family, 6);
+        } else {
+            lineKey = ModLang.randomLineKey(level.getRandom(), "villagediplomacy.life.chat." + topic, 4);
+        }
+        if (lineKey == null) return;
+
+        String replyFamily = ModLang.professionFamily(second.getVillagerData().getProfession());
+        String replyKey;
+        if (level.getRandom().nextInt(100) < 55) {
+            replyKey = ModLang.randomLineKey(level.getRandom(),
+                    "villagediplomacy.life.reply.fam." + replyFamily, 4);
+        } else {
+            replyKey = "villagediplomacy.life.reply." + topic;
+        }
+        if (replyKey == null) return;
 
         String pairKey = pairKey(first.getUUID(), second.getUUID());
         Long lastPair = pairChats.get(pairKey);
@@ -368,13 +434,10 @@ public final class VillageLifeHandler {
 
         Component playerName = ModLang.playerDisplayName(player);
 
-        ModLang.sendChatLine(player, first, second,
-                "villagediplomacy.life.chat." + topic + "." + level.getRandom().nextInt(count),
-                playerName);
+        ModLang.sendChatLine(player, first, second, lineKey, playerName);
 
         long delay = 2400L + level.getRandom().nextInt(2200);
-        pendingReplies.add(new PendingReply(now + delay, second.getUUID(), first.getUUID(),
-                "villagediplomacy.life.reply." + topic));
+        pendingReplies.add(new PendingReply(now + delay, second.getUUID(), first.getUUID(), replyKey));
         if (pendingReplies.size() > 64) pendingReplies.remove(0);
     }
 
@@ -396,6 +459,110 @@ public final class VillageLifeHandler {
         return topics.get(level.getRandom().nextInt(topics.size()));
     }
 
+    private static void tickGolems(ServerLevel level, ServerPlayer player) {
+        long now = System.currentTimeMillis();
+        Long last = golemChats.get(player.getUUID());
+        if (last != null && now - last < GOLEM_PLAYER_COOLDOWN_MS) return;
+        if (level.getRandom().nextInt(GOLEM_TALK_CHANCE) != 0) return;
+
+        List<IronGolem> golems = level.getEntitiesOfClass(IronGolem.class,
+                player.getBoundingBox().inflate(GOLEM_SEARCH_RADIUS, 8.0D, GOLEM_SEARCH_RADIUS),
+                g -> g.isAlive() && !g.isRemoved() && g.distanceToSqr(player) <= 196.0D);
+        if (golems.isEmpty()) return;
+
+        IronGolem golem = golems.get(level.getRandom().nextInt(golems.size()));
+
+        Villager villager = null;
+        double nearest = Double.MAX_VALUE;
+        for (Villager candidate : level.getEntitiesOfClass(Villager.class,
+                golem.getBoundingBox().inflate(8.0D),
+                v -> !v.isBaby() && v.isAlive() && !v.isRemoved() && v.distanceToSqr(player) <= 196.0D)) {
+            double distance = candidate.distanceToSqr(golem);
+            if (distance < nearest) {
+                nearest = distance;
+                villager = candidate;
+            }
+        }
+
+        IronGolem partner = null;
+        for (IronGolem candidate : golems) {
+            if (candidate == golem) continue;
+            if (candidate.distanceToSqr(golem) <= 64.0D) {
+                partner = candidate;
+                break;
+            }
+        }
+
+        if (villager == null && partner == null) return;
+
+        if (villager != null) {
+            String key = ModLang.randomLineKey(level.getRandom(), "villagediplomacy.golem.to_villager", 5);
+            if (key == null) return;
+            golem.getLookControl().setLookAt(villager, 40.0F, 30.0F);
+            villager.getLookControl().setLookAt(golem, 40.0F, 30.0F);
+            ModLang.sendEntityChatLine(player, golem, villager, key);
+            golemChats.put(player.getUUID(), now);
+            if (level.getRandom().nextInt(10) < 7) {
+                String reply = ModLang.randomLineKey(level.getRandom(),
+                        "villagediplomacy.golem.reply.villager", 4);
+                if (reply != null) {
+                    addGolemReply(now + GOLEM_REPLY_MIN_MS + level.getRandom().nextInt(1800),
+                            villager.getUUID(), golem.getUUID(), reply);
+                }
+            }
+        } else {
+            String key = ModLang.randomLineKey(level.getRandom(), "villagediplomacy.golem.to_golem", 5);
+            if (key == null) return;
+            golem.getLookControl().setLookAt(partner, 40.0F, 30.0F);
+            partner.getLookControl().setLookAt(golem, 40.0F, 30.0F);
+            ModLang.sendEntityChatLine(player, golem, partner, key);
+            golemChats.put(player.getUUID(), now);
+            if (level.getRandom().nextInt(10) < 6) {
+                String reply = ModLang.randomLineKey(level.getRandom(),
+                        "villagediplomacy.golem.reply.golem", 3);
+                if (reply != null) {
+                    addGolemReply(now + GOLEM_REPLY_MIN_MS + level.getRandom().nextInt(1500),
+                            partner.getUUID(), golem.getUUID(), reply);
+                }
+            }
+        }
+
+        level.playSound(null, golem.getX(), golem.getY(), golem.getZ(),
+                SoundEvents.IRON_GOLEM_STEP, SoundSource.NEUTRAL, 0.55F, 0.85F);
+        if (golemChats.size() > 200) golemChats.clear();
+    }
+
+    private static void addGolemReply(long dueAt, UUID speaker, UUID listener, String key) {
+        pendingGolemReplies.add(new PendingGolemReply(dueAt, speaker, listener, key));
+        if (pendingGolemReplies.size() > 48) pendingGolemReplies.remove(0);
+    }
+
+    private static void tickPendingGolemReplies(ServerLevel level) {
+        if (pendingGolemReplies.isEmpty()) return;
+
+        long now = System.currentTimeMillis();
+        Iterator<PendingGolemReply> iterator = pendingGolemReplies.iterator();
+        while (iterator.hasNext()) {
+            PendingGolemReply pending = iterator.next();
+            if (pending.dueAt() > now) continue;
+            iterator.remove();
+
+            Entity speakerEntity = level.getEntity(pending.speaker());
+            Entity listenerEntity = level.getEntity(pending.listener());
+            if (speakerEntity == null || listenerEntity == null) continue;
+            if (!speakerEntity.isAlive() || speakerEntity.isRemoved()) continue;
+            if (!listenerEntity.isAlive() || listenerEntity.isRemoved()) continue;
+            if (speakerEntity.distanceToSqr(listenerEntity) > 64.0D) continue;
+
+            for (ServerPlayer player : level.players()) {
+                if (player.blockPosition().distSqr(speakerEntity.blockPosition()) <= 196
+                        && player.blockPosition().distSqr(listenerEntity.blockPosition()) <= 196) {
+                    ModLang.sendEntityChatLine(player, speakerEntity, listenerEntity, pending.key());
+                }
+            }
+        }
+    }
+
     private static void tickInnkeepers(ServerLevel level, Set<BlockPos> centers) {
         if (centers.isEmpty()) return;
         if (level.getGameTime() % 100L >= TICK_INTERVAL) return;
@@ -407,14 +574,34 @@ public final class VillageLifeHandler {
             Villager innkeeper = InnkeeperHelper.findInnkeeper(level, center);
             if (innkeeper == null) continue;
 
-            double distance = innkeeper.blockPosition().distSqr(anchor);
-            if (distance <= INN_LEASH_SQR) continue;
+            BlockPos current = innkeeper.blockPosition();
+            double distance = current.distSqr(anchor);
+            UUID id = innkeeper.getUUID();
 
-            if (distance > INN_TELEPORT_SQR && level.isLoaded(anchor)) {
+            if (distance <= INN_LEASH_SQR) {
+                innTrackers.remove(id);
+                continue;
+            }
+
+            long now = System.currentTimeMillis();
+            InnTracker tracker = innTrackers.get(id);
+            if (tracker == null || !tracker.lastPos().equals(current)) {
+                tracker = new InnTracker(current, now);
+                innTrackers.put(id, tracker);
+            }
+            if (innTrackers.size() > 256) innTrackers.clear();
+
+            // A perch above water or a ledge the villager cannot climb leaves the
+            // navigation spinning in place; after a few seconds of no progress the
+            // innkeeper is placed back at the inn instead of pacing forever.
+            boolean stuck = now - tracker.since() > 8000L && distance > 144.0D;
+            boolean farAway = distance > INN_TELEPORT_SQR;
+            if ((farAway || stuck) && level.isLoaded(anchor)) {
                 BlockPos spot = nextTo(level, anchor);
                 if (spot != null) {
                     innkeeper.teleportTo(spot.getX() + 0.5D, spot.getY(), spot.getZ() + 0.5D);
                     innkeeper.getNavigation().stop();
+                    innTrackers.put(id, new InnTracker(spot, now));
                     continue;
                 }
             }

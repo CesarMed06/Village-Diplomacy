@@ -2672,7 +2672,7 @@
   "villagediplomacy.golem.reply.golem.0": "*Bate no chão uma vez.*",
   "villagediplomacy.golem.reply.golem.1": "*Toma seu lugar junto ao portão.*",
   "villagediplomacy.golem.reply.golem.2": "*Responde com um zumbido baixo.*",
-  "villagediplomacy.prof.none": "Vizinho",
+  "villagediplomacy.prof.none": "Desempregado",
   "villagediplomacy.tag.golem": "Golem",
   "villagediplomacy.golem.name": "Guardião %s",
   "villagediplomacy.config.not_loaded": "As configurações não foram carregadas.",
@@ -2696,9 +2696,14 @@
   "villagediplomacy.config.option.nameplateRange": "Distância das etiquetas (blocos)",
   "villagediplomacy.config.desc.enableNameplates": "Desenha as etiquetas do mod sobre aldeões e golens em vez das do vanilla.",
   "villagediplomacy.config.desc.nameplateRange": "Até onde as etiquetas aparecem. Diminua se uma vila cheia travar.",
-  "villagediplomacy.mood.cheerful": "de bom humor",
-  "villagediplomacy.mood.gruff": "mal-humorado",
-  "villagediplomacy.mood.tired": "cansado",
-  "villagediplomacy.mood.proud": "orgulhoso",
-  "villagediplomacy.mood.shy": "tímido"
+  "villagediplomacy.mood.cheerful": "De bom humor",
+  "villagediplomacy.mood.gruff": "Mal-humorado",
+  "villagediplomacy.mood.tired": "Cansado",
+  "villagediplomacy.mood.proud": "Orgulhoso",
+  "villagediplomacy.mood.shy": "Tímido",
+  "villagediplomacy.config.edit_hint": "Clique em um número para digitá-lo.",
+  "villagediplomacy.life.chat.danger.0": "Cuidado! Tem alguma coisa rondando por aqui!",
+  "villagediplomacy.life.chat.danger.1": "Peguem as armas! Tem um monstro à solta!",
+  "villagediplomacy.life.chat.danger.2": "Todos para dentro! Vi algo se mexendo!",
+  "villagediplomacy.life.chat.danger.3": "Alguém avise o golem, rápido!"
 }

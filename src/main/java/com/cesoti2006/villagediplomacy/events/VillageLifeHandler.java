@@ -19,6 +19,7 @@ import com.cesoti2006.villagediplomacy.util.ModLang;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -30,9 +31,16 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.animal.IronGolem;
 import net.minecraft.world.entity.ai.memory.WalkTarget;
+import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.npc.Villager;
+import net.minecraft.world.level.ClipContext;
+import net.minecraft.world.level.block.BedBlock;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
@@ -57,10 +65,14 @@ public final class VillageLifeHandler {
     private static final int GATHER_MAX_VILLAGERS = 5;
     private static final long BELL_CALL_MS = 26_000L;
     private static final int BELL_MAX_ATTEMPTS = 3;
-    private static final double BELL_REACH_HORIZONTAL = 4.5D;
-    private static final double BELL_REACH_WET = 7.0D;
-    private static final int BELL_REACH_BELOW = 10;
-    private static final int BELL_REACH_ABOVE = 12;
+    private static final double BELL_REACH_HORIZONTAL = 3.0D;
+    private static final double BELL_REACH_WET = 4.5D;
+    private static final int BELL_REACH_BELOW = 2;
+    private static final int BELL_REACH_ABOVE = 2;
+
+    private static final long DANGER_COOLDOWN_MS = 90_000L;
+    private static final int DANGER_RADIUS = 18;
+    private static final int DANGER_MONSTER_RADIUS = 14;
 
     private static final int GOLEM_SEARCH_RADIUS = 14;
     private static final long GOLEM_PLAYER_COOLDOWN_MS = 85_000L;
@@ -91,6 +103,7 @@ public final class VillageLifeHandler {
     private static final List<PendingGolemReply> pendingGolemReplies = new ArrayList<>();
     private static final Map<UUID, Long> golemChats = new HashMap<>();
     private static final Map<UUID, InnTracker> innTrackers = new HashMap<>();
+    private static final Map<String, Long> dangerChats = new HashMap<>();
 
     private VillageLifeHandler() {
     }
@@ -155,6 +168,7 @@ public final class VillageLifeHandler {
                 tickBell(level, relations, villageId, bellKey, center, bell, day, timeOfDay);
             }
             if (config.enableVillagerChat.get()) {
+                tickDanger(level, player, center);
                 tickConversation(level, player, center);
                 if (config.enableGolemPersonalities.get()) {
                     tickGolems(level, player);
@@ -268,8 +282,11 @@ public final class VillageLifeHandler {
         ringer.getLookControl().setLookAt(bell.getX() + 0.5D, bell.getY() + 0.5D, bell.getZ() + 0.5D);
         ringer.swing(InteractionHand.MAIN_HAND, true);
 
-        // Real block event: the bell swings and the full vanilla toll plays for everyone nearby.
+        // Real block event: the bell swings for everyone nearby. The toll itself is
+        // played explicitly so it still sounds if the block entity is not ticking.
         level.blockEvent(bell, Blocks.BELL, 1, 0);
+        level.playSound(null, bell.getX() + 0.5D, bell.getY() + 0.5D, bell.getZ() + 0.5D,
+                SoundEvents.BELL_BLOCK, SoundSource.BLOCKS, 2.0F, 1.0F);
 
         bellCalls.remove(bellKey);
         bellRungTags.put(bellKey, call.day() + "|" + call.phase());
@@ -286,9 +303,10 @@ public final class VillageLifeHandler {
     }
 
     /**
-     * The bell can hang inside a well, above a roof or over water; a villager close
-     * enough on any side is able to strike it. Being in water widens the reach a
-     * little so a swimmer under the bell still tolls it instead of treading water.
+     * A villager has to actually stand at the bell: close on both axes and with a
+     * clear line of sight. The old generous reach let someone ring a bell hanging
+     * ten blocks above their head from inside a house, which looked like nothing
+     * happened. Water widens the reach a little so a swimmer can still strike it.
      */
     private static boolean canReachBell(Villager villager, BlockPos bell) {
         BlockPos pos = villager.blockPosition();
@@ -297,7 +315,14 @@ public final class VillageLifeHandler {
         double horizontal = Math.sqrt(dx * dx + dz * dz);
         double limit = villager.isInWater() ? BELL_REACH_WET : BELL_REACH_HORIZONTAL;
         int dy = pos.getY() - bell.getY();
-        return horizontal <= limit && dy >= -BELL_REACH_BELOW && dy <= BELL_REACH_ABOVE;
+        if (horizontal > limit || dy < -BELL_REACH_BELOW || dy > BELL_REACH_ABOVE) return false;
+        return seesBell(villager, bell);
+    }
+
+    private static boolean seesBell(Villager villager, BlockPos bell) {
+        BlockHitResult hit = villager.level().clip(new ClipContext(villager.getEyePosition(),
+                Vec3.atCenterOf(bell), ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, villager));
+        return hit.getType() == HitResult.Type.MISS || hit.getBlockPos().equals(bell);
     }
 
     private static void sendBellMessage(ServerLevel level, VillageRelationshipData relations, String villageId,
@@ -320,18 +345,29 @@ public final class VillageLifeHandler {
     private static BlockPos spotNearBell(ServerLevel level, BlockPos bell, int index) {
         for (int attempt = 0; attempt < GATHER_SPOTS.length; attempt++) {
             int[] offset = GATHER_SPOTS[(index + attempt) % GATHER_SPOTS.length];
-            BlockPos base = bell.offset(offset[0], 0, offset[1]);
-            for (int dy = 1; dy >= -8; dy--) {
-                BlockPos pos = base.offset(0, dy, 0);
-                if (!level.isLoaded(pos)) break;
-                if (level.getBlockState(pos).isAir()
-                        && level.getBlockState(pos.above()).isAir()
-                        && level.getBlockState(pos.below()).isSolidRender(level, pos.below())) {
-                    return pos;
-                }
+            for (int dy = 1; dy >= -2; dy--) {
+                BlockPos pos = bell.offset(offset[0], dy, offset[1]);
+                if (!level.isLoaded(pos)) continue;
+                if (!isStandable(level, pos)) continue;
+                if (!seesBell(level, pos, bell)) continue;
+                return pos;
             }
         }
         return null;
+    }
+
+    private static boolean isStandable(ServerLevel level, BlockPos pos) {
+        if (!level.getBlockState(pos).isAir() || !level.getBlockState(pos.above()).isAir()) return false;
+        if (!level.getFluidState(pos).isEmpty() || !level.getFluidState(pos.above()).isEmpty()) return false;
+        BlockState below = level.getBlockState(pos.below());
+        return below.isSolidRender(level, pos.below()) || below.getBlock() instanceof BedBlock;
+    }
+
+    private static boolean seesBell(ServerLevel level, BlockPos from, BlockPos bell) {
+        Vec3 eye = Vec3.atBottomCenterOf(from).add(0.0D, 1.6D, 0.0D);
+        BlockHitResult hit = level.clip(new ClipContext(eye, Vec3.atCenterOf(bell),
+                ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, null));
+        return hit.getType() == HitResult.Type.MISS || hit.getBlockPos().equals(bell);
     }
 
     private static void tickPendingReplies(ServerLevel level) {
@@ -457,6 +493,61 @@ public final class VillageLifeHandler {
         }
 
         return topics.get(level.getRandom().nextInt(topics.size()));
+    }
+
+    /**
+     * Villagers notice monsters near the player and say something about it, even
+     * when only one of them is around. Before this a zombie could stand in the
+     * middle of the square and nobody reacted at all.
+     */
+    private static void tickDanger(ServerLevel level, ServerPlayer player, BlockPos center) {
+        long now = System.currentTimeMillis();
+        String cooldownKey = player.getUUID() + "|" + center.asLong();
+        Long last = dangerChats.get(cooldownKey);
+        if (last != null && now - last < DANGER_COOLDOWN_MS) return;
+
+        List<Monster> monsters = level.getEntitiesOfClass(Monster.class,
+                player.getBoundingBox().inflate(DANGER_RADIUS, 8.0D, DANGER_RADIUS),
+                m -> m.isAlive() && !m.isRemoved() && m.distanceToSqr(player) <= (double) (DANGER_RADIUS * DANGER_RADIUS));
+        if (monsters.isEmpty()) return;
+
+        Monster threat = monsters.get(level.getRandom().nextInt(monsters.size()));
+        List<Villager> witnesses = level.getEntitiesOfClass(Villager.class,
+                threat.getBoundingBox().inflate(DANGER_MONSTER_RADIUS),
+                v -> !v.isBaby() && v.isAlive() && !v.isRemoved()
+                        && v.distanceToSqr(player) <= 196.0D
+                        && v.distanceToSqr(threat) <= (double) (DANGER_MONSTER_RADIUS * DANGER_MONSTER_RADIUS));
+        if (witnesses.isEmpty()) return;
+
+        witnesses.sort((a, b) -> Double.compare(a.distanceToSqr(threat), b.distanceToSqr(threat)));
+        Villager speaker = witnesses.get(0);
+        Villager listener = null;
+        for (Villager candidate : witnesses) {
+            if (candidate == speaker) continue;
+            if (candidate.distanceToSqr(speaker) <= CHAT_MAX_PAIR_DISTANCE_SQR) {
+                listener = candidate;
+                break;
+            }
+        }
+
+        String lineKey = ModLang.randomLineKey(level.getRandom(), "villagediplomacy.life.chat.danger", 4);
+        if (lineKey == null) return;
+
+        dangerChats.put(cooldownKey, now);
+        if (dangerChats.size() > 256) dangerChats.clear();
+
+        speaker.getLookControl().setLookAt(threat, 50.0F, 40.0F);
+        playerChats.put(player.getUUID(), now);
+
+        if (listener != null) {
+            listener.getLookControl().setLookAt(threat, 50.0F, 40.0F);
+            ModLang.sendChatLine(player, speaker, listener, lineKey);
+            pairChats.put(pairKey(speaker.getUUID(), listener.getUUID()), now);
+            pendingReplies.add(new PendingReply(now + 1_800L + level.getRandom().nextInt(1_400),
+                    listener.getUUID(), speaker.getUUID(), "villagediplomacy.life.reply.war"));
+        } else {
+            ModLang.sendChatLine(player, speaker, null, lineKey);
+        }
     }
 
     private static void tickGolems(ServerLevel level, ServerPlayer player) {
@@ -596,36 +687,59 @@ public final class VillageLifeHandler {
             // innkeeper is placed back at the inn instead of pacing forever.
             boolean stuck = now - tracker.since() > 8000L && distance > 144.0D;
             boolean farAway = distance > INN_TELEPORT_SQR;
-            if ((farAway || stuck) && level.isLoaded(anchor)) {
-                BlockPos spot = nextTo(level, anchor);
-                if (spot != null) {
-                    innkeeper.teleportTo(spot.getX() + 0.5D, spot.getY(), spot.getZ() + 0.5D);
-                    innkeeper.getNavigation().stop();
-                    innTrackers.put(id, new InnTracker(spot, now));
-                    continue;
-                }
+            BlockPos goal = nextTo(level, anchor);
+            if ((farAway || stuck) && goal != null && level.isLoaded(anchor)) {
+                innkeeper.teleportTo(goal.getX() + 0.5D, goal.getY(), goal.getZ() + 0.5D);
+                innkeeper.getNavigation().stop();
+                innTrackers.put(id, new InnTracker(goal, now));
+                continue;
             }
 
             innkeeper.getBrain().setMemory(MemoryModuleType.WALK_TARGET,
-                    new WalkTarget(anchor, 0.55F, 2));
+                    new WalkTarget(goal != null ? goal : anchor, 0.55F, 2));
         }
     }
 
+    /**
+     * A real standing spot next to the inn bed: on the bed or at its side, never a
+     * two-block pocket carved inside a wall. The innkeeper used to be put back
+     * inside a wall or over water and stayed there without a path out.
+     */
     private static BlockPos nextTo(ServerLevel level, BlockPos anchor) {
-        int[][] offsets = { { 1, 0 }, { -1, 0 }, { 0, 1 }, { 0, -1 }, { 0, 0 } };
-        for (int[] offset : offsets) {
-            BlockPos base = anchor.offset(offset[0], 0, offset[1]);
-            for (int dy = 1; dy >= -2; dy--) {
-                BlockPos pos = base.offset(0, dy, 0);
-                if (!level.isLoaded(pos)) break;
-                if (level.getBlockState(pos).isAir()
-                        && level.getBlockState(pos.above()).isAir()
-                        && level.getBlockState(pos.below()).isSolidRender(level, pos.below())) {
-                    return pos;
-                }
-            }
+        List<BlockPos> candidates = new ArrayList<>();
+        candidates.add(anchor.above());
+
+        BlockState state = level.getBlockState(anchor);
+        if (state.getBlock() instanceof BedBlock) {
+            Direction facing = state.getValue(BedBlock.FACING);
+            candidates.add(anchor.relative(facing.getClockWise()));
+            candidates.add(anchor.relative(facing.getCounterClockWise()));
+        }
+        for (Direction direction : Direction.Plane.HORIZONTAL) {
+            candidates.add(anchor.relative(direction));
+        }
+        candidates.add(anchor.offset(1, 0, 1));
+        candidates.add(anchor.offset(1, 0, -1));
+        candidates.add(anchor.offset(-1, 0, 1));
+        candidates.add(anchor.offset(-1, 0, -1));
+
+        for (BlockPos pos : candidates) {
+            if (!level.isLoaded(pos)) continue;
+            if (!isStandable(level, pos)) continue;
+            if (!isOpenAround(level, pos)) continue;
+            return pos;
         }
         return null;
+    }
+
+    /** Rejects one-block holes inside a wall that would leave the villager stuck. */
+    private static boolean isOpenAround(ServerLevel level, BlockPos pos) {
+        int open = 0;
+        for (Direction direction : Direction.Plane.HORIZONTAL) {
+            BlockPos side = pos.relative(direction);
+            if (!level.getBlockState(side).isSuffocating(level, side)) open++;
+        }
+        return open >= 3;
     }
 
     private static void celebrate(ServerLevel level, VillageRelationshipData relations, String villageId,

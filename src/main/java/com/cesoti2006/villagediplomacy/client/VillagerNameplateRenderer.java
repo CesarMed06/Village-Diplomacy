@@ -70,7 +70,7 @@ public final class VillagerNameplateRenderer {
             plate = villagerPlate(villager, identity);
             if (!identity.mood().isEmpty()) {
                 moodLine = Component.translatable("villagediplomacy.mood." + identity.mood())
-                        .withStyle(ChatFormatting.DARK_GRAY);
+                        .withStyle(ChatFormatting.GRAY);
             }
         } else if (entity instanceof IronGolem golem) {
             plate = ModLang.golemTag(golem);
@@ -112,7 +112,7 @@ public final class VillagerNameplateRenderer {
         } else {
             label = ModLang.professionName(villager.getVillagerData().getProfession());
             labelColor = ModLang.professionColor(villager.getVillagerData().getProfession());
-            nameColor = ChatFormatting.GOLD;
+            nameColor = ModLang.nameColor(identity.uuid());
         }
 
         MutableComponent plate = Component.literal("[").withStyle(ChatFormatting.DARK_GRAY)

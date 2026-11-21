@@ -2672,7 +2672,7 @@
   "villagediplomacy.golem.reply.golem.0": "*Strikes the ground once.*",
   "villagediplomacy.golem.reply.golem.1": "*Takes its place by the gate.*",
   "villagediplomacy.golem.reply.golem.2": "*Answers with a low hum.*",
-  "villagediplomacy.prof.none": "Neighbor",
+  "villagediplomacy.prof.none": "Unemployed",
   "villagediplomacy.tag.golem": "Golem",
   "villagediplomacy.golem.name": "Guardian %s",
   "villagediplomacy.config.not_loaded": "Settings are not loaded.",
@@ -2696,9 +2696,14 @@
   "villagediplomacy.config.option.nameplateRange": "Nameplate range (blocks)",
   "villagediplomacy.config.desc.enableNameplates": "Draws the mod's own plates above villagers and golems instead of vanilla name tags.",
   "villagediplomacy.config.desc.nameplateRange": "How far the plates are visible. Lower it if a crowded village stutters.",
-  "villagediplomacy.mood.cheerful": "cheerful",
-  "villagediplomacy.mood.gruff": "gruff",
-  "villagediplomacy.mood.tired": "tired",
-  "villagediplomacy.mood.proud": "proud",
-  "villagediplomacy.mood.shy": "shy"
+  "villagediplomacy.mood.cheerful": "Cheerful",
+  "villagediplomacy.mood.gruff": "Gruff",
+  "villagediplomacy.mood.tired": "Tired",
+  "villagediplomacy.mood.proud": "Proud",
+  "villagediplomacy.mood.shy": "Shy",
+  "villagediplomacy.config.edit_hint": "Click a number to type it.",
+  "villagediplomacy.life.chat.danger.0": "Careful! Something is prowling around here!",
+  "villagediplomacy.life.chat.danger.1": "To arms! There is a monster on the loose!",
+  "villagediplomacy.life.chat.danger.2": "Everyone inside! I saw something move!",
+  "villagediplomacy.life.chat.danger.3": "Someone warn the golem, quickly!"
 }

@@ -2672,7 +2672,7 @@
   "villagediplomacy.golem.reply.golem.0": "*Ударяет по земле один раз.*",
   "villagediplomacy.golem.reply.golem.1": "*Встаёт у ворот.*",
   "villagediplomacy.golem.reply.golem.2": "*Отвечает низким гулом.*",
-  "villagediplomacy.prof.none": "Сосед",
+  "villagediplomacy.prof.none": "Безработный",
   "villagediplomacy.tag.golem": "Голем",
   "villagediplomacy.golem.name": "Стражник %s",
   "villagediplomacy.config.not_loaded": "Настройки не загружены.",
@@ -2696,9 +2696,14 @@
   "villagediplomacy.config.option.nameplateRange": "Дальность табличек (блоки)",
   "villagediplomacy.config.desc.enableNameplates": "Рисует собственные таблички мода над жителями и големами вместо ванильных.",
   "villagediplomacy.config.desc.nameplateRange": "Насколько далеко видны таблички. Уменьши, если людная деревня тормозит.",
-  "villagediplomacy.mood.cheerful": "в хорошем настроении",
-  "villagediplomacy.mood.gruff": "не в духе",
-  "villagediplomacy.mood.tired": "устал",
-  "villagediplomacy.mood.proud": "горд",
-  "villagediplomacy.mood.shy": "застенчив"
+  "villagediplomacy.mood.cheerful": "В хорошем настроении",
+  "villagediplomacy.mood.gruff": "Не в духе",
+  "villagediplomacy.mood.tired": "Устал",
+  "villagediplomacy.mood.proud": "Горд",
+  "villagediplomacy.mood.shy": "Застенчив",
+  "villagediplomacy.config.edit_hint": "Нажмите на число, чтобы ввести его.",
+  "villagediplomacy.life.chat.danger.0": "Осторожно! Здесь что-то бродит!",
+  "villagediplomacy.life.chat.danger.1": "К оружию! Монстр на свободе!",
+  "villagediplomacy.life.chat.danger.2": "Все внутрь! Я видел, как что-то двинулось!",
+  "villagediplomacy.life.chat.danger.3": "Кто-нибудь, предупредите голема, живо!"
 }

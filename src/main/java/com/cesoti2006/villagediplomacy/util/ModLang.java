@@ -30,9 +30,15 @@ public final class ModLang {
     private static final ChatFormatting COLOR_NAME_INNKEEPER = ChatFormatting.LIGHT_PURPLE;
     private static final ChatFormatting COLOR_INNKEEPER_TAG  = ChatFormatting.AQUA;
     private static final ChatFormatting COLOR_GOLEM_TAG      = ChatFormatting.DARK_AQUA;
-    private static final ChatFormatting COLOR_GOLEM_NAME     = ChatFormatting.GRAY;
+    private static final ChatFormatting COLOR_GOLEM_NAME     = ChatFormatting.AQUA;
     private static final ChatFormatting COLOR_PROFESSION_DEFAULT = ChatFormatting.GRAY;
     private static final ChatFormatting COLOR_PLAYER_NAME    = ChatFormatting.WHITE;
+
+    /** Bright colours only: every neighbour gets one so they are easy to tell apart. */
+    private static final ChatFormatting[] NAME_PALETTE = {
+        ChatFormatting.GOLD, ChatFormatting.YELLOW, ChatFormatting.GREEN,
+        ChatFormatting.AQUA, ChatFormatting.LIGHT_PURPLE, ChatFormatting.WHITE
+    };
 
     private static final String LANG_RESOURCE = "/assets/villagediplomacy/lang/en_us.json";
 
@@ -196,6 +202,11 @@ public final class ModLang {
         return null;
     }
 
+    /** A stable colour per villager, so the same neighbour always looks the same. */
+    public static ChatFormatting nameColor(java.util.UUID uuid) {
+        return NAME_PALETTE[Math.floorMod(uuid.hashCode(), NAME_PALETTE.length)];
+    }
+
     private static boolean isInnkeeper(AbstractVillager villager) {
         if (!(villager instanceof net.minecraft.world.entity.npc.Villager v)) return false;
         if (!(v.level() instanceof net.minecraft.server.level.ServerLevel level)) return false;
@@ -206,7 +217,7 @@ public final class ModLang {
         String name = plainName(villager);
         if (name != null) {
             return Component.literal(name)
-                    .withStyle(isInnkeeper(villager) ? COLOR_NAME_INNKEEPER : COLOR_VILLAGER_NAME);
+                    .withStyle(isInnkeeper(villager) ? COLOR_NAME_INNKEEPER : nameColor(villager.getUUID()));
         }
         if (villager instanceof net.minecraft.world.entity.npc.Villager v) {
             return professionName(v.getVillagerData().getProfession())
@@ -288,7 +299,7 @@ public final class ModLang {
         if (name != null) {
             tag.append(Component.literal(" "))
                     .append(Component.literal(name)
-                            .withStyle(innkeeper ? COLOR_NAME_INNKEEPER : COLOR_VILLAGER_NAME));
+                            .withStyle(innkeeper ? COLOR_NAME_INNKEEPER : nameColor(villager.getUUID())));
         }
         return tag;
     }

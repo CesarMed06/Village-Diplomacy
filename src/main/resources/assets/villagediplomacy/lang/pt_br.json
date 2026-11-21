@@ -2691,5 +2691,14 @@
   "villagediplomacy.config.desc.reputationDecayPerDay": "Reputação perdida a cada dia que passa.",
   "villagediplomacy.config.desc.repTrade": "Reputação ganha em cada troca justa.",
   "villagediplomacy.config.desc.repKillHostileBase": "Reputação ganha ao matar monstros perto da vila.",
-  "villagediplomacy.config.desc.repKillVillager": "Reputação perdida ao matar um aldeão."
+  "villagediplomacy.config.desc.repKillVillager": "Reputação perdida ao matar um aldeão.",
+  "villagediplomacy.config.option.enableNameplates": "Etiquetas próprias",
+  "villagediplomacy.config.option.nameplateRange": "Distância das etiquetas (blocos)",
+  "villagediplomacy.config.desc.enableNameplates": "Desenha as etiquetas do mod sobre aldeões e golens em vez das do vanilla.",
+  "villagediplomacy.config.desc.nameplateRange": "Até onde as etiquetas aparecem. Diminua se uma vila cheia travar.",
+  "villagediplomacy.mood.cheerful": "de bom humor",
+  "villagediplomacy.mood.gruff": "mal-humorado",
+  "villagediplomacy.mood.tired": "cansado",
+  "villagediplomacy.mood.proud": "orgulhoso",
+  "villagediplomacy.mood.shy": "tímido"
 }

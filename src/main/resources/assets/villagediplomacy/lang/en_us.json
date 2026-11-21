@@ -2691,5 +2691,14 @@
   "villagediplomacy.config.desc.reputationDecayPerDay": "Reputation you lose with every day that passes.",
   "villagediplomacy.config.desc.repTrade": "Reputation gained from each fair trade.",
   "villagediplomacy.config.desc.repKillHostileBase": "Reputation gained for killing monsters near the village.",
-  "villagediplomacy.config.desc.repKillVillager": "Reputation lost for killing a villager."
+  "villagediplomacy.config.desc.repKillVillager": "Reputation lost for killing a villager.",
+  "villagediplomacy.config.option.enableNameplates": "Own nameplates",
+  "villagediplomacy.config.option.nameplateRange": "Nameplate range (blocks)",
+  "villagediplomacy.config.desc.enableNameplates": "Draws the mod's own plates above villagers and golems instead of vanilla name tags.",
+  "villagediplomacy.config.desc.nameplateRange": "How far the plates are visible. Lower it if a crowded village stutters.",
+  "villagediplomacy.mood.cheerful": "cheerful",
+  "villagediplomacy.mood.gruff": "gruff",
+  "villagediplomacy.mood.tired": "tired",
+  "villagediplomacy.mood.proud": "proud",
+  "villagediplomacy.mood.shy": "shy"
 }

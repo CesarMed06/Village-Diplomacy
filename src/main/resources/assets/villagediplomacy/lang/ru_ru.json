@@ -2691,5 +2691,14 @@
   "villagediplomacy.config.desc.reputationDecayPerDay": "Репутация, которую ты теряешь каждый день.",
   "villagediplomacy.config.desc.repTrade": "Репутация за каждую честную сделку.",
   "villagediplomacy.config.desc.repKillHostileBase": "Репутация за убийство монстров у деревни.",
-  "villagediplomacy.config.desc.repKillVillager": "Репутация, которую ты теряешь за убийство жителя."
+  "villagediplomacy.config.desc.repKillVillager": "Репутация, которую ты теряешь за убийство жителя.",
+  "villagediplomacy.config.option.enableNameplates": "Свои таблички",
+  "villagediplomacy.config.option.nameplateRange": "Дальность табличек (блоки)",
+  "villagediplomacy.config.desc.enableNameplates": "Рисует собственные таблички мода над жителями и големами вместо ванильных.",
+  "villagediplomacy.config.desc.nameplateRange": "Насколько далеко видны таблички. Уменьши, если людная деревня тормозит.",
+  "villagediplomacy.mood.cheerful": "в хорошем настроении",
+  "villagediplomacy.mood.gruff": "не в духе",
+  "villagediplomacy.mood.tired": "устал",
+  "villagediplomacy.mood.proud": "горд",
+  "villagediplomacy.mood.shy": "застенчив"
 }

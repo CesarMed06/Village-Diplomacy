@@ -37,7 +37,7 @@ public class VillageConfigScreen extends Screen {
             0xFF5FCB7E, 0xFFE0B040, 0xFF4FC3D9, 0xFFB07CE8
     };
 
-    private static final int ROW_H = 24;
+    private static final int ROW_H = 22;
     private static final int ROW_GAP = 3;
 
     private static final int PANEL_BG = 0xF00E1014;
@@ -113,10 +113,12 @@ public class VillageConfigScreen extends Screen {
                     Option.slider("villageEnterRadius", Items.COMPASS, config.villageEnterRadius, 16, 256, 4),
                     Option.slider("villageExitConfirmRadius", Items.MAP, config.villageExitConfirmRadius, 32, 512, 4),
                     Option.slider("customVillageRadius", Items.STONE_BRICKS, config.customVillageRadius, 16, 128, 4),
-                    Option.toggle("enableEntryMessages", Items.OAK_SIGN, config.enableEntryMessages));
+                    Option.toggle("enableEntryMessages", Items.OAK_SIGN, config.enableEntryMessages),
+                    Option.slider("nameplateRange", Items.SPYGLASS, config.nameplateRange, 8, 48, 2));
             case 2 -> List.of(
                     Option.toggle("enablePersonalities", Items.NAME_TAG, config.enablePersonalities),
                     Option.toggle("enableGolemPersonalities", Items.IRON_BLOCK, config.enableGolemPersonalities),
+                    Option.toggle("enableNameplates", Items.ITEM_FRAME, config.enableNameplates),
                     Option.toggle("enableVillageRelations", Items.MAP, config.enableVillageRelations),
                     Option.toggle("enableGuardAttacks", Items.IRON_SWORD, config.enableGuardAttacks));
             default -> List.of(
@@ -138,8 +140,6 @@ public class VillageConfigScreen extends Screen {
         graphics.fill(width / 2 - 120, 58, width / 2 + 120, 59, (accent & 0x00FFFFFF) | 0x99000000);
 
         roundedBox(graphics, panelX, panelY, panelW, panelH, PANEL_BG, PANEL_BORDER);
-        graphics.drawString(font, Component.translatable(TAB_KEYS[tab]).withStyle(ChatFormatting.BOLD),
-                panelX + 14, panelY + panelH - 16, accent, false);
 
         if (!VillageDiplomacyConfig.SPEC.isLoaded()) {
             graphics.drawCenteredString(font, Component.translatable("villagediplomacy.config.not_loaded"),
@@ -257,8 +257,8 @@ public class VillageConfigScreen extends Screen {
             roundedBox(graphics, getX(), getY(), width, height,
                     hover ? ROW_BG_HOVER : ROW_BG, hover ? accent : ROW_BORDER);
 
-            graphics.renderItem(option.icon(), getX() + 8, getY() + 4);
-            graphics.drawString(font, getMessage(), getX() + 30, getY() + 5, TEXT, false);
+            graphics.renderItem(option.icon(), getX() + 8, getY() + 3);
+            graphics.drawString(font, getMessage(), getX() + 30, getY() + 4, TEXT, false);
 
             boolean enabled;
             String state;
@@ -273,14 +273,14 @@ public class VillageConfigScreen extends Screen {
 
             int chipWidth = font.width(state) + 10;
             int chipX = getX() + width - chipWidth - 8;
-            roundedBox(graphics, chipX, getY() + 5, chipWidth, 14,
+            roundedBox(graphics, chipX, getY() + 4, chipWidth, 14,
                     enabled ? 0xFF1E3A29 : 0xFF1C2027, enabled ? accent : ROW_BORDER);
-            graphics.drawString(font, state, chipX + 5, getY() + 8,
+            graphics.drawString(font, state, chipX + 5, getY() + 7,
                     enabled ? accent : TEXT_DIM, false);
 
             if (option.slider() != null) {
                 int trackX = getX() + 30;
-                int trackY = getY() + height - 6;
+                int trackY = getY() + height - 5;
                 int trackWidth = Math.max(24, chipX - 8 - trackX);
                 graphics.fill(trackX, trackY, trackX + trackWidth, trackY + 2, 0xFF2A3038);
 

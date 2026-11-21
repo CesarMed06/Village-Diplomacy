@@ -2691,5 +2691,14 @@
   "villagediplomacy.config.desc.reputationDecayPerDay": "Reputación que pierdes con cada día que pasa.",
   "villagediplomacy.config.desc.repTrade": "Reputación que ganas con cada comercio justo.",
   "villagediplomacy.config.desc.repKillHostileBase": "Reputación que ganas al matar monstruos cerca de la aldea.",
-  "villagediplomacy.config.desc.repKillVillager": "Reputación que pierdes al matar a un aldeano."
+  "villagediplomacy.config.desc.repKillVillager": "Reputación que pierdes al matar a un aldeano.",
+  "villagediplomacy.config.option.enableNameplates": "Etiquetas propias",
+  "villagediplomacy.config.option.nameplateRange": "Distancia de etiquetas (bloques)",
+  "villagediplomacy.config.desc.enableNameplates": "Dibuja las etiquetas del mod sobre aldeanos y gólems en lugar de las de vanilla.",
+  "villagediplomacy.config.desc.nameplateRange": "Hasta dónde se ven las etiquetas. Bájalo si una aldea llena va a tirones.",
+  "villagediplomacy.mood.cheerful": "de buen humor",
+  "villagediplomacy.mood.gruff": "de mal humor",
+  "villagediplomacy.mood.tired": "cansado",
+  "villagediplomacy.mood.proud": "orgulloso",
+  "villagediplomacy.mood.shy": "tímido"
 }

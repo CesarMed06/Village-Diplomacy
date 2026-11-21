@@ -94,6 +94,9 @@ public class VillageDiplomacyConfig {
     public final ForgeConfigSpec.BooleanValue enableMarketDay;
     public final ForgeConfigSpec.BooleanValue enableVillagerChat;
 
+    public final ForgeConfigSpec.BooleanValue enableNameplates;
+    public final ForgeConfigSpec.IntValue nameplateRange;
+
     public final ForgeConfigSpec.IntValue placedBlockRetentionDays;
 
     static {
@@ -540,6 +543,20 @@ public class VillageDiplomacyConfig {
             .comment("Villagers chat with each other when you are close enough to listen.",
                      "Default: true")
             .define("enableVillagerChat", true);
+
+        this.enableNameplates = builder
+            .comment("Draw the mod's own nameplates above villagers and iron golems.",
+                     "These plates are rendered by the mod itself instead of relying on",
+                     "vanilla name tags, so they can show profession, name, mood and",
+                     "innkeeper status at the same time.",
+                     "Default: true")
+            .define("enableNameplates", true);
+
+        this.nameplateRange = builder
+            .comment("How far away (in blocks) a nameplate is drawn.",
+                     "Lower this in very crowded villages if you notice frame drops.",
+                     "Default: 20")
+            .defineInRange("nameplateRange", 20, 8, 48);
 
         builder.pop();
 

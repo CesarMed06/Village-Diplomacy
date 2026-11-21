@@ -9,7 +9,7 @@ import net.minecraftforge.network.simple.SimpleChannel;
 
 public final class VillageDiplomacyNetwork {
 
-    private static final String PROTOCOL = "2";
+    private static final String PROTOCOL = "3";
 
     private static boolean registered = false;
 
@@ -37,6 +37,11 @@ public final class VillageDiplomacyNetwork {
                 .decoder(CloseVillageHudPacket::new)
                 .consumerMainThread(CloseVillageHudPacket::handle)
                 .add();
+        CHANNEL.messageBuilder(SyncVillagerIdentityPacket.class, id++, NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(SyncVillagerIdentityPacket::write)
+                .decoder(SyncVillagerIdentityPacket::new)
+                .consumerMainThread(SyncVillagerIdentityPacket::handle)
+                .add();
     }
 
     public static void sendOpenHud(ServerPlayer player, String villageSerialized, int reputation, String relationKey) {
@@ -46,5 +51,11 @@ public final class VillageDiplomacyNetwork {
 
     public static void sendCloseHud(ServerPlayer player) {
         CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), new CloseVillageHudPacket());
+    }
+
+    public static void sendVillagerIdentity(ServerPlayer player, int entityId, java.util.UUID uuid,
+                                            String name, String mood, boolean innkeeper) {
+        CHANNEL.send(PacketDistributor.PLAYER.with(() -> player),
+                new SyncVillagerIdentityPacket(entityId, uuid, name, mood, innkeeper));
     }
 }

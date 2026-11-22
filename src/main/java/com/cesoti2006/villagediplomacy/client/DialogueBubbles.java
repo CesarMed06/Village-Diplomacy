@@ -68,6 +68,42 @@ public final class DialogueBubbles {
         return root;
     }
 
+    /** Number of visible characters in a line, ignoring the colour codes. */
+    public static int plainLength(String text) {
+        if (text == null) return 0;
+        int count = 0;
+        for (int i = 0; i < text.length(); i++) {
+            if (text.charAt(i) == '\u00a7' && i + 1 < text.length()) {
+                i++;
+                continue;
+            }
+            count++;
+        }
+        return count;
+    }
+
+    /**
+     * Cuts a line after a number of visible characters while keeping the colour
+     * codes intact, so the typewriter effect never shows a stray section sign.
+     */
+    public static String reveal(String text, int visible) {
+        if (text == null || visible <= 0) return "";
+        StringBuilder out = new StringBuilder(text.length());
+        int shown = 0;
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
+            if (c == '\u00a7' && i + 1 < text.length()) {
+                out.append(c).append(text.charAt(i + 1));
+                i++;
+                continue;
+            }
+            if (shown >= visible) break;
+            out.append(c);
+            shown++;
+        }
+        return out.toString();
+    }
+
     public static void clear() {
         BUBBLES.clear();
     }

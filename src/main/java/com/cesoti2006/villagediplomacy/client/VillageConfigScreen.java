@@ -18,6 +18,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -65,6 +66,9 @@ public class VillageConfigScreen extends Screen {
     private static final int TEXT_FAINT = 0xFF7E8995;
     private static final int SAVE_ACCENT = 0xFF6FD98A;
     private static final int WARN_ACCENT = 0xFFE3B44C;
+    private static final int DANGER_ACCENT = 0xFFD9534F;
+
+    private enum Tone { PRIMARY, NEUTRAL, DANGER }
 
     private final Screen parent;
     private final List<OptionRow> rows = new ArrayList<>();
@@ -125,10 +129,17 @@ public class VillageConfigScreen extends Screen {
         scroll = 0;
         layoutRows();
 
-        addRenderableWidget(new ProButton(width / 2 - 108, height - 38, 100, 22,
-                Component.translatable("villagediplomacy.config.reset"), false, this::resetDefaults));
-        addRenderableWidget(new ProButton(width / 2 + 8, height - 38, 116, 22,
-                Component.translatable("villagediplomacy.config.save"), true, this::saveAndClose));
+        int buttonY = height - 38;
+        int buttonWidth = Mth.clamp((width - 60) / 3, 70, 108);
+        int gap = 6;
+        int total = buttonWidth * 3 + gap * 2;
+        int startX = width / 2 - total / 2;
+        addRenderableWidget(new ProButton(startX, buttonY, buttonWidth, 20,
+                Component.translatable("villagediplomacy.config.reset"), Tone.NEUTRAL, this::resetDefaults));
+        addRenderableWidget(new ProButton(startX + buttonWidth + gap, buttonY, buttonWidth, 20,
+                Component.translatable("villagediplomacy.config.exit"), Tone.DANGER, this::discardAndClose));
+        addRenderableWidget(new ProButton(startX + (buttonWidth + gap) * 2, buttonY, buttonWidth, 20,
+                Component.translatable("villagediplomacy.config.save"), Tone.PRIMARY, this::saveAndClose));
     }
 
     private void rebuild() {
@@ -230,7 +241,7 @@ public class VillageConfigScreen extends Screen {
         return switch (tab) {
             case 0 -> List.of(
                     Option.toggle("enableVillageLife", Items.BELL, config.enableVillageLife, true, false),
-                    Option.toggle("enableBellRhythm", Items.CLOCK, config.enableBellRhythm, true, false),
+                    Option.toggle("enableBellRhythm", Items.NOTE_BLOCK, config.enableBellRhythm, true, false),
                     Option.toggle("enableMarketDay", Items.EMERALD, config.enableMarketDay, true, false),
                     Option.toggle("enableVillagerChat", Items.BOOK, config.enableVillagerChat, true, false),
                     Option.toggle("showDialogueInChat", Items.WRITABLE_BOOK, config.showDialogueInChat, true, false),
@@ -367,20 +378,25 @@ public class VillageConfigScreen extends Screen {
                 && mouseY >= widget.getY() && mouseY < widget.getY() + widget.getHeight();
     }
 
+    /** Closes the screen and puts every value back, without touching the file. */
+    private void discardAndClose() {
+        commitEdit();
+        saved = false;
+        onClose();
+    }
+
     private void saveAndClose() {
         commitEdit();
         if (!VillageDiplomacyConfig.SPEC.isLoaded()) {
             onClose();
             return;
         }
-        if (VillageDiplomacyConfig.SPEC.isLoaded()) {
-            VillageDiplomacyConfig.SPEC.save();
-        }
+        VillageDiplomacyConfig.SPEC.save();
         boolean reload = reloadChanged();
         saved = true;
         if (reload && minecraft != null && minecraft.player != null) {
-            minecraft.player.displayClientMessage(
-                    Component.translatable("villagediplomacy.config.reload_notice"), false);
+            minecraft.setScreen(new ReloadNoticeScreen(parent));
+            return;
         }
         onClose();
     }
@@ -653,13 +669,27 @@ public class VillageConfigScreen extends Screen {
         }
 
         private void renderTooltip(GuiGraphics graphics, int mouseX, int mouseY) {
-            MutableComponent tip = Component
-                    .translatable("villagediplomacy.config.desc." + option.key())
-                    .withStyle(ChatFormatting.GRAY);
-            tip.append(Component.literal("\n")).append(Component
-                    .translatable("villagediplomacy.config.default", option.defaultText())
-                    .withStyle(ChatFormatting.DARK_GRAY));
-            graphics.renderTooltip(font, tip, mouseX, mouseY);
+            List<FormattedCharSequence> desc = font.split(
+                    Component.translatable("villagediplomacy.config.desc." + option.key()), 186);
+            Component def = Component.translatable("villagediplomacy.config.default", option.defaultText());
+
+            int textWidth = font.width(def);
+            for (FormattedCharSequence line : desc) {
+                textWidth = Math.max(textWidth, font.width(line));
+            }
+
+            int boxWidth = textWidth + 14;
+            int boxHeight = desc.size() * 10 + 22;
+            int tooltipX = Mth.clamp(mouseX + 12, 4, width - boxWidth - 4);
+            int tooltipY = Mth.clamp(mouseY - 10, 4, height - boxHeight - 4);
+
+            roundedBox(graphics, tooltipX, tooltipY, boxWidth, boxHeight, 0xF2101418, accent);
+            int lineY = tooltipY + 6;
+            for (FormattedCharSequence line : desc) {
+                graphics.drawString(font, line, tooltipX + 7, lineY, 0xFFD7DEE6, false);
+                lineY += 10;
+            }
+            graphics.drawString(font, def, tooltipX + 7, lineY + 2, TEXT_FAINT, false);
         }
 
         private double fraction() {
@@ -683,27 +713,33 @@ public class VillageConfigScreen extends Screen {
 
     private final class ProButton extends AbstractWidget {
 
-        private final boolean primary;
+        private final Tone tone;
         private final Runnable action;
 
         private ProButton(int x, int y, int width, int height, Component message,
-                          boolean primary, Runnable action) {
+                          Tone tone, Runnable action) {
             super(x, y, width, height, message);
-            this.primary = primary;
+            this.tone = tone;
             this.action = action;
         }
 
         @Override
         protected void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
             boolean hover = isMouseOver(mouseX, mouseY);
-            int accent = primary ? SAVE_ACCENT : 0xFF8892A0;
-            roundedBox(graphics, getX(), getY(), width, height,
-                    primary
-                            ? (hover ? 0xFF23472F : 0xFF1B3324)
-                            : (hover ? 0xFF232833 : 0xFF191D24),
+            int accent = switch (tone) {
+                case PRIMARY -> SAVE_ACCENT;
+                case DANGER -> DANGER_ACCENT;
+                case NEUTRAL -> 0xFF8892A0;
+            };
+            int background = switch (tone) {
+                case PRIMARY -> hover ? 0xFF23472F : 0xFF1B3324;
+                case DANGER -> hover ? 0xFF3A1E1E : 0xFF241616;
+                case NEUTRAL -> hover ? 0xFF232833 : 0xFF191D24;
+            };
+            roundedBox(graphics, getX(), getY(), width, height, background,
                     hover ? accent : ROW_BORDER);
-            graphics.drawCenteredString(font, getMessage(), getX() + width / 2, getY() + 7,
-                    primary ? accent : TEXT);
+            graphics.drawCenteredString(font, getMessage(), getX() + width / 2, getY() + 6,
+                    tone == Tone.NEUTRAL && !hover ? TEXT : accent);
         }
 
         @Override

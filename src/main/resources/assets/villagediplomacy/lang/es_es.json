@@ -2741,5 +2741,17 @@
   "villagediplomacy.react.nitwit.2": "No hay trato. Si quieres chismes, eso sí tengo.",
   "villagediplomacy.react.inn.sneak.0": "El posadero no te ha visto. La cama está libre esta noche.",
   "villagediplomacy.react.inn.sneak.1": "Ni un ruido. Nadie te ha visto entrar.",
-  "villagediplomacy.react.inn.sneak.2": "Duerme rápido. El posadero vuelve al amanecer."
+  "villagediplomacy.react.inn.sneak.2": "Duerme rápido. El posadero vuelve al amanecer.",
+  "villagediplomacy.config.exit": "Salir sin guardar",
+  "villagediplomacy.config.reload_title": "Hace falta volver a entrar",
+  "villagediplomacy.config.reload_body": "Los ajustes se han guardado, pero los marcados como «Mundo» solo cambian al volver a entrar. Ve al menú y entra de nuevo al mundo para aplicarlos.",
+  "villagediplomacy.config.reload_ok": "Entendido",
+  "villagediplomacy.config.saved_hint": "Tus ajustes están guardados.",
+  "villagediplomacy.tag.bell": "Campana",
+  "villagediplomacy.life.chat.danger.strange.0": "¿Qué es eso? ¡Cuidado con ese %s!",
+  "villagediplomacy.life.chat.danger.strange.1": "Eso no es de por aquí... ¡Aléjate, %s!",
+  "villagediplomacy.life.chat.danger.strange.2": "No sé qué es %s, pero no me gusta nada.",
+  "villagediplomacy.react.inn.nobody.0": "Hoy no hay posadero en la posada. La cama es tuya.",
+  "villagediplomacy.react.inn.nobody.1": "Nadie lleva la posada esta noche. Duerme, que mañana hay faena.",
+  "villagediplomacy.react.inn.nobody.2": "No veo al posadero. Si nadie te ve, nadie te cobra."
 }

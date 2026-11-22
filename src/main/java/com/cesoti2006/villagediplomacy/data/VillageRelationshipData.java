@@ -270,6 +270,11 @@ public class VillageRelationshipData extends SavedData {
         return innkeeperUUIDs.get(villageId);
     }
 
+    /** True when the villager is the registered innkeeper of any village. */
+    public boolean isInnkeeper(UUID uuid) {
+        return uuid != null && innkeeperUUIDs.containsValue(uuid);
+    }
+
     public void setInnkeeperUUID(String villageId, UUID uuid) {
         if (uuid != null) {
             innkeeperUUIDs.put(villageId, uuid);

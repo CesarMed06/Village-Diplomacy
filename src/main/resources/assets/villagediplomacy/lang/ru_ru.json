@@ -2741,5 +2741,17 @@
   "villagediplomacy.react.nitwit.2": "Сделок не будет. А сплетен у меня полно.",
   "villagediplomacy.react.inn.sneak.0": "Трактирщик тебя не видел. Кровать свободна на эту ночь.",
   "villagediplomacy.react.inn.sneak.1": "Ни звука. Никто не видел, как ты вошёл.",
-  "villagediplomacy.react.inn.sneak.2": "Спи быстро. На рассвете трактирщик вернётся."
+  "villagediplomacy.react.inn.sneak.2": "Спи быстро. На рассвете трактирщик вернётся.",
+  "villagediplomacy.config.exit": "Выйти без сохранения",
+  "villagediplomacy.config.reload_title": "Нужно перезайти",
+  "villagediplomacy.config.reload_body": "Настройки сохранены, но пункты с пометкой «Мир» применяются только после повторного входа в мир. Выйдите в меню и зайдите снова, чтобы они вступили в силу.",
+  "villagediplomacy.config.reload_ok": "Понятно",
+  "villagediplomacy.config.saved_hint": "Ваши настройки сохранены.",
+  "villagediplomacy.tag.bell": "Колокол",
+  "villagediplomacy.life.chat.danger.strange.0": "Что это такое? Берегись, это %s!",
+  "villagediplomacy.life.chat.danger.strange.1": "Эта штука не отсюда... отойди, %s!",
+  "villagediplomacy.life.chat.danger.strange.2": "Не знаю, что такое %s, но мне это совсем не нравится.",
+  "villagediplomacy.react.inn.nobody.0": "Сегодня в гостинице нет хозяина. Кровать твоя.",
+  "villagediplomacy.react.inn.nobody.1": "Сегодня гостиницей никто не занимается. Спи, завтра много дел.",
+  "villagediplomacy.react.inn.nobody.2": "Я не вижу хозяина гостиницы. Если никто не увидит, никто и не возьмёт плату."
 }

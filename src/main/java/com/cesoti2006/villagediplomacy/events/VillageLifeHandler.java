@@ -23,6 +23,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
@@ -32,7 +33,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.animal.IronGolem;
 import net.minecraft.world.entity.ai.memory.WalkTarget;
-import net.minecraft.world.entity.monster.Monster;
+import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.block.BedBlock;
@@ -45,6 +46,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.level.LevelEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 public final class VillageLifeHandler {
@@ -73,7 +75,7 @@ public final class VillageLifeHandler {
     private static final int BELL_REACH_BELOW = 2;
     private static final int BELL_REACH_ABOVE = 2;
 
-    private static final long DANGER_COOLDOWN_MS = 90_000L;
+    private static final long DANGER_COOLDOWN_MS = 30_000L;
     private static final int DANGER_RADIUS = 18;
     private static final int DANGER_MONSTER_RADIUS = 14;
 
@@ -285,18 +287,17 @@ public final class VillageLifeHandler {
         ringer.getLookControl().setLookAt(bell.getX() + 0.5D, bell.getY() + 0.5D, bell.getZ() + 0.5D);
         ringer.swing(InteractionHand.MAIN_HAND, true);
 
-        // This is the same path a player click takes: the block entity starts
-        // shaking for everyone and plays the full toll. Doing it by hand sounded
-        // right but left the bell perfectly still.
+        // The server has to send the block event (that is what starts the swing
+        // on every client) and the sound itself. Calling onHit alone left the
+        // bell silent in game, so both halves are done explicitly here.
         BlockState bellState = level.getBlockState(bell);
-        if (level.getBlockEntity(bell) instanceof BellBlockEntity bellEntity) {
+        if (bellState.is(Blocks.BELL)) {
             Direction facing = bellState.hasProperty(BellBlock.FACING)
                     ? bellState.getValue(BellBlock.FACING) : Direction.NORTH;
-            bellEntity.onHit(facing);
-        } else {
-            level.playSound(null, bell.getX() + 0.5D, bell.getY() + 0.5D, bell.getZ() + 0.5D,
-                    SoundEvents.BELL_BLOCK, SoundSource.BLOCKS, 2.0F, 1.0F);
+            level.blockEvent(bell, bellState.getBlock(), 1, facing.get3DDataValue());
         }
+        level.playSound(null, bell.getX() + 0.5D, bell.getY() + 0.5D, bell.getZ() + 0.5D,
+                SoundEvents.BELL_BLOCK, SoundSource.BLOCKS, 2.0F, 1.0F);
 
         bellCalls.remove(bellKey);
         bellRungTags.put(bellKey, call.day() + "|" + call.phase());
@@ -340,10 +341,13 @@ public final class VillageLifeHandler {
         int count = ModLang.variantCount(keyPrefix, 3);
         if (count <= 0) return;
 
-        Component message = Component.translatable(
-                keyPrefix + "." + level.getRandom().nextInt(count),
-                ModLang.villageName(relations.getVillageName(villageId)),
-                ModLang.displayName(ringer));
+        Component message = Component.literal("[").withStyle(ChatFormatting.DARK_GRAY)
+                .append(Component.translatable("villagediplomacy.tag.bell").withStyle(ChatFormatting.GOLD))
+                .append(Component.literal("] ").withStyle(ChatFormatting.DARK_GRAY))
+                .append(Component.translatable(
+                        keyPrefix + "." + level.getRandom().nextInt(count),
+                        ModLang.villageName(relations.getVillageName(villageId)),
+                        ModLang.displayName(ringer)).withStyle(ChatFormatting.GRAY));
 
         for (ServerPlayer player : level.players()) {
             if (player.blockPosition().distSqr(bell) <= BELL_MESSAGE_RADIUS * BELL_MESSAGE_RADIUS) {
@@ -512,16 +516,23 @@ public final class VillageLifeHandler {
      */
     private static void tickDanger(ServerLevel level, ServerPlayer player, BlockPos center) {
         long now = System.currentTimeMillis();
-        String cooldownKey = player.getUUID() + "|" + center.asLong();
+
+        // Enemy covers hostile modded mobs too, not only vanilla Monster subclasses.
+        List<Entity> monsters = level.getEntitiesOfClass(Entity.class,
+                player.getBoundingBox().inflate(DANGER_RADIUS, 8.0D, DANGER_RADIUS),
+                m -> m instanceof Enemy && m.isAlive() && !m.isRemoved()
+                        && m.distanceToSqr(player) <= (double) (DANGER_RADIUS * DANGER_RADIUS));
+        if (monsters.isEmpty()) return;
+
+        Entity threat = monsters.get(level.getRandom().nextInt(monsters.size()));
+        String category = dangerCategory(threat);
+
+        // One cooldown per kind of threat: a zombie no longer silences the
+        // warning for the creeper standing next to it.
+        String cooldownKey = player.getUUID() + "|" + category;
         Long last = dangerChats.get(cooldownKey);
         if (last != null && now - last < DANGER_COOLDOWN_MS) return;
 
-        List<Monster> monsters = level.getEntitiesOfClass(Monster.class,
-                player.getBoundingBox().inflate(DANGER_RADIUS, 8.0D, DANGER_RADIUS),
-                m -> m.isAlive() && !m.isRemoved() && m.distanceToSqr(player) <= (double) (DANGER_RADIUS * DANGER_RADIUS));
-        if (monsters.isEmpty()) return;
-
-        Monster threat = monsters.get(level.getRandom().nextInt(monsters.size()));
         List<Villager> witnesses = level.getEntitiesOfClass(Villager.class,
                 threat.getBoundingBox().inflate(DANGER_MONSTER_RADIUS),
                 v -> !v.isBaby() && v.isAlive() && !v.isRemoved()
@@ -540,7 +551,6 @@ public final class VillageLifeHandler {
             }
         }
 
-        String category = dangerCategory(threat);
         String lineKey = ModLang.randomLineKey(level.getRandom(),
                 "villagediplomacy.life.chat.danger." + category, 3);
         if (lineKey == null) return;
@@ -556,8 +566,12 @@ public final class VillageLifeHandler {
             listener.getLookControl().setLookAt(threat, 50.0F, 40.0F);
             ModLang.sendChatLine(player, speaker, listener, lineKey, monsterName);
             pairChats.put(pairKey(speaker.getUUID(), listener.getUUID()), now);
-            pendingReplies.add(new PendingReply(now + 1_800L + level.getRandom().nextInt(1_400),
-                    listener.getUUID(), speaker.getUUID(), "villagediplomacy.life.reply.danger"));
+            String replyKey = ModLang.randomLineKey(level.getRandom(),
+                    "villagediplomacy.life.reply.danger", 3);
+            if (replyKey != null) {
+                pendingReplies.add(new PendingReply(now + 1_800L + level.getRandom().nextInt(1_400),
+                        listener.getUUID(), speaker.getUUID(), replyKey));
+            }
         } else {
             ModLang.sendChatLine(player, speaker, null, lineKey, monsterName);
         }
@@ -569,8 +583,9 @@ public final class VillageLifeHandler {
      * name is passed into the translation, which keeps the line specific without
      * needing one key per entity.
      */
-    private static String dangerCategory(Monster monster) {
-        String id = BuiltInRegistries.ENTITY_TYPE.getKey(monster.getType()).getPath();
+    private static String dangerCategory(Entity threat) {
+        ResourceLocation key = BuiltInRegistries.ENTITY_TYPE.getKey(threat.getType());
+        String id = key.getPath();
         if (id.contains("zombie") || id.contains("skeleton") || id.contains("phantom")
                 || id.contains("drowned") || id.contains("husk") || id.contains("stray")
                 || id.contains("wither")) {
@@ -584,7 +599,23 @@ public final class VillageLifeHandler {
         if (id.contains("spider")) return "spider";
         if (id.contains("slime")) return "slime";
         if (id.contains("enderman")) return "enderman";
+        if (!"minecraft".equals(key.getNamespace())) return "strange";
         return "other";
+    }
+
+    /** Ring state is per server run: a new world or a reload starts from a clean slate. */
+    @SubscribeEvent
+    public static void onLevelLoad(LevelEvent.Load event) {
+        if (event.getLevel().isClientSide()) return;
+        bellCalls.clear();
+        bellRungTags.clear();
+        pairChats.clear();
+        playerChats.clear();
+        pendingReplies.clear();
+        pendingGolemReplies.clear();
+        golemChats.clear();
+        innTrackers.clear();
+        dangerChats.clear();
     }
 
     private static void tickGolems(ServerLevel level, ServerPlayer player) {

@@ -124,6 +124,10 @@ public final class InnkeeperHelper {
 
     public static boolean isInnkeeper(ServerLevel level, Villager villager) {
         VillageRelationshipData relData = VillageRelationshipData.get(level);
+        // The village a villager is standing in may have a different id than the
+        // one it was registered under, which is why some innkeepers had no tag at
+        // all. Any registration for this UUID counts.
+        if (relData.isInnkeeper(villager.getUUID())) return true;
         UUID stored = relData.getInnkeeperUUID(relData.getVillageId(villager.blockPosition()));
         return stored != null && stored.equals(villager.getUUID());
     }

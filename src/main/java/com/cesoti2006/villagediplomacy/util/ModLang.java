@@ -351,11 +351,13 @@ public final class ModLang {
      */
     private static void deliver(ServerPlayer player, Entity speaker, MutableComponent line, String body) {
         VillageDiplomacyConfig config = VillageDiplomacyConfig.INSTANCE;
-        boolean bubbles = config.showDialogueBubbles.get();
-        if (config.showDialogueInChat.get() || !bubbles) {
+        if (config.showDialogueInChat.get()) {
             player.sendSystemMessage(line);
         }
-        if (bubbles && speaker != null) {
+        // Bubbles are always sent: each player chooses in their own settings
+        // whether they want them, so one person turning them off cannot mute the
+        // village for everyone on the server.
+        if (speaker != null) {
             VillageDiplomacyNetwork.sendDialogueBubble(player, speaker.getId(), body, bubbleAccent(speaker));
         }
     }

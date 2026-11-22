@@ -2095,6 +2095,11 @@ public class VillagerEventHandler {
             if (innkeeper != null) {
                 ModLang.sendDialogRandom(player, level.getRandom(), innkeeper,
                         "villagediplomacy.react.inn.sneak", 3);
+            } else {
+                // No registered innkeeper: say so instead of letting the player
+                // sleep in complete silence and wonder whether anyone noticed.
+                ModLang.sendVillagerRandom(player, level.getRandom(),
+                        "villagediplomacy.react.inn.nobody", 3);
             }
             return;
         }

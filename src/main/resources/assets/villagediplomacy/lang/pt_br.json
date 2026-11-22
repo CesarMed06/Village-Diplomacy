@@ -2741,5 +2741,17 @@
   "villagediplomacy.react.nitwit.2": "Negócio não. Fofoca, tenho de sobra.",
   "villagediplomacy.react.inn.sneak.0": "O estalajadeiro não te viu. A cama está livre esta noite.",
   "villagediplomacy.react.inn.sneak.1": "Nem um som. Ninguém te viu entrar.",
-  "villagediplomacy.react.inn.sneak.2": "Durma rápido. O estalajadeiro volta ao amanhecer."
+  "villagediplomacy.react.inn.sneak.2": "Durma rápido. O estalajadeiro volta ao amanhecer.",
+  "villagediplomacy.config.exit": "Sair sem guardar",
+  "villagediplomacy.config.reload_title": "É preciso entrar de novo",
+  "villagediplomacy.config.reload_body": "As configurações foram salvas, mas as marcadas como «Mundo» só valem depois de entrar de novo no mundo. Vá ao menu e entre outra vez para aplicá-las.",
+  "villagediplomacy.config.reload_ok": "Entendi",
+  "villagediplomacy.config.saved_hint": "Suas configurações estão salvas.",
+  "villagediplomacy.tag.bell": "Sino",
+  "villagediplomacy.life.chat.danger.strange.0": "O que é isso? Cuidado com esse %s!",
+  "villagediplomacy.life.chat.danger.strange.1": "Isso não é daqui... afaste-se, %s!",
+  "villagediplomacy.life.chat.danger.strange.2": "Não sei o que é %s, mas não gosto nada disso.",
+  "villagediplomacy.react.inn.nobody.0": "Hoje não há estalajadeiro. A cama é sua.",
+  "villagediplomacy.react.inn.nobody.1": "Ninguém cuida da estalagem esta noite. Durma, amanhã há muito que fazer.",
+  "villagediplomacy.react.inn.nobody.2": "Não vejo o estalajadeiro. Se ninguém te vê, ninguém te cobra."
 }

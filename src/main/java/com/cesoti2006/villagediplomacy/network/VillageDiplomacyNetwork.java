@@ -9,7 +9,7 @@ import net.minecraftforge.network.simple.SimpleChannel;
 
 public final class VillageDiplomacyNetwork {
 
-    private static final String PROTOCOL = "3";
+    private static final String PROTOCOL = "4";
 
     private static boolean registered = false;
 
@@ -42,6 +42,11 @@ public final class VillageDiplomacyNetwork {
                 .decoder(SyncVillagerIdentityPacket::new)
                 .consumerMainThread(SyncVillagerIdentityPacket::handle)
                 .add();
+        CHANNEL.messageBuilder(DialogueBubblePacket.class, id++, NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(DialogueBubblePacket::write)
+                .decoder(DialogueBubblePacket::new)
+                .consumerMainThread(DialogueBubblePacket::handle)
+                .add();
     }
 
     public static void sendOpenHud(ServerPlayer player, String villageSerialized, int reputation, String relationKey) {
@@ -57,5 +62,10 @@ public final class VillageDiplomacyNetwork {
                                             String name, String mood, boolean innkeeper) {
         CHANNEL.send(PacketDistributor.PLAYER.with(() -> player),
                 new SyncVillagerIdentityPacket(entityId, uuid, name, mood, innkeeper));
+    }
+
+    public static void sendDialogueBubble(ServerPlayer player, int entityId, String text, int accent) {
+        CHANNEL.send(PacketDistributor.PLAYER.with(() -> player),
+                new DialogueBubblePacket(entityId, text, accent));
     }
 }

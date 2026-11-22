@@ -810,10 +810,7 @@ public class VillagerEventHandler {
             UUID pid = player.getUUID();
             playerLoginTime.remove(pid);
             playerInInnRange.remove(pid);
-            BlockPos logoutInnAnchor = innAnchorSeen.remove(pid);
-            if (logoutInnAnchor != null && player.level() instanceof ServerLevel logoutLevel) {
-                clearInnGlow(logoutLevel, logoutInnAnchor);
-            }
+            innAnchorSeen.remove(pid);
             lastVisitedVillage.remove(pid);
             lastVillageCenter.remove(pid);
             greetingCooldown.remove(pid);
@@ -2089,6 +2086,19 @@ public class VillagerEventHandler {
             return;
         }
 
+        // If the innkeeper is asleep, busy or simply cannot see the door, you can
+        // slip into his bed for free. He only charges when he actually catches you.
+        boolean unseen = innkeeper == null
+                || innkeeper.distanceToSqr(player) > 100.0D
+                || !hasLineOfSight(innkeeper, player, level);
+        if (unseen) {
+            if (innkeeper != null) {
+                ModLang.sendDialogRandom(player, level.getRandom(), innkeeper,
+                        "villagediplomacy.react.inn.sneak", 3);
+            }
+            return;
+        }
+
         if (reputation >= 100) {
             sendInnDialog(player, level.getRandom(), innkeeper,
                     "villagediplomacy.react.inn.free", 3);
@@ -3140,30 +3150,6 @@ public class VillagerEventHandler {
                 } else if (wasInRange != null) {
                     player.sendSystemMessage(Component.translatable("villagediplomacy.enter.inn_far"));
                 }
-                updateInnkeeperGlow(level, villagePos, anchor, inRange);
-            }
-        }
-    }
-
-    private static void updateInnkeeperGlow(ServerLevel level, BlockPos villagePos, BlockPos anchor, boolean inRange) {
-        if (inRange) {
-            Villager innkeeper = InnkeeperHelper.findInnkeeper(level, villagePos);
-            if (innkeeper != null) {
-                if (!innkeeper.isCurrentlyGlowing()) {
-                    innkeeper.setGlowingTag(true);
-                }
-                return;
-            }
-        }
-        clearInnGlow(level, anchor);
-    }
-
-    private static void clearInnGlow(ServerLevel level, BlockPos anchor) {
-        if (anchor == null) return;
-        for (Villager villager : level.getEntitiesOfClass(Villager.class,
-                new AABB(anchor).inflate(64.0D, 64.0D, 64.0D))) {
-            if (villager.isCurrentlyGlowing()) {
-                villager.setGlowingTag(false);
             }
         }
     }
@@ -3171,10 +3157,7 @@ public class VillagerEventHandler {
     private void forgetInn(ServerLevel level, ServerPlayer player) {
         UUID playerId = player.getUUID();
         playerInInnRange.remove(playerId);
-        BlockPos anchor = innAnchorSeen.remove(playerId);
-        if (anchor != null) {
-            clearInnGlow(level, anchor);
-        }
+        innAnchorSeen.remove(playerId);
     }
 
     private void giveRandomGifts(ServerPlayer player, ServerLevel level) {

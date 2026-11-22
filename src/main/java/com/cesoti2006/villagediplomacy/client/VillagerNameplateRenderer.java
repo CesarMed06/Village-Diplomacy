@@ -7,10 +7,14 @@ import com.mojang.blaze3d.vertex.PoseStack;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.animal.IronGolem;
@@ -23,6 +27,8 @@ import net.minecraftforge.eventbus.api.Event;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import org.joml.Matrix4f;
+
+import java.util.List;
 
 /**
  * Draws the mod's own nameplates. There is no vanilla name tag involved: the
@@ -98,6 +104,84 @@ public final class VillagerNameplateRenderer {
         }
 
         poseStack.popPose();
+
+        renderBubble(event, entity, minecraft, font);
+    }
+
+    /**
+     * Speech bubble above the nameplate. It is drawn by the client, so each player
+     * can choose between chat, bubbles or both, and the bubble never blocks the
+     * chat box while you are talking to someone.
+     */
+    private static void renderBubble(RenderLivingEvent.Post<?, ?> event, LivingEntity entity,
+                                     Minecraft minecraft, Font font) {
+        if (!VillageDiplomacyConfig.INSTANCE.showDialogueBubbles.get()) return;
+
+        DialogueBubbles.Bubble bubble = DialogueBubbles.get(entity.getId());
+        if (bubble == null) return;
+
+        long duration = Math.max(2, VillageDiplomacyConfig.INSTANCE.bubbleSeconds.get()) * 1000L;
+        long age = System.currentTimeMillis() - bubble.spokenAt();
+        if (age > duration) return;
+
+        int alpha = (int) (255L * Math.min(1.0D, (duration - age) / 600.0D));
+        alpha = Math.max(0, Math.min(255, alpha));
+        if (alpha <= 4) return;
+
+        List<FormattedCharSequence> lines = font.split(DialogueBubbles.styled(bubble.text()), 118);
+        if (lines.isEmpty()) return;
+
+        int textWidth = 0;
+        for (FormattedCharSequence line : lines) {
+            textWidth = Math.max(textWidth, font.width(line));
+        }
+        int width = textWidth + 10;
+        int height = lines.size() * 10 + 8;
+        float left = -width / 2.0F;
+        float top = 0.0F;
+
+        PoseStack poseStack = event.getPoseStack();
+        poseStack.pushPose();
+        poseStack.translate(0.0D, entity.getBbHeight() + 1.05D, 0.0D);
+        poseStack.mulPose(minecraft.getEntityRenderDispatcher().cameraOrientation());
+        poseStack.scale(-0.024F, -0.024F, 0.024F);
+        Matrix4f matrix = poseStack.last().pose();
+
+        int accent = (alpha << 24) | (bubble.accent() & 0x00FFFFFF);
+        int fill = (Math.min(alpha, 220) << 24) | 0x00101418;
+        MultiBufferSource buffers = event.getMultiBufferSource();
+        int light = event.getPackedLight();
+
+        // Border, body and a small tail pointing at the villager.
+        quad(buffers, matrix, left - 1, top - 1, left + width + 1, top + height + 1, accent, light);
+        quad(buffers, matrix, left, top, left + width, top + height, fill, light);
+        quad(buffers, matrix, -4, top + height, 4, top + height + 5, accent, light);
+        quad(buffers, matrix, -3, top + height, 3, top + height + 4, fill, light);
+
+        int textAlpha = alpha << 24;
+        int y = (int) top + 5;
+        for (FormattedCharSequence line : lines) {
+            int lineWidth = font.width(line);
+            font.drawInBatch(line, -(lineWidth / 2.0F), y, textAlpha | 0x00FFFFFF, false, matrix,
+                    buffers, Font.DisplayMode.NORMAL, 0, light);
+            y += 10;
+        }
+
+        poseStack.popPose();
+    }
+
+    private static void quad(MultiBufferSource buffers, Matrix4f matrix,
+                             float x0, float y0, float x1, float y1, int argb, int light) {
+        float a = ((argb >>> 24) & 0xFF) / 255.0F;
+        float r = ((argb >>> 16) & 0xFF) / 255.0F;
+        float g = ((argb >>> 8) & 0xFF) / 255.0F;
+        float b = (argb & 0xFF) / 255.0F;
+
+        VertexConsumer consumer = buffers.getBuffer(RenderType.textBackground());
+        consumer.vertex(matrix, x0, y1, 0.0F).color(r, g, b, a).uv(0.0F, 0.0F).uv2(light).endVertex();
+        consumer.vertex(matrix, x1, y1, 0.0F).color(r, g, b, a).uv(0.0F, 0.0F).uv2(light).endVertex();
+        consumer.vertex(matrix, x1, y0, 0.0F).color(r, g, b, a).uv(0.0F, 0.0F).uv2(light).endVertex();
+        consumer.vertex(matrix, x0, y0, 0.0F).color(r, g, b, a).uv(0.0F, 0.0F).uv2(light).endVertex();
     }
 
     private static Component villagerPlate(Villager villager, VillagerIdentityCache.Identity identity) {
@@ -129,6 +213,7 @@ public final class VillagerNameplateRenderer {
     public static void onLevelLoad(LevelEvent.Load event) {
         if (event.getLevel().isClientSide()) {
             VillagerIdentityCache.clear();
+            DialogueBubbles.clear();
         }
     }
 

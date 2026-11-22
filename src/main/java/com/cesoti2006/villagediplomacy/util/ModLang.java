@@ -10,7 +10,10 @@ import net.minecraft.world.entity.animal.IronGolem;
 import net.minecraft.world.entity.npc.AbstractVillager;
 import net.minecraft.world.entity.npc.WanderingTrader;
 
+import com.cesoti2006.villagediplomacy.config.VillageDiplomacyConfig;
 import com.cesoti2006.villagediplomacy.data.VillagerPersonalityData;
+import com.cesoti2006.villagediplomacy.network.VillageDiplomacyNetwork;
+import com.cesoti2006.villagediplomacy.personality.NameGenerator;
 import com.cesoti2006.villagediplomacy.personality.PersonalityTrait;
 import com.cesoti2006.villagediplomacy.personality.VillagerPersonality;
 import com.cesoti2006.villagediplomacy.reputation.ReputationTiersHandler;
@@ -41,6 +44,46 @@ public final class ModLang {
     };
 
     private static final String LANG_RESOURCE = "/assets/villagediplomacy/lang/en_us.json";
+
+    /**
+     * Words worth colouring inside a dialogue line. It covers the four bundled
+     * languages, so the same chat filters a Spanish, English, Portuguese or
+     * Russian line without needing per-language keys.
+     */
+    private static final java.util.regex.Pattern HIGHLIGHT = java.util.regex.Pattern.compile(
+        "(?iu)\\b(peligro|cuidado|atenci[o\u00f3]n|aten[c\u00e7][a\u00e3]o|danger|careful|\u043e\u0441\u0442\u043e\u0440\u043e\u0436\u043d\u043e|\u043e\u043f\u0430\u0441\u043d\u043e"
+        + "|monstruo|zombi|zombie|zombis|esqueleto|skeleton|saqueador|pillager|bruja|witch|creeper"
+        + "|ara[n\u00f1]a|spider|slime|enderman|fantasma|phantom|no-?muerto|undead|asalto|raid"
+        + "|esmeralda|esmeraldas|emerald|emeralds|\u0438\u0437\u0443\u043c\u0440\u0443\u0434"
+        + "|aldea|aldeanos|village|villagers|plaza|campana|bell"
+        + "|noche|night|tormenta|storm|lluvia|rain"
+        + "|hambre|oro|gold|hierro|iron)\\b");
+
+    private static final java.util.Map<String, String> HIGHLIGHT_COLORS = buildHighlightColors();
+
+    private static java.util.Map<String, String> buildHighlightColors() {
+        java.util.Map<String, String> colors = new java.util.HashMap<>();
+        for (String word : new String[]{ "peligro", "cuidado", "atenci\u00f3n", "aten\u00e7\u00e3o", "danger",
+                "careful", "\u043e\u0441\u0442\u043e\u0440\u043e\u0436\u043d\u043e", "\u043e\u043f\u0430\u0441\u043d\u043e",
+                "monstruo", "zombi", "zombie", "zombis", "esqueleto", "skeleton", "saqueador", "pillager",
+                "bruja", "witch", "creeper", "ara\u00f1a", "ara\u00f1a", "spider", "slime", "enderman",
+                "fantasma", "phantom", "no-muerto", "nomuerto", "undead", "asalto", "raid" }) {
+            colors.put(word, "c");
+        }
+        for (String word : new String[]{ "esmeralda", "esmeraldas", "emerald", "emeralds", "\u0438\u0437\u0443\u043c\u0440\u0443\u0434" }) {
+            colors.put(word, "a");
+        }
+        for (String word : new String[]{ "aldea", "aldeanos", "village", "villagers", "plaza", "campana", "bell" }) {
+            colors.put(word, "6");
+        }
+        for (String word : new String[]{ "noche", "night", "tormenta", "storm", "lluvia", "rain" }) {
+            colors.put(word, "b");
+        }
+        for (String word : new String[]{ "hambre", "oro", "gold", "hierro", "iron" }) {
+            colors.put(word, "e");
+        }
+        return colors;
+    }
 
     private static final java.util.Map<String, Integer> DIALOG_COUNTS = loadDialogCounts();
 
@@ -230,11 +273,21 @@ public final class ModLang {
         return Component.translatable("entity.minecraft.villager.none").withStyle(COLOR_VILLAGER_NAME);
     }
 
+    /**
+     * Iron golems are people too: they get a real name from the same generator as
+     * the villagers instead of a roman numeral, and it is derived from the UUID so
+     * every player sees the same golem called the same thing.
+     */
     public static MutableComponent golemName(IronGolem golem) {
-        String[] numerals = { "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX" };
-        String numeral = numerals[Math.floorMod(golem.getUUID().hashCode(), numerals.length)];
-        return Component.translatable("villagediplomacy.golem.name", Component.literal(numeral))
-                .withStyle(COLOR_GOLEM_NAME);
+        String biome = "plains";
+        if (golem.level() != null) {
+            biome = golem.level().getBiome(golem.blockPosition()).unwrapKey()
+                    .map(key -> key.location().getPath()).orElse("plains");
+        }
+        boolean male = (golem.getUUID().getLeastSignificantBits() & 1L) == 0L;
+        String[] names = NameGenerator.namesFor(biome, male);
+        String name = names[Math.floorMod(golem.getUUID().hashCode(), names.length)];
+        return Component.literal(name).withStyle(COLOR_GOLEM_NAME);
     }
 
     public static MutableComponent golemTag(IronGolem golem) {
@@ -257,9 +310,65 @@ public final class ModLang {
             msg.append(Component.literal(" \u2192 ").withStyle(COLOR_BRACKET))
                .append(entityTag(listener));
         }
+        String body = dialogueBody(key, args);
         msg.append(Component.literal(": ").withStyle(COLOR_BRACKET))
-           .append(Component.translatable(key, args).withStyle(COLOR_DIALOG));
-        player.sendSystemMessage(msg);
+           .append(Component.literal(body).withStyle(COLOR_DIALOG));
+        deliver(player, speaker, msg, body);
+    }
+
+    /**
+     * Builds the text of a line: section signs that old language files carry are
+     * removed so every line looks the same, then a few meaningful words get their
+     * own colour. This is what keeps one villager from printing a yellow line in
+     * the middle of an otherwise grey conversation.
+     */
+    public static String dialogueBody(String key, Object... args) {
+        return highlight(stripFormatting(Component.translatable(key, args).getString()));
+    }
+
+    public static String highlight(String text) {
+        if (text == null || text.isEmpty()) return "";
+        java.util.regex.Matcher matcher = HIGHLIGHT.matcher(text);
+        StringBuilder builder = new StringBuilder(text.length() + 32);
+        while (matcher.find()) {
+            String word = matcher.group();
+            String color = HIGHLIGHT_COLORS.get(word.toLowerCase(java.util.Locale.ROOT));
+            if (color == null) {
+                matcher.appendReplacement(builder, java.util.regex.Matcher.quoteReplacement(word));
+            } else {
+                matcher.appendReplacement(builder, java.util.regex.Matcher.quoteReplacement(
+                        "\u00a7" + color + word + "\u00a77"));
+            }
+        }
+        matcher.appendTail(builder);
+        return builder.toString();
+    }
+
+    /**
+     * Sends a dialogue line to its chat box and/or as a speech bubble. If the
+     * player turned both outputs off, chat is still used so no information is
+     * silently lost.
+     */
+    private static void deliver(ServerPlayer player, Entity speaker, MutableComponent line, String body) {
+        VillageDiplomacyConfig config = VillageDiplomacyConfig.INSTANCE;
+        boolean bubbles = config.showDialogueBubbles.get();
+        if (config.showDialogueInChat.get() || !bubbles) {
+            player.sendSystemMessage(line);
+        }
+        if (bubbles && speaker != null) {
+            VillageDiplomacyNetwork.sendDialogueBubble(player, speaker.getId(), body, bubbleAccent(speaker));
+        }
+    }
+
+    private static int bubbleAccent(Entity speaker) {
+        ChatFormatting color = null;
+        if (speaker instanceof AbstractVillager villager) {
+            color = isInnkeeper(villager) ? COLOR_NAME_INNKEEPER : nameColor(villager.getUUID());
+        } else if (speaker instanceof IronGolem) {
+            color = COLOR_GOLEM_TAG;
+        }
+        Integer rgb = color == null ? null : color.getColor();
+        return rgb == null ? 0xFFE3B44C : (0xFF000000 | rgb);
     }
 
     public static MutableComponent playerDisplayName(ServerPlayer player) {
@@ -389,8 +498,9 @@ public final class ModLang {
         int i = random.nextInt(n);
         AbstractVillager who = speaker != null ? speaker : nearestVillager(player, keyPrefix);
         MutableComponent prefix = who != null ? villagerPrefix(who) : genericVillagerPrefix();
-        player.sendSystemMessage(prefix.append(
-            Component.translatable(keyPrefix + "." + i, args).withStyle(COLOR_DIALOG)));
+        String body = dialogueBody(keyPrefix + "." + i, args);
+        deliver(player, who, prefix.append(
+            Component.literal(body).withStyle(COLOR_DIALOG)), body);
     }
 
     public static void sendVillagerRandom(ServerPlayer player, RandomSource random,
@@ -409,9 +519,10 @@ public final class ModLang {
     }
 
     public static void sendDialog(ServerPlayer player, AbstractVillager villager, String key, Object... args) {
+        String body = dialogueBody(key, args);
         MutableComponent msg = villagerPrefix(villager)
-            .append(Component.translatable(key, args).withStyle(COLOR_DIALOG));
-        player.sendSystemMessage(msg);
+            .append(Component.literal(body).withStyle(COLOR_DIALOG));
+        deliver(player, villager, msg, body);
     }
 
     public static void sendChatLine(ServerPlayer player, AbstractVillager speaker, AbstractVillager listener,
@@ -421,14 +532,16 @@ public final class ModLang {
             msg.append(Component.literal(" \u2192 ").withStyle(COLOR_BRACKET))
                 .append(villagerTag(listener));
         }
+        String body = dialogueBody(key, args);
         msg.append(Component.literal(": ").withStyle(COLOR_BRACKET))
-            .append(Component.translatable(key, args).withStyle(COLOR_DIALOG));
-        player.sendSystemMessage(msg);
+            .append(Component.literal(body).withStyle(COLOR_DIALOG));
+        deliver(player, speaker, msg, body);
     }
 
     public static void sendDialogVillager(ServerPlayer player, AbstractVillager villager, String key, Object... args) {
-        player.sendSystemMessage(villagerPrefix(villager)
-            .append(Component.translatable(key, args).withStyle(COLOR_DIALOG)));
+        String body = dialogueBody(key, args);
+        deliver(player, villager, villagerPrefix(villager)
+            .append(Component.literal(body).withStyle(COLOR_DIALOG)), body);
     }
 
     public static void sendDialogRandom(ServerPlayer player, RandomSource random,
@@ -445,15 +558,17 @@ public final class ModLang {
         int n = variantCount(keyPrefix, count);
         if (n <= 0) return;
         int i = random.nextInt(n);
+        String body = dialogueBody(keyPrefix + "." + i, args);
         MutableComponent msg = villagerPrefix(villager)
-            .append(Component.translatable(keyPrefix + "." + i, args).withStyle(COLOR_DIALOG));
-        player.sendSystemMessage(msg);
+            .append(Component.literal(body).withStyle(COLOR_DIALOG));
+        deliver(player, villager, msg, body);
     }
 
     public static void sendDialogNamed(ServerPlayer player, String name, String key, Object... args) {
+        String body = dialogueBody(key, args);
         MutableComponent msg = namedPrefix(name)
-            .append(Component.translatable(key, args).withStyle(COLOR_DIALOG));
-        player.sendSystemMessage(msg);
+            .append(Component.literal(body).withStyle(COLOR_DIALOG));
+        deliver(player, null, msg, body);
     }
 
     public static void sendDialogNamedRandom(ServerPlayer player, RandomSource random,
@@ -469,7 +584,7 @@ public final class ModLang {
         if (n <= 0) return;
         int i = random.nextInt(n);
         player.sendSystemMessage(
-            Component.translatable(keyPrefix + "." + i).withStyle(COLOR_DIALOG)
+            Component.literal(dialogueBody(keyPrefix + "." + i)).withStyle(COLOR_DIALOG)
         );
     }
 
@@ -479,7 +594,7 @@ public final class ModLang {
         if (n <= 0) return;
         int i = random.nextInt(n);
         player.sendSystemMessage(
-            Component.translatable(keyPrefix + "." + i, args).withStyle(COLOR_DIALOG)
+            Component.literal(dialogueBody(keyPrefix + "." + i, args)).withStyle(COLOR_DIALOG)
         );
     }
 

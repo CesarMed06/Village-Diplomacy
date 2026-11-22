@@ -141,7 +141,15 @@ public class TradeModifierHandler {
             if (!tradePitchCooldown.containsKey(player.getUUID())
                     || pitchNow - tradePitchCooldown.get(player.getUUID()) > TRADE_PITCH_COOLDOWN_MS) {
                 tradePitchCooldown.put(player.getUUID(), pitchNow);
-                ModLang.sendTradePitch(player, level.getRandom(), villager);
+                if (villager.getVillagerData().getProfession()
+                        == net.minecraft.world.entity.npc.VillagerProfession.NITWIT) {
+                    // A nitwit has no workstation and no offers: saying so is kinder
+                    // than opening an empty trade screen.
+                    ModLang.sendDialogRandom(player, level.getRandom(), villager,
+                            "villagediplomacy.react.nitwit", 3);
+                } else {
+                    ModLang.sendTradePitch(player, level.getRandom(), villager);
+                }
             }
 
             float multiplier = ReputationTiersHandler.getTradeMultiplier(reputation);

@@ -21,6 +21,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -35,7 +36,9 @@ import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.block.BedBlock;
+import net.minecraft.world.level.block.BellBlock;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.entity.BellBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
@@ -62,7 +65,7 @@ public final class VillageLifeHandler {
     private static final int VILLAGER_SEARCH_RADIUS = 96;
     private static final int BELL_MESSAGE_RADIUS = 48;
     private static final int BELL_GATHER_RADIUS = 40;
-    private static final int GATHER_MAX_VILLAGERS = 5;
+    private static final int GATHER_MAX_VILLAGERS = 1;
     private static final long BELL_CALL_MS = 26_000L;
     private static final int BELL_MAX_ATTEMPTS = 3;
     private static final double BELL_REACH_HORIZONTAL = 3.0D;
@@ -282,11 +285,18 @@ public final class VillageLifeHandler {
         ringer.getLookControl().setLookAt(bell.getX() + 0.5D, bell.getY() + 0.5D, bell.getZ() + 0.5D);
         ringer.swing(InteractionHand.MAIN_HAND, true);
 
-        // Real block event: the bell swings for everyone nearby. The toll itself is
-        // played explicitly so it still sounds if the block entity is not ticking.
-        level.blockEvent(bell, Blocks.BELL, 1, 0);
-        level.playSound(null, bell.getX() + 0.5D, bell.getY() + 0.5D, bell.getZ() + 0.5D,
-                SoundEvents.BELL_BLOCK, SoundSource.BLOCKS, 2.0F, 1.0F);
+        // This is the same path a player click takes: the block entity starts
+        // shaking for everyone and plays the full toll. Doing it by hand sounded
+        // right but left the bell perfectly still.
+        BlockState bellState = level.getBlockState(bell);
+        if (level.getBlockEntity(bell) instanceof BellBlockEntity bellEntity) {
+            Direction facing = bellState.hasProperty(BellBlock.FACING)
+                    ? bellState.getValue(BellBlock.FACING) : Direction.NORTH;
+            bellEntity.onHit(facing);
+        } else {
+            level.playSound(null, bell.getX() + 0.5D, bell.getY() + 0.5D, bell.getZ() + 0.5D,
+                    SoundEvents.BELL_BLOCK, SoundSource.BLOCKS, 2.0F, 1.0F);
+        }
 
         bellCalls.remove(bellKey);
         bellRungTags.put(bellKey, call.day() + "|" + call.phase());
@@ -530,8 +540,11 @@ public final class VillageLifeHandler {
             }
         }
 
-        String lineKey = ModLang.randomLineKey(level.getRandom(), "villagediplomacy.life.chat.danger", 4);
+        String category = dangerCategory(threat);
+        String lineKey = ModLang.randomLineKey(level.getRandom(),
+                "villagediplomacy.life.chat.danger." + category, 3);
         if (lineKey == null) return;
+        Component monsterName = Component.translatable(threat.getType().getDescriptionId());
 
         dangerChats.put(cooldownKey, now);
         if (dangerChats.size() > 256) dangerChats.clear();
@@ -541,13 +554,37 @@ public final class VillageLifeHandler {
 
         if (listener != null) {
             listener.getLookControl().setLookAt(threat, 50.0F, 40.0F);
-            ModLang.sendChatLine(player, speaker, listener, lineKey);
+            ModLang.sendChatLine(player, speaker, listener, lineKey, monsterName);
             pairChats.put(pairKey(speaker.getUUID(), listener.getUUID()), now);
             pendingReplies.add(new PendingReply(now + 1_800L + level.getRandom().nextInt(1_400),
-                    listener.getUUID(), speaker.getUUID(), "villagediplomacy.life.reply.war"));
+                    listener.getUUID(), speaker.getUUID(), "villagediplomacy.life.reply.danger"));
         } else {
-            ModLang.sendChatLine(player, speaker, null, lineKey);
+            ModLang.sendChatLine(player, speaker, null, lineKey, monsterName);
         }
+    }
+
+    /**
+     * Every kind of monster gets its own warning, so a creeper hissing at the
+     * door no longer triggers the same line as a zombie on the far wall. The mob
+     * name is passed into the translation, which keeps the line specific without
+     * needing one key per entity.
+     */
+    private static String dangerCategory(Monster monster) {
+        String id = BuiltInRegistries.ENTITY_TYPE.getKey(monster.getType()).getPath();
+        if (id.contains("zombie") || id.contains("skeleton") || id.contains("phantom")
+                || id.contains("drowned") || id.contains("husk") || id.contains("stray")
+                || id.contains("wither")) {
+            return "undead";
+        }
+        if (id.contains("creeper")) return "creeper";
+        if (id.contains("pillager") || id.contains("vindicator") || id.contains("evoker")
+                || id.contains("illusioner") || id.contains("ravager") || id.contains("witch")) {
+            return "raider";
+        }
+        if (id.contains("spider")) return "spider";
+        if (id.contains("slime")) return "slime";
+        if (id.contains("enderman")) return "enderman";
+        return "other";
     }
 
     private static void tickGolems(ServerLevel level, ServerPlayer player) {

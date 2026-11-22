@@ -97,6 +97,10 @@ public class VillageDiplomacyConfig {
     public final ForgeConfigSpec.BooleanValue enableNameplates;
     public final ForgeConfigSpec.IntValue nameplateRange;
 
+    public final ForgeConfigSpec.BooleanValue showDialogueInChat;
+    public final ForgeConfigSpec.BooleanValue showDialogueBubbles;
+    public final ForgeConfigSpec.IntValue bubbleSeconds;
+
     public final ForgeConfigSpec.IntValue placedBlockRetentionDays;
 
     static {
@@ -543,6 +547,24 @@ public class VillageDiplomacyConfig {
             .comment("Villagers chat with each other when you are close enough to listen.",
                      "Default: true")
             .define("enableVillagerChat", true);
+
+        this.showDialogueInChat = builder
+            .comment("Print villager dialogue in the chat box.",
+                     "Turn this off together with bubbles to keep the chat completely clean.",
+                     "If both are off, chat is used as a fallback so nothing is lost.",
+                     "Default: true")
+            .define("showDialogueInChat", true);
+
+        this.showDialogueBubbles = builder
+            .comment("Show villager lines in a speech bubble above their head.",
+                     "Bubbles are drawn by the client, so every player can choose.",
+                     "Default: true")
+            .define("showDialogueBubbles", true);
+
+        this.bubbleSeconds = builder
+            .comment("How long (in seconds) a speech bubble stays on screen.",
+                     "Default: 7")
+            .defineInRange("bubbleSeconds", 7, 2, 30);
 
         this.enableNameplates = builder
             .comment("Draw the mod's own nameplates above villagers and iron golems.",

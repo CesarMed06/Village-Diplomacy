@@ -1,7 +1,9 @@
 package com.cesoti2006.villagediplomacy.client;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.cesoti2006.villagediplomacy.config.VillageDiplomacyConfig;
 
@@ -13,8 +15,8 @@ import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.Item;
@@ -29,6 +31,11 @@ import net.minecraftforge.common.ForgeConfigSpec;
  * Everything here is drawn by the mod itself (no textures, no extra assets). The
  * list scrolls when a tab grows and every number can be typed into directly, so
  * new options do not need a redesign.
+ *
+ * Closing without saving puts every value back the way it was, which is what a
+ * settings screen is expected to do. There is a single "Save and close" button
+ * plus a reset-to-defaults button, and options marked "world" warn that they are
+ * only applied after rejoining the world.
  */
 public class VillageConfigScreen extends Screen {
 
@@ -57,14 +64,20 @@ public class VillageConfigScreen extends Screen {
     private static final int TEXT_DIM = 0xFF98A2AC;
     private static final int TEXT_FAINT = 0xFF7E8995;
     private static final int SAVE_ACCENT = 0xFF6FD98A;
+    private static final int WARN_ACCENT = 0xFFE3B44C;
 
     private final Screen parent;
     private final List<OptionRow> rows = new ArrayList<>();
+    private final Map<String, Integer> snapshotInts = new HashMap<>();
+    private final Map<String, Boolean> snapshotBools = new HashMap<>();
+
+    private boolean snapshotTaken = false;
+    private boolean saved = false;
 
     private int tab = 0;
     private int scroll = 0;
     private int maxScroll = 0;
-    private long savedUntil = 0L;
+    private long resetNoticeUntil = 0L;
 
     private EditBox editing;
     private OptionRow editingRow;
@@ -85,11 +98,17 @@ public class VillageConfigScreen extends Screen {
         rows.clear();
         editing = null;
         editingRow = null;
+        saved = false;
+
+        if (!snapshotTaken && VillageDiplomacyConfig.SPEC.isLoaded()) {
+            captureSnapshot();
+            snapshotTaken = true;
+        }
 
         panelW = Math.min(400, width - 40);
         panelX = width / 2 - panelW / 2;
         panelY = 62;
-        panelH = Math.max(120, height - panelY - 76);
+        panelH = Math.max(120, height - panelY - 84);
 
         int tabGap = 6;
         int tabWidth = Math.min(96, (width - 40 - tabGap * 3) / 4);
@@ -106,15 +125,90 @@ public class VillageConfigScreen extends Screen {
         scroll = 0;
         layoutRows();
 
-        addRenderableWidget(new ProButton(width / 2 - 104, height - 38, 100, 22,
-                Component.translatable("villagediplomacy.config.save"), true));
-        addRenderableWidget(new ProButton(width / 2 + 4, height - 38, 100, 22,
-                CommonComponents.GUI_DONE, false));
+        addRenderableWidget(new ProButton(width / 2 - 108, height - 38, 100, 22,
+                Component.translatable("villagediplomacy.config.reset"), false, this::resetDefaults));
+        addRenderableWidget(new ProButton(width / 2 + 8, height - 38, 116, 22,
+                Component.translatable("villagediplomacy.config.save"), true, this::saveAndClose));
     }
 
     private void rebuild() {
-        clearWidgets();
+        boolean wasSnapshot = snapshotTaken;
         init();
+        snapshotTaken = wasSnapshot;
+    }
+
+    private void captureSnapshot() {
+        snapshotInts.clear();
+        snapshotBools.clear();
+        for (int t = 0; t < 4; t++) {
+            for (Option option : optionsFor(t)) {
+                if (option.toggle() != null) {
+                    snapshotBools.put(option.key(), option.toggle().get());
+                } else if (option.slider() != null) {
+                    snapshotInts.put(option.key(), option.slider().get());
+                }
+            }
+        }
+    }
+
+    private void applySnapshot() {
+        for (int t = 0; t < 4; t++) {
+            for (Option option : optionsFor(t)) {
+                if (option.toggle() != null && snapshotBools.containsKey(option.key())) {
+                    option.toggle().set(snapshotBools.get(option.key()));
+                } else if (option.slider() != null && snapshotInts.containsKey(option.key())) {
+                    option.slider().set(snapshotInts.get(option.key()));
+                }
+            }
+        }
+    }
+
+    private void resetDefaults() {
+        if (!VillageDiplomacyConfig.SPEC.isLoaded()) return;
+        commitEdit();
+        for (int t = 0; t < 4; t++) {
+            for (Option option : optionsFor(t)) {
+                if (option.toggle() != null) {
+                    option.toggle().set(option.defaultToggle());
+                } else if (option.slider() != null) {
+                    option.slider().set(option.defaultSlider());
+                }
+            }
+        }
+        resetNoticeUntil = System.currentTimeMillis() + 2500L;
+    }
+
+    private boolean isDirty() {
+        for (int t = 0; t < 4; t++) {
+            for (Option option : optionsFor(t)) {
+                if (option.toggle() != null && snapshotBools.containsKey(option.key())
+                        && !snapshotBools.get(option.key()).equals(option.toggle().get())) {
+                    return true;
+                }
+                if (option.slider() != null && snapshotInts.containsKey(option.key())
+                        && !snapshotInts.get(option.key()).equals(option.slider().get())) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private boolean reloadChanged() {
+        for (int t = 0; t < 4; t++) {
+            for (Option option : optionsFor(t)) {
+                if (!option.reload()) continue;
+                if (option.toggle() != null && snapshotBools.containsKey(option.key())
+                        && !snapshotBools.get(option.key()).equals(option.toggle().get())) {
+                    return true;
+                }
+                if (option.slider() != null && snapshotInts.containsKey(option.key())
+                        && !snapshotInts.get(option.key()).equals(option.slider().get())) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private void layoutRows() {
@@ -135,27 +229,30 @@ public class VillageConfigScreen extends Screen {
         VillageDiplomacyConfig config = VillageDiplomacyConfig.INSTANCE;
         return switch (tab) {
             case 0 -> List.of(
-                    Option.toggle("enableVillageLife", Items.BELL, config.enableVillageLife),
-                    Option.toggle("enableBellRhythm", Items.CLOCK, config.enableBellRhythm),
-                    Option.toggle("enableMarketDay", Items.EMERALD, config.enableMarketDay),
-                    Option.toggle("enableVillagerChat", Items.BOOK, config.enableVillagerChat));
+                    Option.toggle("enableVillageLife", Items.BELL, config.enableVillageLife, true, false),
+                    Option.toggle("enableBellRhythm", Items.CLOCK, config.enableBellRhythm, true, false),
+                    Option.toggle("enableMarketDay", Items.EMERALD, config.enableMarketDay, true, false),
+                    Option.toggle("enableVillagerChat", Items.BOOK, config.enableVillagerChat, true, false),
+                    Option.toggle("showDialogueInChat", Items.WRITABLE_BOOK, config.showDialogueInChat, true, false),
+                    Option.toggle("showDialogueBubbles", Items.PAPER, config.showDialogueBubbles, true, false),
+                    Option.slider("bubbleSeconds", Items.CLOCK, config.bubbleSeconds, 2, 30, 1, 7, false));
             case 1 -> List.of(
-                    Option.slider("villageEnterRadius", Items.COMPASS, config.villageEnterRadius, 16, 256, 4),
-                    Option.slider("villageExitConfirmRadius", Items.MAP, config.villageExitConfirmRadius, 32, 512, 4),
-                    Option.slider("customVillageRadius", Items.STONE_BRICKS, config.customVillageRadius, 16, 128, 4),
-                    Option.toggle("enableEntryMessages", Items.OAK_SIGN, config.enableEntryMessages),
-                    Option.slider("nameplateRange", Items.SPYGLASS, config.nameplateRange, 8, 48, 2));
+                    Option.slider("villageEnterRadius", Items.COMPASS, config.villageEnterRadius, 16, 256, 4, 80, true),
+                    Option.slider("villageExitConfirmRadius", Items.MAP, config.villageExitConfirmRadius, 32, 512, 4, 120, true),
+                    Option.slider("customVillageRadius", Items.STONE_BRICKS, config.customVillageRadius, 16, 128, 4, 48, false),
+                    Option.toggle("enableEntryMessages", Items.OAK_SIGN, config.enableEntryMessages, true, false),
+                    Option.slider("nameplateRange", Items.SPYGLASS, config.nameplateRange, 8, 48, 2, 20, false));
             case 2 -> List.of(
-                    Option.toggle("enablePersonalities", Items.NAME_TAG, config.enablePersonalities),
-                    Option.toggle("enableGolemPersonalities", Items.IRON_BLOCK, config.enableGolemPersonalities),
-                    Option.toggle("enableNameplates", Items.ITEM_FRAME, config.enableNameplates),
-                    Option.toggle("enableVillageRelations", Items.MAP, config.enableVillageRelations),
-                    Option.toggle("enableGuardAttacks", Items.IRON_SWORD, config.enableGuardAttacks));
+                    Option.toggle("enablePersonalities", Items.NAME_TAG, config.enablePersonalities, true, false),
+                    Option.toggle("enableGolemPersonalities", Items.IRON_BLOCK, config.enableGolemPersonalities, true, false),
+                    Option.toggle("enableNameplates", Items.ITEM_FRAME, config.enableNameplates, true, false),
+                    Option.toggle("enableVillageRelations", Items.MAP, config.enableVillageRelations, true, false),
+                    Option.toggle("enableGuardAttacks", Items.IRON_SWORD, config.enableGuardAttacks, true, true));
             default -> List.of(
-                    Option.slider("reputationDecayPerDay", Items.CLOCK, config.reputationDecayPerDay, 0, 100, 1),
-                    Option.slider("repTrade", Items.EMERALD, config.repTrade, 0, 100, 1),
-                    Option.slider("repKillHostileBase", Items.ROTTEN_FLESH, config.repKillHostileBase, 0, 100, 1),
-                    Option.slider("repKillVillager", Items.IRON_SWORD, config.repKillVillager, -300, 0, 5));
+                    Option.slider("reputationDecayPerDay", Items.CLOCK, config.reputationDecayPerDay, 0, 100, 1, 0, false),
+                    Option.slider("repTrade", Items.EMERALD, config.repTrade, 0, 100, 1, 5, false),
+                    Option.slider("repKillHostileBase", Items.ROTTEN_FLESH, config.repKillHostileBase, 0, 100, 1, 5, false),
+                    Option.slider("repKillVillager", Items.IRON_SWORD, config.repKillVillager, -300, 0, 5, -100, false));
         };
     }
 
@@ -193,10 +290,15 @@ public class VillageConfigScreen extends Screen {
             graphics.fill(barX, thumbY, barX + 3, thumbY + thumbHeight, accent);
         }
 
-        if (System.currentTimeMillis() < savedUntil) {
-            graphics.drawCenteredString(font, Component.translatable("villagediplomacy.config.saved"),
-                    width / 2, height - 70, SAVE_ACCENT);
-        } else if (hasSlider()) {
+        if (System.currentTimeMillis() < resetNoticeUntil) {
+            graphics.drawCenteredString(font, Component.translatable("villagediplomacy.config.reset_done"),
+                    width / 2, height - 84, SAVE_ACCENT);
+        } else if (isDirty()) {
+            graphics.drawCenteredString(font, Component.translatable("villagediplomacy.config.unsaved"),
+                    width / 2, height - 84, WARN_ACCENT);
+        }
+
+        if (editing == null && hasSlider()) {
             graphics.drawCenteredString(font, Component.translatable("villagediplomacy.config.edit_hint"),
                     width / 2, height - 70, TEXT_FAINT);
         }
@@ -265,11 +367,22 @@ public class VillageConfigScreen extends Screen {
                 && mouseY >= widget.getY() && mouseY < widget.getY() + widget.getHeight();
     }
 
-    private void saveSettings() {
+    private void saveAndClose() {
+        commitEdit();
+        if (!VillageDiplomacyConfig.SPEC.isLoaded()) {
+            onClose();
+            return;
+        }
         if (VillageDiplomacyConfig.SPEC.isLoaded()) {
             VillageDiplomacyConfig.SPEC.save();
         }
-        savedUntil = System.currentTimeMillis() + 2500L;
+        boolean reload = reloadChanged();
+        saved = true;
+        if (reload && minecraft != null && minecraft.player != null) {
+            minecraft.player.displayClientMessage(
+                    Component.translatable("villagediplomacy.config.reload_notice"), false);
+        }
+        onClose();
     }
 
     @Override
@@ -341,6 +454,11 @@ public class VillageConfigScreen extends Screen {
     @Override
     public void onClose() {
         commitEdit();
+        // Closing without saving restores the values from when the screen opened,
+        // so "Esc" can never silently change the config.
+        if (!saved) {
+            applySnapshot();
+        }
         if (minecraft != null) {
             minecraft.setScreen(parent);
         }
@@ -360,15 +478,24 @@ public class VillageConfigScreen extends Screen {
     }
 
     private record Option(String key, ItemStack icon, ForgeConfigSpec.BooleanValue toggle,
-                          ForgeConfigSpec.IntValue slider, int min, int max, int step) {
+                          ForgeConfigSpec.IntValue slider, int min, int max, int step,
+                          boolean defaultToggle, int defaultSlider, boolean reload) {
 
-        static Option toggle(String key, Item icon, ForgeConfigSpec.BooleanValue value) {
-            return new Option(key, new ItemStack(icon), value, null, 0, 0, 1);
+        static Option toggle(String key, Item icon, ForgeConfigSpec.BooleanValue value,
+                             boolean defaultValue, boolean reload) {
+            return new Option(key, new ItemStack(icon), value, null, 0, 0, 1, defaultValue, 0, reload);
         }
 
         static Option slider(String key, Item icon, ForgeConfigSpec.IntValue value,
-                             int min, int max, int step) {
-            return new Option(key, new ItemStack(icon), null, value, min, max, step);
+                             int min, int max, int step, int defaultValue, boolean reload) {
+            return new Option(key, new ItemStack(icon), null, value, min, max, step, false, defaultValue, reload);
+        }
+
+        String defaultText() {
+            if (toggle != null) {
+                return Component.translatable(defaultToggle ? "options.on" : "options.off").getString();
+            }
+            return String.valueOf(defaultSlider);
         }
     }
 
@@ -493,9 +620,15 @@ public class VillageConfigScreen extends Screen {
                     hover ? ROW_BG_HOVER : ROW_BG, hover ? accent : ROW_BORDER);
 
             graphics.renderItem(option.icon(), x + 7, y + 4);
-            graphics.drawString(font,
-                    Component.translatable("villagediplomacy.config.option." + option.key()),
-                    x + 29, y + 4, TEXT, false);
+            MutableComponent label = Component.translatable("villagediplomacy.config.option." + option.key());
+            graphics.drawString(font, label, x + 29, y + 4, TEXT, false);
+
+            if (option.reload()) {
+                int labelEnd = x + 29 + font.width(label) + 5;
+                graphics.drawString(font,
+                        Component.translatable("villagediplomacy.config.world_tag"),
+                        labelEnd, y + 4, TEXT_FAINT, false);
+            }
 
             boolean on = valueOn();
             int chipW = chipWidth();
@@ -520,10 +653,13 @@ public class VillageConfigScreen extends Screen {
         }
 
         private void renderTooltip(GuiGraphics graphics, int mouseX, int mouseY) {
-            graphics.renderTooltip(font,
-                    Component.translatable("villagediplomacy.config.desc." + option.key())
-                            .withStyle(ChatFormatting.GRAY),
-                    mouseX, mouseY);
+            MutableComponent tip = Component
+                    .translatable("villagediplomacy.config.desc." + option.key())
+                    .withStyle(ChatFormatting.GRAY);
+            tip.append(Component.literal("\n")).append(Component
+                    .translatable("villagediplomacy.config.default", option.defaultText())
+                    .withStyle(ChatFormatting.DARK_GRAY));
+            graphics.renderTooltip(font, tip, mouseX, mouseY);
         }
 
         private double fraction() {
@@ -548,10 +684,13 @@ public class VillageConfigScreen extends Screen {
     private final class ProButton extends AbstractWidget {
 
         private final boolean primary;
+        private final Runnable action;
 
-        private ProButton(int x, int y, int width, int height, Component message, boolean primary) {
+        private ProButton(int x, int y, int width, int height, Component message,
+                          boolean primary, Runnable action) {
             super(x, y, width, height, message);
             this.primary = primary;
+            this.action = action;
         }
 
         @Override
@@ -571,11 +710,7 @@ public class VillageConfigScreen extends Screen {
         public boolean mouseClicked(double mouseX, double mouseY, int button) {
             if (button != 0 || !active || !visible || !isMouseOver(mouseX, mouseY)) return false;
             playDownSound(Minecraft.getInstance().getSoundManager());
-            if (primary) {
-                saveSettings();
-            } else {
-                onClose();
-            }
+            action.run();
             return true;
         }
 

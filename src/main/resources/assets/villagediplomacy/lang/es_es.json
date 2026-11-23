@@ -2751,7 +2751,8 @@
   "villagediplomacy.life.chat.danger.strange.0": "¿Qué es eso? ¡Cuidado con ese %s!",
   "villagediplomacy.life.chat.danger.strange.1": "Eso no es de por aquí... ¡Aléjate, %s!",
   "villagediplomacy.life.chat.danger.strange.2": "No sé qué es %s, pero no me gusta nada.",
-  "villagediplomacy.react.inn.nobody.0": "Hoy no hay posadero en la posada. La cama es tuya.",
-  "villagediplomacy.react.inn.nobody.1": "Nadie lleva la posada esta noche. Duerme, que mañana hay faena.",
-  "villagediplomacy.react.inn.nobody.2": "No veo al posadero. Si nadie te ve, nadie te cobra."
+  "villagediplomacy.react.inn.nobody.0": "Nadie lleva la cuenta esta noche. La cama es tuya.",
+  "villagediplomacy.react.inn.nobody.1": "La posada está tranquila. Duerme, que mañana hay faena.",
+  "villagediplomacy.react.inn.nobody.2": "Hoy nadie mira el libro de huéspedes. Descansa.",
+  "villagediplomacy.mood.calm": "Tranquilo"
 }

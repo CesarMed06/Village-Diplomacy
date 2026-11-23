@@ -30,8 +30,8 @@ public final class ModLang {
     private static final ChatFormatting COLOR_REP_NEGATIVE   = ChatFormatting.RED;
     private static final ChatFormatting COLOR_REP_TIER       = ChatFormatting.AQUA;
     private static final ChatFormatting COLOR_BRACKET        = ChatFormatting.DARK_GRAY;
-    private static final ChatFormatting COLOR_NAME_INNKEEPER = ChatFormatting.LIGHT_PURPLE;
-    private static final ChatFormatting COLOR_INNKEEPER_TAG  = ChatFormatting.AQUA;
+    private static final ChatFormatting COLOR_NAME_INNKEEPER = ChatFormatting.WHITE;
+    private static final ChatFormatting COLOR_INNKEEPER_TAG  = ChatFormatting.GOLD;
     private static final ChatFormatting COLOR_GOLEM_TAG      = ChatFormatting.DARK_AQUA;
     private static final ChatFormatting COLOR_GOLEM_NAME     = ChatFormatting.AQUA;
     private static final ChatFormatting COLOR_PROFESSION_DEFAULT = ChatFormatting.GRAY;
@@ -185,7 +185,9 @@ public final class ModLang {
         PersonalityTrait courage = personality.getCourage();
         if (courage == PersonalityTrait.BRAVE || courage == PersonalityTrait.FEARLESS) return "proud";
 
-        return null;
+        // Neutral traits (the unemployed included) still deserve a mood line
+        // under the name instead of an empty gap.
+        return "calm";
     }
 
     public static String randomLineKey(RandomSource random, String keyPrefix, int fallback) {

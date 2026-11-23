@@ -77,6 +77,7 @@ public class VillageConfigScreen extends Screen {
 
     private boolean snapshotTaken = false;
     private boolean saved = false;
+    private boolean worldChanged = false;
 
     private int tab = 0;
     private int scroll = 0;
@@ -151,6 +152,7 @@ public class VillageConfigScreen extends Screen {
     private void captureSnapshot() {
         snapshotInts.clear();
         snapshotBools.clear();
+        worldChanged = false;
         for (int t = 0; t < 4; t++) {
             for (Option option : optionsFor(t)) {
                 if (option.toggle() != null) {
@@ -186,7 +188,28 @@ public class VillageConfigScreen extends Screen {
                 }
             }
         }
+        for (int t = 0; t < 4; t++) {
+            for (Option option : optionsFor(t)) {
+                if (option.reload() && snapshotUnchanged(option)) {
+                    continue;
+                }
+                if (option.reload()) {
+                    worldChanged = true;
+                }
+            }
+        }
         resetNoticeUntil = System.currentTimeMillis() + 2500L;
+    }
+
+    /** True while an option still holds the value it had when the screen opened. */
+    private boolean snapshotUnchanged(Option option) {
+        if (option.toggle() != null && snapshotBools.containsKey(option.key())) {
+            return snapshotBools.get(option.key()).equals(option.toggle().get());
+        }
+        if (option.slider() != null && snapshotInts.containsKey(option.key())) {
+            return snapshotInts.get(option.key()).equals(option.slider().get());
+        }
+        return true;
     }
 
     private boolean isDirty() {
@@ -305,8 +328,15 @@ public class VillageConfigScreen extends Screen {
             graphics.drawCenteredString(font, Component.translatable("villagediplomacy.config.reset_done"),
                     width / 2, height - 84, SAVE_ACCENT);
         } else if (isDirty()) {
-            graphics.drawCenteredString(font, Component.translatable("villagediplomacy.config.unsaved"),
-                    width / 2, height - 84, WARN_ACCENT);
+            // Kept out of the list: drawn on the title row, right side, where it
+            // cannot cover an option or the tabs.
+            Component unsaved = Component.translatable("villagediplomacy.config.unsaved");
+            int unsavedWidth = font.width(unsaved);
+            int titleRight = width / 2 + font.width(title) / 2;
+            int unsavedX = width - unsavedWidth - 8;
+            if (unsavedX > titleRight + 12) {
+                graphics.drawString(font, unsaved, unsavedX, 16, WARN_ACCENT, false);
+            }
         }
 
         if (editing == null && hasSlider()) {
@@ -392,7 +422,9 @@ public class VillageConfigScreen extends Screen {
             return;
         }
         VillageDiplomacyConfig.SPEC.save();
-        boolean reload = reloadChanged();
+        // Only ask for a rejoin when a world-restart option really changed in
+        // this session, not because the config file was written.
+        boolean reload = worldChanged;
         saved = true;
         if (reload && minecraft != null && minecraft.player != null) {
             minecraft.setScreen(new ReloadNoticeScreen(parent));
@@ -591,6 +623,7 @@ public class VillageConfigScreen extends Screen {
 
             if (option.toggle() != null) {
                 option.toggle().set(!option.toggle().get());
+                if (option.reload()) worldChanged = true;
                 return true;
             }
             if (mouseX >= chipX() - 2) {
@@ -678,18 +711,23 @@ public class VillageConfigScreen extends Screen {
                 textWidth = Math.max(textWidth, font.width(line));
             }
 
-            int boxWidth = textWidth + 14;
-            int boxHeight = desc.size() * 10 + 22;
-            int tooltipX = Mth.clamp(mouseX + 12, 4, width - boxWidth - 4);
-            int tooltipY = Mth.clamp(mouseY - 10, 4, height - boxHeight - 4);
+            int boxWidth = textWidth + 16;
+            int boxHeight = desc.size() * 10 + 25;
+            int tooltipX = Mth.clamp(mouseX + 12, 6, Math.max(6, width - boxWidth - 6));
+            int below = mouseY + 14;
+            int above = mouseY - boxHeight - 12;
+            int tooltipY = (below + boxHeight <= height - 8)
+                    ? below
+                    : Math.max(34, above);
+            tooltipY = Mth.clamp(tooltipY, 34, Math.max(34, height - boxHeight - 8));
 
             roundedBox(graphics, tooltipX, tooltipY, boxWidth, boxHeight, 0xF2101418, accent);
-            int lineY = tooltipY + 6;
+            int lineY = tooltipY + 8;
             for (FormattedCharSequence line : desc) {
-                graphics.drawString(font, line, tooltipX + 7, lineY, 0xFFD7DEE6, false);
+                graphics.drawString(font, line, tooltipX + 8, lineY, 0xFFD7DEE6, false);
                 lineY += 10;
             }
-            graphics.drawString(font, def, tooltipX + 7, lineY + 2, TEXT_FAINT, false);
+            graphics.drawString(font, def, tooltipX + 8, lineY + 3, TEXT_FAINT, false);
         }
 
         private double fraction() {
@@ -708,6 +746,7 @@ public class VillageConfigScreen extends Screen {
             int step = Math.max(1, option.step());
             int snapped = Math.round((float) raw / step) * step;
             option.slider().set(Mth.clamp(snapped, option.min(), option.max()));
+            if (option.reload()) worldChanged = true;
         }
     }
 

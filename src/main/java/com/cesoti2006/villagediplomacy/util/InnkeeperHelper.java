@@ -48,6 +48,16 @@ public final class InnkeeperHelper {
             }
         }
 
+        // The registration may live under another village id (villages get split
+        // and merged). Any villager registered as an innkeeper wins before a new
+        // one is chosen, otherwise the innkeeper would switch on every visit.
+        for (Villager v : villagers) {
+            if (relData.isInnkeeper(v.getUUID())) {
+                relData.setInnkeeperUUID(villageId, v.getUUID());
+                return v;
+            }
+        }
+
         Villager best = selectBestInnkeeper(villagers, level, villagePos);
         if (best != null) {
             relData.setInnkeeperUUID(villageId, best.getUUID());

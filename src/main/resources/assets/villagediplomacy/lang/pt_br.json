@@ -2751,7 +2751,8 @@
   "villagediplomacy.life.chat.danger.strange.0": "O que é isso? Cuidado com esse %s!",
   "villagediplomacy.life.chat.danger.strange.1": "Isso não é daqui... afaste-se, %s!",
   "villagediplomacy.life.chat.danger.strange.2": "Não sei o que é %s, mas não gosto nada disso.",
-  "villagediplomacy.react.inn.nobody.0": "Hoje não há estalajadeiro. A cama é sua.",
-  "villagediplomacy.react.inn.nobody.1": "Ninguém cuida da estalagem esta noite. Durma, amanhã há muito que fazer.",
-  "villagediplomacy.react.inn.nobody.2": "Não vejo o estalajadeiro. Se ninguém te vê, ninguém te cobra."
+  "villagediplomacy.react.inn.nobody.0": "Hoje ninguém olha o livro de hóspedes. A cama é sua.",
+  "villagediplomacy.react.inn.nobody.1": "A estalagem está tranquila. Durma, amanhã há muito que fazer.",
+  "villagediplomacy.react.inn.nobody.2": "Ninguém está a ver o livro de hóspedes. Descansa.",
+  "villagediplomacy.mood.calm": "Calmo"
 }

@@ -2751,7 +2751,8 @@
   "villagediplomacy.life.chat.danger.strange.0": "What is that? Watch out for that %s!",
   "villagediplomacy.life.chat.danger.strange.1": "That thing is not from around here... stay back, %s!",
   "villagediplomacy.life.chat.danger.strange.2": "I do not know what %s is, but I do not like it one bit.",
-  "villagediplomacy.react.inn.nobody.0": "No innkeeper tonight. The bed is yours.",
-  "villagediplomacy.react.inn.nobody.1": "Nobody is running the inn tonight. Sleep, tomorrow is a busy day.",
-  "villagediplomacy.react.inn.nobody.2": "I don't see the innkeeper. If nobody sees you, nobody charges you."
+  "villagediplomacy.react.inn.nobody.0": "Nobody is keeping the ledger tonight. The bed is yours.",
+  "villagediplomacy.react.inn.nobody.1": "The inn is quiet. Sleep, tomorrow is a busy day.",
+  "villagediplomacy.react.inn.nobody.2": "Nobody is watching the guest book today. Rest.",
+  "villagediplomacy.mood.calm": "Calm"
 }

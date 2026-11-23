@@ -2751,7 +2751,8 @@
   "villagediplomacy.life.chat.danger.strange.0": "Что это такое? Берегись, это %s!",
   "villagediplomacy.life.chat.danger.strange.1": "Эта штука не отсюда... отойди, %s!",
   "villagediplomacy.life.chat.danger.strange.2": "Не знаю, что такое %s, но мне это совсем не нравится.",
-  "villagediplomacy.react.inn.nobody.0": "Сегодня в гостинице нет хозяина. Кровать твоя.",
-  "villagediplomacy.react.inn.nobody.1": "Сегодня гостиницей никто не занимается. Спи, завтра много дел.",
-  "villagediplomacy.react.inn.nobody.2": "Я не вижу хозяина гостиницы. Если никто не увидит, никто и не возьмёт плату."
+  "villagediplomacy.react.inn.nobody.0": "Сегодня никто не ведёт книгу постояльцев. Кровать твоя.",
+  "villagediplomacy.react.inn.nobody.1": "В гостинице тихо. Спи, завтра много дел.",
+  "villagediplomacy.react.inn.nobody.2": "Сегодня книгу постояльцев никто не смотрит. Отдыхай.",
+  "villagediplomacy.mood.calm": "Спокоен"
 }

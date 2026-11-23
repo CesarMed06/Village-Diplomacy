@@ -1976,6 +1976,11 @@ public class VillagerEventHandler {
 
             if (InnkeeperHelper.isInnBed(level, bedPos, villagePos)) {
                 Villager innkeeper = InnkeeperHelper.findInnkeeper(level, villagePos);
+                if (innkeeper == null) {
+                    // The village anchor and the bed can resolve to different ids;
+                    // retry from the bed so the tagged innkeeper is not skipped.
+                    innkeeper = InnkeeperHelper.findInnkeeper(level, bedPos);
+                }
                 handleInnSleep(event, player, level, bedPos, innkeeper, reputation);
                 return;
             }

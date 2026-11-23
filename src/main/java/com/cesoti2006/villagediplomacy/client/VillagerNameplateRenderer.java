@@ -45,9 +45,9 @@ import java.util.Map;
 public final class VillagerNameplateRenderer {
 
     private static final int BUBBLE_MAX_WIDTH = 112;
-    private static final int BUBBLE_TEXT = 0xFF23262B;
-    private static final int BUBBLE_FILL = 0xFFF7F3E6;
-    private static final int BUBBLE_EDGE = 0xFF16181C;
+    private static final int BUBBLE_TEXT = 0xFF1A1D21;
+    private static final int BUBBLE_FILL = 0xFFFBF7EA;
+    private static final int BUBBLE_EDGE = 0xFF121417;
 
     /** Wrapped layout, cached per line so it does not have to be measured each frame. */
     private record BubbleLayout(List<String> lines, int width, int chars) {
@@ -182,19 +182,23 @@ public final class VillagerNameplateRenderer {
 
         // Different depths per layer: drawing border and fill on the same plane
         // is what made the old box shimmer while the camera moved.
+        // Every layer sits on the same plane: the earlier offset made the fill
+        // fail the depth test against the border, so the whole bubble rendered in
+        // the border colour and the text was almost invisible. With equal depths
+        // the draw order is deterministic and nothing shimmers.
         roundedRect(buffers, matrix, left, top, left + width, top + height, 3, edge, 0.0F, light);
         roundedRect(buffers, matrix, left + 1, top + 1, left + width - 1, top + height - 1, 2,
-                fill, 0.01F, light);
+                fill, 0.0F, light);
 
         // Tail: a dark triangle under the box with a lighter one inside.
         triangle(buffers, matrix, -5.5F, tailBase - 1, 5.5F, tailBase - 1, 0.0F, tailTip + 1,
                 edge, 0.0F, light);
         triangle(buffers, matrix, -4.0F, tailBase - 1, 4.0F, tailBase - 1, 0.0F, tailTip - 1,
-                fill, 0.008F, light);
+                fill, 0.0F, light);
 
         // A thin accent line keeps the speaker's colour visible without staining
         // the whole bubble.
-        rect(buffers, matrix, left + 4, top + 1.5F, left + width - 4, top + 2.5F, accent, 0.02F, light);
+        rect(buffers, matrix, left + 4, top + 1.5F, left + width - 4, top + 2.5F, accent, 0.0F, light);
 
         int textAlpha = alpha << 24;
         int textColor = textAlpha | (BUBBLE_TEXT & 0x00FFFFFF);
@@ -332,8 +336,8 @@ public final class VillagerNameplateRenderer {
 
         if (identity.innkeeper()) {
             label = Component.translatable("villagediplomacy.tag.innkeeper");
-            labelColor = ChatFormatting.AQUA;
-            nameColor = ChatFormatting.LIGHT_PURPLE;
+            labelColor = ChatFormatting.GOLD;
+            nameColor = ChatFormatting.WHITE;
         } else {
             label = ModLang.professionName(villager.getVillagerData().getProfession());
             labelColor = ModLang.professionColor(villager.getVillagerData().getProfession());

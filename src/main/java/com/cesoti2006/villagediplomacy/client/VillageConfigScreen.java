@@ -339,18 +339,49 @@ public class VillageConfigScreen extends Screen {
             }
         }
 
-        if (editing == null && hasSlider()) {
-            graphics.drawCenteredString(font, Component.translatable("villagediplomacy.config.edit_hint"),
-                    width / 2, height - 70, TEXT_FAINT);
-        }
-        graphics.drawCenteredString(font, Component.translatable("villagediplomacy.config.restart"),
-                width / 2, height - 57, TEXT_DIM);
-
         super.render(graphics, mouseX, mouseY, partialTick);
 
-        if (hovered != null && editing == null) {
-            hovered.renderTooltip(graphics, mouseX, mouseY);
+        // The description gets its own strip under the list: a floating tooltip
+        // covered the option it described and the tabs above it, and its
+        // background let the list show through.
+        renderInfoStrip(graphics, hovered);
+    }
+
+    /**
+     * Permanent info strip in the gap between the panel and the buttons. While
+     * an option is hovered it shows that option's description; otherwise it
+     * shows the screen hints. Nothing is ever covered by it.
+     */
+    private void renderInfoStrip(GuiGraphics graphics, OptionRow hovered) {
+        int stripY = panelY + panelH + 4;
+        int stripH = Math.max(24, height - 42 - stripY);
+        boolean describe = hovered != null && editing == null;
+        roundedBox(graphics, panelX, stripY, panelW, stripH,
+                0xFF101418, describe ? TAB_ACCENTS[tab] : PANEL_BORDER);
+
+        if (describe) {
+            List<FormattedCharSequence> lines = new ArrayList<>(font.split(
+                    Component.translatable("villagediplomacy.config.desc." + hovered.option.key()),
+                    panelW - 16));
+            lines.add(Component.translatable("villagediplomacy.config.default",
+                    hovered.option.defaultText()).getVisualOrderText());
+            int y = stripY + 5;
+            for (FormattedCharSequence line : lines) {
+                if (y + 9 > stripY + stripH) break;
+                graphics.drawString(font, line, panelX + 8, y, 0xFFD7DEE6, false);
+                y += 10;
+            }
+            return;
         }
+
+        int y = stripY + 5;
+        if (editing == null && hasSlider()) {
+            graphics.drawCenteredString(font, Component.translatable("villagediplomacy.config.edit_hint"),
+                    panelX + panelW / 2, y, TEXT_FAINT);
+            y += 11;
+        }
+        graphics.drawCenteredString(font, Component.translatable("villagediplomacy.config.restart"),
+                panelX + panelW / 2, y, TEXT_DIM);
     }
 
     private boolean hasSlider() {
@@ -699,35 +730,6 @@ public class VillageConfigScreen extends Screen {
                 int knobX = Mth.clamp(trackX + filled, trackX, trackX + trackWidth);
                 graphics.fill(knobX - 1, trackY - 2, knobX + 1, trackY + 4, 0xFFFFFFFF);
             }
-        }
-
-        private void renderTooltip(GuiGraphics graphics, int mouseX, int mouseY) {
-            List<FormattedCharSequence> desc = font.split(
-                    Component.translatable("villagediplomacy.config.desc." + option.key()), 186);
-            Component def = Component.translatable("villagediplomacy.config.default", option.defaultText());
-
-            int textWidth = font.width(def);
-            for (FormattedCharSequence line : desc) {
-                textWidth = Math.max(textWidth, font.width(line));
-            }
-
-            int boxWidth = textWidth + 16;
-            int boxHeight = desc.size() * 10 + 25;
-            int tooltipX = Mth.clamp(mouseX + 12, 6, Math.max(6, width - boxWidth - 6));
-            int below = mouseY + 14;
-            int above = mouseY - boxHeight - 12;
-            int tooltipY = (below + boxHeight <= height - 8)
-                    ? below
-                    : Math.max(34, above);
-            tooltipY = Mth.clamp(tooltipY, 34, Math.max(34, height - boxHeight - 8));
-
-            roundedBox(graphics, tooltipX, tooltipY, boxWidth, boxHeight, 0xF2101418, accent);
-            int lineY = tooltipY + 8;
-            for (FormattedCharSequence line : desc) {
-                graphics.drawString(font, line, tooltipX + 8, lineY, 0xFFD7DEE6, false);
-                lineY += 10;
-            }
-            graphics.drawString(font, def, tooltipX + 8, lineY + 3, TEXT_FAINT, false);
         }
 
         private double fraction() {

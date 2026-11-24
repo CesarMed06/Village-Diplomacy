@@ -1974,13 +1974,18 @@ public class VillagerEventHandler {
             BlockPos villagePos = nearestVillage.get();
             int reputation = data.getReputation(player.getUUID(), villagePos);
 
-            if (InnkeeperHelper.isInnBed(level, bedPos, villagePos)) {
-                Villager innkeeper = InnkeeperHelper.findInnkeeper(level, villagePos);
-                if (innkeeper == null) {
-                    // The village anchor and the bed can resolve to different ids;
-                    // retry from the bed so the tagged innkeeper is not skipped.
-                    innkeeper = InnkeeperHelper.findInnkeeper(level, bedPos);
-                }
+            // Resolve the owner first: the bed he sleeps in is the inn bed even
+            // when the anchor scan around the village centre finds no bed. That
+            // miss used to send the player down the normal bed path, where
+            // sleeping costs nothing unless someone sees it.
+            Villager innkeeper = InnkeeperHelper.findInnkeeper(level, villagePos);
+            if (innkeeper == null) {
+                // The village anchor and the bed can resolve to different ids;
+                // retry from the bed so the tagged innkeeper is not skipped.
+                innkeeper = InnkeeperHelper.findInnkeeper(level, bedPos);
+            }
+            if (InnkeeperHelper.isInnBed(level, bedPos, villagePos)
+                    || InnkeeperHelper.isBedOf(level, bedPos, innkeeper)) {
                 handleInnSleep(event, player, level, bedPos, innkeeper, reputation);
                 return;
             }
@@ -2091,39 +2096,39 @@ public class VillagerEventHandler {
             return;
         }
 
-        // If the innkeeper is asleep, busy or simply cannot see the door, you can
-        // slip into his bed for free. He only charges when he actually catches you.
-        boolean unseen = innkeeper == null
-                || innkeeper.distanceToSqr(player) > 100.0D
-                || !hasLineOfSight(innkeeper, player, level);
-        if (unseen) {
+        // The inn is a paid service. It used to be free when the owner was asleep,
+        // busy or facing away, which let the same player sleep twice without
+        // paying; now the room is charged whoever is looking.
+        if (reputation >= 100) {
             if (innkeeper != null) {
-                ModLang.sendDialogRandom(player, level.getRandom(), innkeeper,
-                        "villagediplomacy.react.inn.sneak", 3);
-            } else {
-                // No registered innkeeper: say so instead of letting the player
-                // sleep in complete silence and wonder whether anyone noticed.
-                ModLang.sendVillagerRandom(player, level.getRandom(),
-                        "villagediplomacy.react.inn.nobody", 3);
+                sendInnDialog(player, level.getRandom(), innkeeper,
+                        "villagediplomacy.react.inn.free", 3);
             }
             return;
         }
 
-        if (reputation >= 100) {
-            sendInnDialog(player, level.getRandom(), innkeeper,
-                    "villagediplomacy.react.inn.free", 3);
-            return;
-        }
-
         if (takeEmeralds(player, 1)) {
-            sendInnDialog(player, level.getRandom(), innkeeper,
-                    "villagediplomacy.react.inn.paid", 3);
+            if (innkeeper != null) {
+                sendInnDialog(player, level.getRandom(), innkeeper,
+                        "villagediplomacy.react.inn.paid", 3);
+            } else {
+                // No registered owner: the village still runs the room, so it is
+                // paid, but nobody speaks for it.
+                ModLang.sendVillagerRandom(player, level.getRandom(),
+                        "villagediplomacy.react.inn.nobody", 3);
+            }
+            // Make the payment visible immediately instead of waiting for the
+            // next inventory sync.
+            player.getInventory().setChanged();
+            player.containerMenu.broadcastChanges();
             player.sendSystemMessage(Component.translatable("villagediplomacy.sys.inn_paid")
                     .withStyle(ChatFormatting.GOLD));
         } else {
             event.setResult(net.minecraft.world.entity.player.Player.BedSleepingProblem.OTHER_PROBLEM);
-            sendInnDialog(player, level.getRandom(), innkeeper,
-                    "villagediplomacy.react.inn.denied", 3);
+            if (innkeeper != null) {
+                sendInnDialog(player, level.getRandom(), innkeeper,
+                        "villagediplomacy.react.inn.denied", 3);
+            }
             player.sendSystemMessage(Component.translatable("villagediplomacy.sys.inn_denied")
                     .withStyle(ChatFormatting.RED));
         }

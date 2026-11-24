@@ -42,6 +42,21 @@ public final class InnkeeperHelper {
         String villageId = relData.getVillageId(villagePos);
         UUID stored = relData.getInnkeeperUUID(villageId);
 
+        // The inn is the bed closest to the village centre, so the villager who
+        // sleeps in that bed is the innkeeper. Checking this before the stored
+        // id repairs villages where the old pick was an arbitrary villager with
+        // no bed at all.
+        BlockPos anchor = getInnAnchor(level, villagePos);
+        if (anchor != null) {
+            for (Villager v : villagers) {
+                BlockPos home = getHomeBed(level, v);
+                if (home != null && home.equals(anchor)) {
+                    relData.setInnkeeperUUID(villageId, v.getUUID());
+                    return v;
+                }
+            }
+        }
+
         if (stored != null) {
             for (Villager v : villagers) {
                 if (v.getUUID().equals(stored)) return v;
@@ -74,7 +89,10 @@ public final class InnkeeperHelper {
 
         for (Villager v : villagers) {
             BlockPos home = getHomeBed(level, v);
-            double dist = (home != null) ? home.distSqr(villagePos) : Double.MAX_VALUE;
+            // Villagers without a bed still have to be ordered by something
+            // meaningful: distance to the village centre, not their UUID.
+            double dist = (home != null) ? home.distSqr(villagePos)
+                    : v.blockPosition().distSqr(villagePos) + 1.0E6D;
             int lvl = v.getVillagerData().getLevel();
             UUID uuid = v.getUUID();
 
@@ -104,6 +122,34 @@ public final class InnkeeperHelper {
             anchorCache.remove(villagePos);
         }
 
+        // The beds villagers actually sleep in are the village's beds. Reading
+        // them from the villagers works on hills and terraces, where scanning
+        // around the height of the village centre missed every house and left
+        // the village without an inn (no innkeeper, free beds).
+        BlockPos best = null;
+        double bestDist = Double.MAX_VALUE;
+        for (Villager v : level.getEntitiesOfClass(Villager.class,
+                new AABB(villagePos).inflate(SEARCH_RADIUS, SEARCH_RADIUS, SEARCH_RADIUS),
+                v -> !v.isRemoved() && v.isAlive())) {
+            BlockPos bed = getHomeBed(level, v);
+            if (bed == null) continue;
+            double dist = bed.distSqr(villagePos);
+            if (dist < bestDist) {
+                bestDist = dist;
+                best = bed;
+            }
+        }
+
+        if (best == null) {
+            best = scanForBed(level, villagePos);
+        }
+
+        anchorCache.put(villagePos, best != null ? best : NO_BEDS);
+        return best;
+    }
+
+    /** Last resort: any bed near the centre, around the surface height. */
+    private static BlockPos scanForBed(ServerLevel level, BlockPos villagePos) {
         int cx = villagePos.getX();
         int cz = villagePos.getZ();
         int surfaceY = level.getHeight(Heightmap.Types.MOTION_BLOCKING, cx, cz);
@@ -128,8 +174,14 @@ public final class InnkeeperHelper {
             }
         }
 
-        anchorCache.put(villagePos, best != null ? best : NO_BEDS);
         return best;
+    }
+
+    /** True when the bed is the one the innkeeper actually sleeps in. */
+    public static boolean isBedOf(ServerLevel level, BlockPos bedPos, Villager villager) {
+        if (villager == null) return false;
+        BlockPos home = getHomeBed(level, villager);
+        return home != null && home.distSqr(bedPos) <= 4.0D;
     }
 
     public static boolean isInnkeeper(ServerLevel level, Villager villager) {

@@ -172,7 +172,10 @@ public final class VillagerNameplateRenderer {
         MultiBufferSource buffers = event.getMultiBufferSource();
         int light = event.getPackedLight();
         int edge = (alpha << 24) | (BUBBLE_EDGE & 0x00FFFFFF);
-        int fill = (Math.min(alpha, 242) << 24) | (BUBBLE_FILL & 0x00FFFFFF);
+        // Full alpha: leaving the fill slightly transparent let the wheat, the
+        // terrain and the other villagers show through it, which is what read as
+        // black stripes across the text while walking.
+        int fill = (alpha << 24) | (BUBBLE_FILL & 0x00FFFFFF);
         int accent = (alpha << 24) | (bubble.accent() & 0x00FFFFFF);
 
         // Pop-in: the bubble grows a little during the first ticks of its life.
@@ -180,12 +183,10 @@ public final class VillagerNameplateRenderer {
         float scale = 0.86F + 0.14F * pop;
         poseStack.scale(scale, scale, 1.0F);
 
-        // Different depths per layer: drawing border and fill on the same plane
-        // is what made the old box shimmer while the camera moved.
-        // Every layer sits on the same plane: the earlier offset made the fill
-        // fail the depth test against the border, so the whole bubble rendered in
-        // the border colour and the text was almost invisible. With equal depths
-        // the draw order is deterministic and nothing shimmers.
+        // Every layer is drawn without depth testing (see-through variants), so
+        // the submission order decides and the bubble can never fight with the
+        // terrain, the grass or its own border. Depth testing at a single plane
+        // was what drew the stripes while the camera moved.
         roundedRect(buffers, matrix, left, top, left + width, top + height, 3, edge, 0.0F, light);
         roundedRect(buffers, matrix, left + 1, top + 1, left + width - 1, top + height - 1, 2,
                 fill, 0.0F, light);
@@ -211,7 +212,7 @@ public final class VillagerNameplateRenderer {
             String shown = DialogueBubbles.reveal(line, visible);
             int lineWidth = font.width(DialogueBubbles.styled(shown));
             font.drawInBatch(DialogueBubbles.styled(shown), -lineWidth / 2.0F, y, textColor, false,
-                    matrix, buffers, Font.DisplayMode.NORMAL, 0, light);
+                    matrix, buffers, Font.DisplayMode.SEE_THROUGH, 0, light);
 
             if (!blipped && visible < DialogueBubbles.plainLength(line)) {
                 blipped = true;
@@ -304,7 +305,7 @@ public final class VillagerNameplateRenderer {
 
     private static void rect(MultiBufferSource buffers, Matrix4f matrix,
                              float x0, float y0, float x1, float y1, int argb, float z, int light) {
-        VertexConsumer consumer = buffers.getBuffer(RenderType.textBackground());
+        VertexConsumer consumer = buffers.getBuffer(RenderType.textBackgroundSeeThrough());
         put(consumer, matrix, x0, y1, z, argb, light);
         put(consumer, matrix, x1, y1, z, argb, light);
         put(consumer, matrix, x1, y0, z, argb, light);
@@ -314,7 +315,7 @@ public final class VillagerNameplateRenderer {
     private static void triangle(MultiBufferSource buffers, Matrix4f matrix,
                                  float x0, float y0, float x1, float y1, float xTip, float yTip,
                                  int argb, float z, int light) {
-        VertexConsumer consumer = buffers.getBuffer(RenderType.textBackground());
+        VertexConsumer consumer = buffers.getBuffer(RenderType.textBackgroundSeeThrough());
         put(consumer, matrix, x0, y0, z, argb, light);
         put(consumer, matrix, x1, y1, z, argb, light);
         put(consumer, matrix, xTip, yTip, z, argb, light);
